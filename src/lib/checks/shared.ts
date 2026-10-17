@@ -1,4 +1,4 @@
-// Helpers shared by the six checks. Pure. Values only count when `isUsable` (confirmed or edited).
+// Helpers shared by the checks. Pure. Values only count when `isUsable` (confirmed or edited).
 import { entryLabel, isUsable } from "@/lib/domain/fields";
 import { normalizeIngredient } from "@/lib/domain/ingredients";
 import type {
@@ -35,8 +35,8 @@ export function sourceLabel(entry: MedicationEntry): string {
 }
 
 /**
- * The source as a pharmacist question would say it: "the discharge list", "the bottle label", …
- * A value the user typed is "for the bottle", not "the bottle label".
+ * The source as a sentence would say it: "the discharge list", "the package label", …
+ * A value the user typed is "for the package", not "the package label".
  */
 export function sourcePhrase(entry: MedicationEntry, from: Provenance = "label"): string {
   switch (documentClass(entry)) {
@@ -44,8 +44,8 @@ export function sourcePhrase(entry: MedicationEntry, from: Provenance = "label")
       return "the prescription label";
     case "discharge_list":
       return "the discharge list";
-    case "bottle":
-      return from === "label" ? "the bottle label" : "the bottle";
+    case "package":
+      return from === "label" ? "the package label" : "the package";
     default:
       return "my description";
   }
@@ -71,14 +71,14 @@ export const PROVENANCE_NOTE: Record<Provenance, string> = {
   described: " (from your description)",
 };
 
-export type DocumentClass = "bottle" | "prescription_label" | "discharge_list";
+export type DocumentClass = "package" | "prescription_label" | "discharge_list";
 
-/** Package, Drug Facts photo and catalog (barcode/picker) entries are all "the bottle". Descriptions are no document. */
+/** Package, Drug Facts photo and catalog (barcode/picker) entries are all "the package". Descriptions are no document. */
 export function documentClass(entry: MedicationEntry): DocumentClass | null {
   switch (entry.sourceDocument?.kind) {
     case "otc_package":
     case "drug_facts_photo":
-      return "bottle";
+      return "package";
     case "prescription_label":
       return "prescription_label";
     case "discharge_list":
@@ -86,7 +86,7 @@ export function documentClass(entry: MedicationEntry): DocumentClass | null {
     case "description":
       return null;
   }
-  return entry.inputMethod === "voice" || entry.inputMethod === "typed" ? null : "bottle";
+  return entry.inputMethod === "voice" || entry.inputMethod === "typed" ? null : "package";
 }
 
 export function labelOf(entry: MedicationEntry): string {

@@ -14,10 +14,10 @@ describe("pharmacist questions", () => {
     expect(
       strengthQuestion([
         { source: "the discharge list", value: "160 mg per 5 mL" },
-        { source: "the bottle", value: "100 mg per 5 mL" },
+        { source: "the package", value: "100 mg per 5 mL" },
       ]),
     ).toBe(
-      "The discharge list says 160 mg per 5 mL but the bottle says 100 mg per 5 mL. Which strength should I be using, and how much?",
+      "The discharge list says 160 mg per 5 mL but the package says 100 mg per 5 mL. Which strength should I be using, and how much?",
     );
   });
 
@@ -26,10 +26,10 @@ describe("pharmacist questions", () => {
       strengthQuestion([
         { source: "the prescription label", value: "160 mg per 5 mL" },
         { source: "the discharge list", value: "160 mg per 5 mL" },
-        { source: "the bottle", value: "100 mg per 5 mL" },
+        { source: "the package", value: "100 mg per 5 mL" },
       ]),
     ).toBe(
-      "The prescription label says 160 mg per 5 mL, the discharge list says 160 mg per 5 mL and the bottle says 100 mg per 5 mL. Which strength should I be using, and how much?",
+      "The prescription label says 160 mg per 5 mL, the discharge list says 160 mg per 5 mL and the package says 100 mg per 5 mL. Which strength should I be using, and how much?",
     );
   });
 
@@ -68,10 +68,10 @@ describe("pharmacist questions", () => {
     expect(
       strengthQuestion([
         { source: "the discharge list", value: "160 mg per 5 mL" },
-        { source: "the bottle", value: "100 mg per 5 mL", from: "entered" },
+        { source: "the package", value: "100 mg per 5 mL", from: "entered" },
       ]),
     ).toBe(
-      "The discharge list says 160 mg per 5 mL but I entered 100 mg per 5 mL for the bottle. Which strength should I be using, and how much?",
+      "The discharge list says 160 mg per 5 mL but I entered 100 mg per 5 mL for the package. Which strength should I be using, and how much?",
     );
     expect(
       doseQuestion([
@@ -98,9 +98,9 @@ describe("pharmacist questions", () => {
   it("keeps a typed and a printed copy of the same value apart", () => {
     expect(
       uniqueSides([
-        { source: "the bottle", value: "1" },
-        { source: "the bottle", value: "1", from: "entered" },
-        { source: "the bottle", value: "1" },
+        { source: "the package", value: "1" },
+        { source: "the package", value: "1", from: "entered" },
+        { source: "the package", value: "1" },
       ]),
     ).toHaveLength(2);
   });

@@ -11,7 +11,7 @@ import {
   nyquilFormulation,
 } from "./__fixtures__/entries";
 import { checkDatabaseVsBox } from "./database-vs-box";
-import { checkDocumentVsBottle } from "./document-vs-bottle";
+import { checkConcentration } from "./concentration";
 import { entrySourceHref, evidenceProvenance, fieldAt, officialLabelUrl } from "./evidence-source";
 import { checkUnits } from "./units";
 
@@ -28,7 +28,7 @@ describe("fieldAt", () => {
 
 describe("evidenceProvenance", () => {
   it("tells label values, typed values and descriptions apart", () => {
-    const doc = checkDocumentVsBottle(input(dischargeTyped, calmoraA)).findings[0];
+    const doc = checkConcentration(input(dischargeTyped, calmoraA)).findings[0];
     const byEntry = (id: string) => [dischargeTyped, calmoraA].find((e) => e.id === id);
     expect(doc.evidence.map((e) => evidenceProvenance(e, byEntry(e.entryId)))).toEqual(["entered", "label"]);
 
@@ -36,7 +36,7 @@ describe("evidenceProvenance", () => {
     expect(units.evidence.map((e) => evidenceProvenance(e, described))).toEqual(["described", "described"]);
 
     // An AI suggestion the user corrected is theirs too.
-    const corrected = checkDocumentVsBottle(input(discharge, calmoraBCorrected)).findings[0];
+    const corrected = checkConcentration(input(discharge, calmoraBCorrected)).findings[0];
     const both = (id: string) => [discharge, calmoraBCorrected].find((e) => e.id === id);
     expect(corrected.evidence.map((e) => evidenceProvenance(e, both(e.entryId)))).toEqual(["label", "entered"]);
   });
@@ -49,7 +49,7 @@ describe("evidenceProvenance", () => {
   it("falls back to the evidence when the entry isn't available", () => {
     const f = checkUnits(input(described)).findings[0];
     expect(evidenceProvenance(f.evidence[0], undefined)).toBe("described");
-    const doc = checkDocumentVsBottle(input(dischargeTyped, calmoraA)).findings[0];
+    const doc = checkConcentration(input(dischargeTyped, calmoraA)).findings[0];
     expect(evidenceProvenance(doc.evidence[1], undefined)).toBe("label");
   });
 });

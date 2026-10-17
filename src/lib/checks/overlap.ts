@@ -12,6 +12,7 @@ import {
   displayIngredientName,
   evidenceItem,
   ingredientProblem,
+  joinList,
   labelOf,
   makeFinding,
   plural,
@@ -51,6 +52,12 @@ export function warningQuote(
   return mentions.find((w) => /do not use[^.]*other drugs? containing/i.test(w)) ?? mentions[0] ?? null;
 }
 
+/** "NyQuil and Tylenol both contain Acetaminophen"; a count when two products share a name. */
+function overlapTitle(names: string[], count: number, ingredient: string): string {
+  if (names.length < 2) return `${capitalize(countWord(count))} medicines contain ${ingredient}`;
+  return `${joinList(names)} ${names.length === 2 ? "both" : "all"} contain ${ingredient}`;
+}
+
 export function checkIngredientOverlap({ entries, formulations }: CheckInput): CheckRun {
   const reasons = entries.length >= 2 ? entries.flatMap((e) => ingredientProblem(e) ?? []) : [];
   const products = groupByProduct(entries).map(representative);
@@ -78,7 +85,7 @@ export function checkIngredientOverlap({ entries, formulations }: CheckInput): C
         check: "ingredient_overlap",
         discriminator: ingredient,
         entryIds: hits.map((h) => h.entry.id),
-        title: `${capitalize(countWord(hits.length))} medicines list ${shown}`,
+        title: overlapTitle(names, hits.length, shown),
         detail: `${lines.join(". ")}.`,
         evidence: hits.map((h) =>
           evidenceItem(h.entry, `ingredients[${h.ing.index}].name`, labelText(h.ing), h.entry.fields.ingredients[h.ing.index].name.evidence),

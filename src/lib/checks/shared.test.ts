@@ -7,7 +7,7 @@ import {
   prescriptionStrengthPending,
   prescriptionStrengthUnknown,
 } from "./__fixtures__/entries";
-import { formFamily, joinList, mgPerMl, sourceLabel, strengthsMatch, unusableReason } from "./shared";
+import { formFamily, joinList, mgPerMl, sourceLabel, sourcePhrase, strengthsMatch, unusableReason } from "./shared";
 
 describe("mgPerMl", () => {
   it("converts per-volume strengths to mg per mL", () => {
@@ -54,6 +54,12 @@ describe("reasons", () => {
   it("labels sources", () => {
     expect(sourceLabel(prescription)).toBe("Prescription label");
     expect(sourceLabel(nyquilBarcode)).toBe("Drug Facts photo");
+  });
+  it("calls packages, Drug Facts photos and catalog products 'the package', never 'the bottle'", () => {
+    expect(sourcePhrase(nyquilBarcode)).toBe("the package label");
+    expect(sourcePhrase(calmoraA)).toBe("the package label");
+    expect(sourcePhrase(calmoraA, "entered")).toBe("the package");
+    expect(sourcePhrase(prescription)).toBe("the prescription label");
   });
   it("joins lists in plain English", () => {
     expect(joinList(["a"])).toBe("a");

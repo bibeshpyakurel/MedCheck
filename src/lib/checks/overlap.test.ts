@@ -21,7 +21,7 @@ describe("ingredient overlap", () => {
     expect(run.findings).toHaveLength(1);
     const f = run.findings[0];
     // The headline states the meaning; the detail gives each product's exact text, once.
-    expect(f.title).toBe("Two medicines list Acetaminophen");
+    expect(f.title).toBe("NyQuil Cold & Flu Nighttime Relief and Calmora Fever Relief (Bottle A) both contain Acetaminophen");
     expect(f.detail).not.toContain("as an active ingredient");
     expect(f.detail).toContain("NyQuil Cold & Flu Nighttime Relief");
     expect(f.detail).toContain("Calmora Fever Relief (Bottle A)");
@@ -60,6 +60,13 @@ describe("ingredient overlap", () => {
     const run = checkIngredientOverlap(input(calmoraA, calmoraAAgain, calmoraB));
     expect(run.findings).toHaveLength(1);
     expect(run.findings[0].entryIds).toEqual(["e-calmora-a", "e-calmora-b"]);
+  });
+
+  it("names every product in the headline", () => {
+    const run = checkIngredientOverlap(input(nyquilBarcode, calmoraA, calmoraB));
+    expect(run.findings[0].title).toBe(
+      "NyQuil Cold & Flu Nighttime Relief, Calmora Fever Relief (Bottle A) and Calmora Extra Fever Relief (Bottle B) all contain Acetaminophen",
+    );
   });
 
   it("uses no warning quote when no catalog label mentions the ingredient", () => {
