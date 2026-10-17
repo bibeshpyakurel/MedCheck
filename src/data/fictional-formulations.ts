@@ -1,6 +1,6 @@
-// Fictional products for the demo. Invented brand ("Calmora"), invented NDCs in labeler
-// range 99999 (not an FDA-assigned labeler). Shared by the catalog seed and the printable demo kit.
-// The strengths are what the demo story needs (100 vs 200 mg per 5 mL); they are not real products
+// Fictional products. Invented brand ("Calmora"), invented NDCs in labeler
+// range 99999 (not an FDA-assigned labeler). Used by the catalog seed and tests.
+// The strengths are chosen to exercise the checks (100 vs 200 mg per 5 mL); they are not real products
 // and must never be presented as dosing guidance.
 import type { Formulation } from "@/lib/domain/schema";
 

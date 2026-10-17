@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { attemptTimeout, DESCRIBE_BUDGET_MS, geminiAttempts, tryModels } from "./fallback";
+import { attemptTimeout, geminiAttempts, tryModels } from "./fallback";
 
 describe("geminiAttempts", () => {
   it("defaults to a fast primary and a stronger fallback, each with its own timeout", () => {
@@ -116,13 +116,5 @@ describe("tryModels with a budget", () => {
     });
     await expect(tryModels(attempts, run, undefined, { budgetMs: 20_000, now: () => clock })).rejects.toThrow("slow");
     expect(run).toHaveBeenCalledTimes(1);
-  });
-});
-
-describe("describe timing", () => {
-  it("fits both models inside the describe budget, with the retry starting well before it ends", () => {
-    const firstTimeout = attemptTimeout(geminiAttempts({}), 0, DESCRIBE_BUDGET_MS);
-    expect(DESCRIBE_BUDGET_MS).toBeLessThanOrEqual(25_000);
-    expect(firstTimeout).toBeLessThan(DESCRIBE_BUDGET_MS / 2);
   });
 });

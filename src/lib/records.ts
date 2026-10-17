@@ -10,6 +10,7 @@ import {
   type SourceDocument,
   type SourceDocumentKind,
 } from "@/lib/domain/schema";
+import { isSelf } from "@/lib/record-format";
 import type { Database, Json } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 
@@ -23,7 +24,6 @@ export type Patient = {
   displayName: string;
   relationship: string | null;
   notes: string | null;
-  isDemo: boolean;
   createdAt: string;
 };
 export type HistoryItem = {
@@ -80,7 +80,6 @@ export async function createPatient(input: {
   displayName: string;
   relationship?: string | null;
   notes?: string | null;
-  isDemo?: boolean;
 }): Promise<Patient> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -89,12 +88,21 @@ export async function createPatient(input: {
       display_name: input.displayName,
       relationship: input.relationship ?? null,
       notes: input.notes ?? null,
-      is_demo: input.isDemo ?? false,
     })
     .select("*")
     .single();
   if (error) throw error;
   return rowToPatient(data);
+}
+
+/**
+ * The account's own record: one person per account. Returns the "self" patient (or, for older
+ * accounts, the first patient), creating a "self" patient named `displayName` when there is none.
+ */
+export async function ensureSelfPatient(displayName: string): Promise<Patient> {
+  const patients = await listPatients();
+  const existing = patients.find(isSelf) ?? patients[0];
+  return existing ?? (await createPatient({ displayName, relationship: "self" }));
 }
 
 export async function deletePatient(id: string): Promise<void> {
@@ -278,6 +286,34 @@ export async function uploadLabelPhoto(file: Blob, contentType: string): Promise
   return path;
 }
 
+/** Deletes every label photo under the signed-in user's `<uid>/` folder (used when a guest leaves). */
+export async function deleteOwnLabelPhotos(): Promise<void> {
+  const supabase = await createClient();
+  const { data: claims } = await supabase.auth.getClaims();
+  const uid = claims?.claims.sub;
+  if (!uid) return;
+  const bucket = supabase.storage.from(LABEL_PHOTOS_BUCKET);
+  for (;;) {
+    const { data, error } = await bucket.list(uid, { limit: 100 });
+    if (error) throw error;
+    if (!data.length) return;
+    const { error: removeError } = await bucket.remove(data.map((o) => `${uid}/${o.name}`));
+    if (removeError) throw removeError;
+  }
+}
+
+/**
+ * Deletes a guest's (anonymous user's) photos and records; they can't be retrieved later anyway.
+ * Does nothing for signed-out visitors or account holders. Doesn't sign out.
+ */
+export async function deleteGuestData(): Promise<void> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getClaims();
+  if (data?.claims.is_anonymous !== true) return;
+  await deleteOwnLabelPhotos();
+  for (const p of await listPatients()) await deletePatient(p.id);
+}
+
 /** Short-lived URL for showing a private photo (and its crops) in the browser. */
 export async function signedPhotoUrl(path: string, expiresInSeconds = 60 * 30): Promise<string | null> {
   const supabase = await createClient();
@@ -303,7 +339,6 @@ function rowToPatient(row: Tables["patients"]["Row"]): Patient {
     displayName: row.display_name,
     relationship: row.relationship,
     notes: row.notes,
-    isDemo: row.is_demo,
     createdAt: row.created_at,
   };
 }

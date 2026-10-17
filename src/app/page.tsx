@@ -1,24 +1,27 @@
-import { ArrowRightIcon } from "lucide-react";
+import { MailIcon } from "lucide-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { startDemo, startOwn } from "@/app/actions/session";
+import { startGuest } from "@/app/actions/session";
+import { GoogleButton } from "@/app/sign-in/google-button";
 import { AppShell } from "@/components/app-shell";
 import { SubmitButton } from "@/components/records/submit-button";
-import { getCurrentUser } from "@/lib/auth";
-import { getCaregiver, listPatients } from "@/lib/records";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { signInErrorMessage } from "@/lib/account";
+import { getCurrentUser, homePath } from "@/lib/auth";
 
-// Action first: visitors get one screen with the way in; the explainers live in the ☰ menu.
-// Anyone who already has records goes straight to them, like opening an app they already use.
-// A session that never got past setup still sees this page, so "Try the demo" stays one tap away.
-export default async function Home() {
-  if (await getCurrentUser()) {
-    const [caregiver, patients] = await Promise.all([getCaregiver(), listPatients()]);
-    if (caregiver?.displayName || patients.length > 0) redirect("/patients");
-  }
+// One screen, no scrolling: the job in a line, then the three ways in. The explainers live in the ☰ menu.
+// Anyone already signed in (guests too) goes straight to adding a medicine, like opening an app they use.
+export default async function Home({ searchParams }: PageProps<"/">) {
+  const { error, code } = await searchParams;
+  // Supabase falls back to the site root when a redirect URL isn't on its allow list; finish signing in anyway.
+  if (typeof code === "string") redirect(`/auth/callback?code=${encodeURIComponent(code)}`);
+  if (await getCurrentUser()) redirect(await homePath());
+  const message = error === "google" || error === "guest" ? signInErrorMessage(error) : null;
 
   return (
     <AppShell bleed>
-      {/* Hero: the job, the limit, and the way in. The buttons must fit above the fold on a phone. */}
-      <section className="relative isolate overflow-hidden border-b">
+      <section className="relative isolate overflow-hidden">
         <div
           aria-hidden
           className="absolute inset-0 -z-10 bg-grid [mask-image:radial-gradient(ellipse_70%_60%_at_50%_0%,black,transparent)]"
@@ -27,31 +30,32 @@ export default async function Home() {
           aria-hidden
           className="absolute -top-48 left-1/2 -z-10 h-[34rem] w-[60rem] -translate-x-1/2 rounded-full bg-brand/14 blur-3xl"
         />
-        <div className="mx-auto w-full max-w-3xl px-4 pt-10 pb-14 sm:px-6 sm:pt-20 sm:pb-20 animate-fade-up">
-          <h1 className="font-display text-[2.25rem] leading-[1.08] font-semibold tracking-[-0.03em] text-balance sm:text-5xl lg:text-6xl">
+        <div className="mx-auto w-full max-w-md px-4 pt-8 pb-8 sm:px-6 sm:pt-16 animate-fade-up">
+          <h1 className="font-display text-[2rem] leading-[1.1] font-semibold tracking-[-0.03em] text-balance sm:text-5xl">
             Compare your medicine labels.
           </h1>
-          <p className="mt-4 max-w-xl text-lg leading-relaxed text-muted-foreground text-pretty sm:mt-5 sm:text-xl">
-            Add a medicine, check the details, and collect questions for a pharmacist.
+          <p className="mt-3 text-base leading-relaxed text-muted-foreground text-pretty sm:text-lg">
+            Scan or photograph a medicine, check what it contains, and share a simple report.
           </p>
 
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-            <form action={startOwn}>
-              <SubmitButton size="lg" className="h-12 w-full px-6 text-base" pendingLabel="Starting…">
-                Start my records <ArrowRightIcon aria-hidden />
+          {message ? (
+            <Alert variant="destructive" className="mt-5">
+              <AlertDescription>{message}</AlertDescription>
+            </Alert>
+          ) : null}
+
+          <div className="mt-6 flex flex-col gap-3">
+            <GoogleButton from="/" />
+            <Button size="lg" className="h-12 w-full px-6 text-base" nativeButton={false} render={<Link href="/sign-in" />}>
+              <MailIcon aria-hidden /> Continue with email
+            </Button>
+            <form action={startGuest}>
+              <SubmitButton variant="ghost" size="lg" className="h-12 w-full px-6 text-base" pendingLabel="Starting…">
+                Continue as a guest
               </SubmitButton>
             </form>
-            <form action={startDemo}>
-              <SubmitButton variant="outline" size="lg" className="h-12 w-full px-6 text-base" pendingLabel="Setting up the demo…">
-                Try the demo
-              </SubmitButton>
-            </form>
+            <p className="text-center text-sm text-muted-foreground">As a guest, nothing is kept after you leave.</p>
           </div>
-
-          <p className="mt-6 max-w-xl border-l-2 border-primary pl-3 text-sm leading-relaxed text-pretty sm:text-base">
-            <strong className="font-semibold">MedCheck compares what labels say.</strong> It doesn&apos;t choose a medicine or
-            an amount.
-          </p>
         </div>
       </section>
     </AppShell>

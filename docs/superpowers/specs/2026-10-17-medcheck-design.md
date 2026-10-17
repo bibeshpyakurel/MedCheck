@@ -1,110 +1,97 @@
 # MedCheck — Hackathon MVP Design
 
-Date: 2026-10-17 · Status: awaiting approval · Source idea: `MedCheck_Project_Summary.md` (team handoff doc)
+Date: 2026-10-17 · Status: approved, revised 2026-10-17 · Source idea: `MedCheck_Project_Summary.md` (team handoff doc)
 
-MedCheck helps anyone managing medicines — their own or someone else's — see when two medicines share an active ingredient, and when a prescription, discharge list and bottle disagree on strength or units. It turns each finding into a question for a pharmacist. **Evidence, not advice:** it never calculates a dose, never says a combination is safe, and never resolves a conflict.
+> **2026-10-17 revision.** The demo is gone: no demo banner, household, kit, tools or "Try the demo"; the fictional Calmora products are no longer part of the product (`patients.is_demo` stays in the schema, unused). Sign-in has three doors: Google, email one-time code, guest. Each account has exactly one person. After sign-in the user lands on the capture page (scan, take photo, choose photo; describing or picking a medicine is gone). The app has two tabs, **Medicines** and **Medicine report**. Checks run as an engine: only real findings appear, as plain-English warnings; the checks list, "no finding" rows, Checks tab, "About the checks" page and pharmacist questions are gone, and the document-vs-bottle check is removed (user-facing wording says "package", never "bottle"). The footer is one line; Poison Control lives behind **Get help** in the header. Sections below describe the revised product.
+
+MedCheck helps anyone managing medicines see when two medicines share an active ingredient, and when two of them disagree on strength or units. It shows each finding as a plain-English warning. **Evidence, not advice:** it never calculates a dose, never says a combination is safe, and never resolves a conflict.
 
 ## 1. Scope
 
-Audience: anyone managing medicines, for themselves or for someone else. Caregivers are presented as the highest-need group, not the only one. A profile with relationship `self` is the user's own ("Me"); reports for it read in the first person.
+Audience: anyone managing medicines. Each account tracks one person, the account holder (relationship `self`); the report reads in the first person.
 
+In: acetaminophen only; ingredient overlap and strength/unit clarity; the check engine (§6); one person's medicines with change history; a report with PDF download, share and email.
 
-In: acetaminophen only; the two core features (ingredient overlap; strength and unit clarity); the 8-step demo from the summary; all six checks; per-patient records with change history; PDF export with download, share and email.
-
-Out (later phases): other ingredients, weekly openFDA pipeline, RxNorm (dropped: fixed synonym table instead), dose log, Beers flags, installable PWA / offline, open-ended chat, any dose calculation or age/weight row highlighting.
+Out (later phases): other ingredients, weekly openFDA pipeline, RxNorm (dropped: fixed synonym table instead), dose log, Beers flags, installable PWA / offline, open-ended chat, more than one person per account, any dose calculation or age/weight row highlighting.
 
 ## 2. Delivery and git workflow
 
-- Repo: `github.com/bibeshpyakurel/MedCheck` (public). `main` = default branch and production, deployed by Vercel, PR-only (protected, admins included). `dev` = working branch, always the latest.
-- Every feature: branch `feat/<name>` off `dev` → PR into `dev` → Claude merges after CI passes and review → Claude opens a `dev → main` PR → **the user merges to `main`**. Claude never merges to `main`.
-- Milestones: **M0** foundation → **M1** full demo flow → **M2** hardening and polish. Submission is tonight (2026-10-17); live demo 2026-10-18 ~5 pm.
+Repo: `github.com/bibeshpyakurel/MedCheck` (public). Branching, CI and deploys follow `AGENTS.md` § Git: `dev` is the working and production branch; `main` mirrors what is live.
 
 ## 3. Stack
 
 | Concern | Choice |
 | --- | --- |
 | App | Next.js (App Router, TypeScript), Tailwind, shadcn/ui. One responsive web app, phone-first, laptop first-class, light + dark |
-| Hosting | Vercel project `medcheck` (Hobby). Production branch `main`; previews for `dev` and PR branches |
-| Data | Supabase project `medcheck` (`us-east-1`): Postgres, anonymous Auth, private Storage bucket `label-photos` |
+| Hosting | Vercel project `medcheck` (Hobby), production from `dev` |
+| Data | Supabase project `medcheck` (`us-east-1`): Postgres, Auth (Google OAuth, email one-time code, anonymous), private Storage bucket `label-photos` |
 | AI | Gemini (Flash tier) via AI SDK `@ai-sdk/google`, user's own Google AI Studio key, structured output validated with zod. Model id set by env `GEMINI_MODEL` |
 | Barcode | `@zxing/browser` (works in iOS Safari, which lacks `BarcodeDetector`) |
 | PDF | `@react-pdf/renderer`, generated server-side in a route handler |
 | Email | Resend, enabled only when `RESEND_API_KEY` + `EMAIL_FROM` are set (needs a verified domain for arbitrary recipients; sandbox can send to the account owner) |
-| Tests | Vitest (checks, NDC, normalization), Playwright (demo flow, Gemini mocked), GitHub Actions on every PR: lint, typecheck, test, build |
+| Tests | Vitest (checks, NDC, normalization), Playwright e2e (Gemini mocked), GitHub Actions on every PR: lint, typecheck, test, build |
 
-Env vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY` (server only: seeding), `GOOGLE_GENERATIVE_AI_API_KEY`, `GEMINI_MODEL`, `RESEND_API_KEY` (optional), `EMAIL_FROM` (optional).
+Env vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY` (server only: seeding), `GOOGLE_GENERATIVE_AI_API_KEY`, `GEMINI_MODEL`, `RESEND_API_KEY` (optional), `EMAIL_FROM` (optional). Google OAuth and the SMTP sender for email codes are configured in the Supabase dashboard (see `AGENTS.md`).
 
 ## 4. Data model (Supabase)
 
-All patient data is owned by an auth user (anonymous by default) and protected by RLS: a caregiver reads and writes only rows under their own patients. The catalog is public read, server-write.
+All patient data is owned by an auth user (Google, email code, or anonymous guest) and protected by RLS: a user reads and writes only rows under their own patient. The catalog is public read, server-write.
 
-- `caregivers` — `id` (= `auth.uid()`), `display_name`, `created_at`.
-- `patients` — `id`, `caregiver_id`, `display_name`, `relationship` (free text, e.g. "my son"), `notes`, `is_demo`, timestamps.
+- `caregivers` — the account holder: `id` (= `auth.uid()`), `display_name`, `created_at`.
+- `patients` — `id`, `caregiver_id`, `display_name`, `relationship`, `notes`, `is_demo` (unused), timestamps. Exactly one row per account, relationship `self`, created by `ensureSelfPatient()`; guests get display name "Guest".
 - `formulations` (catalog) — `id`, `slug`, `brand_name`, `generic_name`, `dosage_form` (`liquid` | `tablet` | `caplet` | `capsule` | …), `is_fictional`, `ndc_packages text[]` (normalized 11-digit, no hyphens), `active_ingredients jsonb` (`[{name, normalized, strength_value, strength_unit, per_value, per_unit}]`), `directions_text`, `max_24h_text`, `warnings_quotes text[]` (verbatim, e.g. "do not use with other drugs containing acetaminophen"), `dosage_table_html` (sanitized), `source` (`openfda` | `fictional`), `openfda_set_id`, `label_effective_date`, `reviewed_at`.
 - `source_documents` — `id`, `patient_id`, `kind` (`otc_package` | `drug_facts_photo` | `prescription_label` | `discharge_list` | `description`), `photo_path`, `transcript_text`, `document_date`, `facility`, `prescriber`, `pharmacy`, `created_at`.
-- `medication_entries` — `id`, `patient_id`, `source_document_id`, `formulation_id` (nullable), `input_method` (`barcode` | `photo` | `voice` | `typed` | `picker`), `status` (`draft` | `confirmed`), `fields jsonb` (see §5), `created_at`, `confirmed_at`.
+- `medication_entries` — `id`, `patient_id`, `source_document_id`, `formulation_id` (nullable), `input_method` (new entries: `barcode` | `photo`; `voice` | `typed` | `picker` remain for old rows), `status` (`draft` | `confirmed`), `fields jsonb` (see §5), `created_at`, `confirmed_at`.
 - `history` — append-only change log written by triggers on `patients`, `medication_entries`, `source_documents`: `entity`, `entity_id`, `action`, `before`, `after`, `actor`, `at`.
 - `exports` — `id`, `patient_id`, `findings_snapshot jsonb`, `created_at`.
-- `email_sends` — `id`, `caregiver_id`, `export_id`, `to_address`, `sent_at` (rate limit: 5 per caregiver per day).
+- `email_sends` — `id`, `caregiver_id`, `export_id`, `to_address`, `sent_at` (rate limit: 5 per account per day).
 
-Anonymous sign-in is enabled. M2 adds "Save my records with email": link an email identity to the anonymous user (magic link), keeping all data.
+## 5. Shared contract
 
-## 5. Shared contract (written in M0, before parallel work)
+`src/lib/domain/schema.ts` is the single contract all features build against (zod + types): `EntryFields` (each field an AI suggestion plus `state` `pending` | `confirmed` | `edited` | `unknown` and its evidence), `MedicationEntry`, `CheckRun`, `Finding`. A finding's `title` + `detail` form the warning; `pharmacistQuestion` and the `document_vs_bottle` check id stay in the contract, unused.
 
-`src/lib/domain/types.ts` is the single contract all features build against:
+## 6. The check engine (pure functions, `src/lib/checks/`, test-first)
 
-- `FieldKey`: `product_name`, `active_ingredient`, `strength` (amount + unit), `concentration` (mg per N mL), `instructions`, `max_24h`, `document_date`.
-- `FieldValue`: `{ key, aiValue, confirmedValue, state: 'confirmed' | 'edited' | 'unknown', evidence: { kind: 'crop', bbox, sourceDocumentId } | { kind: 'quote', text } | { kind: 'database', formulationId } }`.
-- `MedicationEntry`: id, patient, source document (kind, date), input method, formulation id, `fields: FieldValue[]`.
-- `CheckRun`: `{ check: CheckId, status: 'finding' | 'no_finding' | 'unresolved', reason, findings: Finding[] }`. Wording rule: `no_finding` displays as "No overlap found in confirmed fields", never "safe".
-- `Finding`: `{ id, check, title, entries: id[], evidence: Evidence[], labelWarningQuote?, pharmacistQuestion }`.
+Input: all confirmed entries for the person plus catalog formulations. Output: `CheckRun[]`. A check whose required field is `pending` or `unknown` on any relevant entry returns `unresolved` with the reason.
 
-## 6. The six checks (pure functions, `src/lib/checks/`, test-first)
+The engine runs behind the scenes. Only `finding` results reach the UI and the report, each as a plain-English warning naming the products, the label text, and the label's own warning quote when present.
 
-Input: all confirmed entries for a patient plus catalog formulations. Output: `CheckRun[]`. A check whose required field is `unknown` on any relevant entry returns `unresolved` with the reason (e.g. "strength unreadable on Prescription label").
-
-1. **Ingredient overlap** — two distinct products share a normalized active ingredient (synonyms: acetaminophen, paracetamol, APAP, "acetaminophen (as …)"). Normalization is a fixed, reviewed synonym table in `src/lib/domain/ingredients.ts` (`normalizeIngredient()`); **no RxNorm lookup** — the supported ingredient set is small, and a hard-coded table is deterministic, testable and works offline. Names both products, the ingredient, label text, and quotes the label's own warning when present. Never claims the dose doubled.
+1. **Ingredient overlap** — two distinct products share a normalized active ingredient (synonyms: acetaminophen, paracetamol, APAP, "acetaminophen (as …)"). Normalization is a fixed, reviewed synonym table in `src/lib/domain/ingredients.ts` (`normalizeIngredient()`); **no RxNorm lookup** — the supported ingredient set is small, and a hard-coded table is deterministic, testable and works offline. Never claims the dose doubled.
 2. **Repeated record** — same product identity (formulation id, or name + strength + form) entered twice → reported as a repeat, *not* an overlap.
 3. **Concentration** — two liquids with the same ingredient and different mg-per-mL → "same volume holds different amounts", both stated as on the label (100 mg per 5 mL vs 200 mg per 5 mL). Never suggests a volume.
 4. **Units** — instructions and strength use units that don't line up (mL vs tsp/teaspoon, mg instruction for a liquid, missing unit) → finding.
-5. **Document vs bottle** — the same medicine across documents (discharge list, prescription label, bottle) disagrees on strength or instructions → conflict listed with dates, left unresolved.
-6. **Database vs box** — for barcode entries, the openFDA label values differ from the values confirmed on the Drug Facts photo → finding.
-
-Each finding carries a fixed-template pharmacist question, e.g. *"The discharge list says 160 mg per 5 mL but the bottle says 100 mg per 5 mL. Which strength should I be using, and how much?"*
+5. **Database vs package** — for barcode entries, the openFDA label values differ from the values confirmed on the Drug Facts photo → finding. (Check id `database_vs_box`.)
 
 ## 7. Screens and flows
 
-- **Landing** — what MedCheck does, "Evidence, not advice", **Try the demo household** (anonymous sign-in + seeded records) or **Start my own**.
-- **First use** — your name (used on the PDF and in the email) and who you're checking for: Myself / Someone I care for / Both ("Myself" creates a `self` profile shown as "Me").
-- **Patients** — list and add profiles.
-- **Patient record** — medicines (with source, date, prescriber/facility/pharmacy), **Checks run** panel ("6 checks run, 1 couldn't be completed: strength unreadable"), findings with evidence, history tab, search. Persistent **"I already gave both"** button.
-- **Add a medicine** — four ways:
-  1. **Scan barcode** → NDC lookup (catalog, then live openFDA) → shows database label → asks for a Drug Facts photo → review.
-  2. **Photo** of label, prescription or discharge list → Gemini extraction with per-field bounding boxes → review.
-  3. **Describe it** (mic or typed) → Gemini extracts fields from the words → review shows the user's words as evidence; marked "from your description, not a label"; database-vs-box stays unresolved.
-  4. **Pick** from the supported list.
+- **Landing** (`/`) — what MedCheck does, "Evidence, not advice", and three sign-in doors. Fits one phone screen with no scroll.
+  - **Continue with Google** — Supabase OAuth; returns via `/auth/callback`.
+  - **Continue with email** — email plus optional first and last name → Supabase emails a one-time code → the user enters it on `/sign-in/verify` → signed in.
+  - **Continue as a guest** — Supabase anonymous sign-in; display name "Guest".
+- **After any sign-in** the user lands on the capture page `/patients/{id}/add`.
+- **Capture** — three ways:
+  1. **Scan a barcode** → NDC lookup (catalog, then live openFDA) → shows database label → asks for a Drug Facts photo → review.
+  2. **Take a photo** of a label, prescription or discharge list → Gemini extraction with per-field bounding boxes → review.
+  3. **Choose a photo** from the device → same as Take a photo.
 - **Review** — one row per field: label crop | AI value | **Matches** / **Edit** / **Can't tell** (→ unknown). If no box: show the whole photo. Nothing is saved as confirmed without a user action.
+- **Medicines tab** — the person's medicine history: items waiting for review, warnings (findings only), the medicine list (with source, date, prescriber/facility/pharmacy), and activity (change history).
 - **Label view** — confirmed concentration and units beside the label's own directions, 24-hour maximum and full children's table (never a highlighted row).
-- **Export** — preview, **Download PDF**, **Share** (Web Share API with the PDF on phones; fallback: download + `mailto:` with prefilled subject/body), **Email** form (To, prefilled subject/body with caregiver and patient name, PDF attached) when Resend is configured.
-- **"I already gave both"** (button, or detected in a description) → fixed message: contact a pharmacist or Poison Control at 1-800-222-1222, tap-to-call, nothing else.
+- **Medicine report tab** — **Preview report**, **Download PDF**, **Share** (Web Share API with the PDF on phones; fallback: download + `mailto:` with prefilled subject/body), **Send by email** (To, prefilled subject/body, PDF attached) when Resend is configured. Empty state: "You haven't added any medicines yet". Items still waiting for review are mentioned in one plain sentence. The report lists medicines and warnings only.
+- **Header** — **Get help** on every page opens the fixed "I already gave both" message: contact a pharmacist or Poison Control at 1-800-222-1222, tap-to-call, nothing else.
+- **Footer** — one small line: "Evidence, not advice…".
+- **Leaving as a guest** — the menu's leave action confirms "If you leave, your medicines and report can't be retrieved later", then deletes the guest's data and signs out. Closing or reloading the tab during a guest session triggers the browser's leave prompt.
 
 ## 8. Product data
 
 - `scripts/seed-catalog.ts`: one-time pull of acetaminophen oral OTC labels from `api.fda.gov/drug/label.json`; drops homeopathic and non-oral; groups store brands by ingredient + strength + form; hand-checked list of ~6–10 formulations including the NyQuil Cold & Flu formulations and a children's 160 mg/5 mL liquid.
-- Fictional products (Bottle A 100 mg/5 mL, Bottle B 200 mg/5 mL, etc.) seeded with fake NDCs in a reserved range, marked fictional.
 - NDC lookup: decode UPC-A (`3` + 10-digit NDC + check digit) or GS1 GTIN; expand the 10-digit code to 4-4-2, 5-3-2, 5-4-1 hyphenated and 11-digit forms; query catalog, then openFDA `openfda.package_ndc`.
 
-## 9. Demo materials (`demo-assets/`)
+## 9. Milestones
 
-Printable fictional materials, each with a seeded expected-values JSON for extraction-accuracy scoring (`scripts/score-extraction.ts`): Bottle A and Bottle B labels with barcodes, a prescription label, a discharge list that disagrees with a bottle on strength, and a fallback NyQuil barcode sheet. Demo household (signed-in person "Alex Rivera"), two profiles: **Me (Alex)** (relationship `self`) with Tylenol Extra Strength (acetaminophen 500 mg per caplet, slug `tylenol-extra-strength-500mg-caplet`) on file — Act 1, the NyQuil + Tylenol overlap; and **Sam** (13, son) with Calmora Bottle A on file — Act 2, discharge list, prescription, Bottle B and document mismatch. All synthetic; the UI shows a "Demo data — synthetic" badge on demo households.
+- **M0 Foundation**, **M1 Feature flow**, **M2 Hardening** — historical; delivered the original flow, including the demo since removed.
+- **2026-10-17 revision** — the changes summarized at the top of this spec.
 
-## 10. Milestones
-
-- **M0 Foundation** — scaffold, design tokens, Supabase project + migrations + RLS + anonymous auth, Vercel project + env, CI, shared contract (§5), this spec. Deployed to the `dev` preview, then a `dev → main` PR.
-- **M1 Demo flow** (parallel feature PRs): (A) catalog seed + NDC lookup + scanner; (B) capture + Gemini extraction (photo, voice/typed) + review screen; (C) six checks + pharmacist questions + checks panel; (D) caregiver onboarding, patients, record page, history, demo household + reset, "already gave both"; (E) PDF export, share, email; (F) demo assets + scoring script.
-- **M2 Hardening** — Playwright demo-flow test, save-with-email, manual crop (stretch), accessibility pass (contrast, tap targets, screen reader), README with setup and demo script, summary doc update.
-
-## 11. Error handling
+## 10. Error handling
 
 - Camera denied or unavailable → fall back to file upload (`<input type="file" accept="image/*" capture="environment">`).
 - Barcode not found → "Not in our supported list" → photo flow.

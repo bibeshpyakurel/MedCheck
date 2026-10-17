@@ -4,24 +4,24 @@ import { ChevronRightIcon, MenuIcon, MonitorIcon, MoonIcon, SunIcon } from "luci
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useState } from "react";
+import { AccountControls } from "@/components/account-controls";
 import { BrandLogo } from "@/components/brand";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import type { Account } from "@/lib/auth";
 
 const ABOUT_LINKS = [
   { href: "/how-it-works", label: "How MedCheck works" },
-  { href: "/checks", label: "About the checks" },
   { href: "/why", label: "Why it matters" },
 ];
-const DEMO_LINKS = [{ href: "/demo-kit", label: "Printable demo kit" }];
 const THEMES = [
   { value: "system", label: "System", icon: MonitorIcon },
   { value: "light", label: "Light", icon: SunIcon },
   { value: "dark", label: "Dark", icon: MoonIcon },
 ];
 
-/** The header's ☰ menu: the explainer pages, kept off the home page so it stays short, and the appearance setting. */
-export function SiteMenu() {
+/** The header's ☰ menu: the explainer pages, kept off the home page so it stays short, account controls, and the appearance setting. */
+export function SiteMenu({ account = null }: { account?: Account | null }) {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
 
@@ -40,10 +40,8 @@ export function SiteMenu() {
         </SheetHeader>
         <nav aria-label="Menu" className="flex flex-col gap-4 p-2">
           <MenuGroup links={ABOUT_LINKS} onNavigate={close} />
-          <div className="border-t pt-4">
-            <MenuGroup links={DEMO_LINKS} onNavigate={close} />
-          </div>
         </nav>
+        <AccountControls account={account} onNavigate={close} />
         <ThemeChoice />
       </SheetContent>
     </Sheet>

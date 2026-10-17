@@ -18,11 +18,11 @@ export const INPUT_METHOD_LABELS: Record<InputMethod, string> = {
 };
 
 /**
- * Where a catalog product's label came from. Fictional demo products are never called an FDA label,
+ * Where a catalog product's label came from. Fictional products are never called an FDA label,
  * even though they carry an effective date like the real ones.
  */
 export function catalogLabelSource(f: Pick<Formulation, "isFictional" | "source" | "labelEffectiveDate">): string {
-  if (f.isFictional || f.source !== "openfda") return "Fictional demo label";
+  if (f.isFictional || f.source !== "openfda") return "Fictional label (not a real product)";
   return `FDA label (openFDA)${f.labelEffectiveDate ? `, effective ${f.labelEffectiveDate}` : ""}`;
 }
 
@@ -37,19 +37,9 @@ export function isSelf(p: { relationship: string | null }): boolean {
   return ["self", "myself", "me"].includes(p.relationship?.trim().toLowerCase() ?? "");
 }
 
-/** "Me (Jamie)" for the self profile, otherwise the person's name. */
-export function personLabel(p: { displayName: string; relationship: string | null }): string {
-  return isSelf(p) ? `Me (${p.displayName})` : p.displayName;
-}
-
 /** Record heading: "My medicines" or "Sam's medicines". */
 export function recordTitle(p: { displayName: string; relationship: string | null }): string {
   return isSelf(p) ? "My medicines" : `${p.displayName}'s medicines`;
-}
-
-/** The secondary line under a person's name; "self" is implied by "Me", so it is left out. */
-export function personDetails(p: { relationship: string | null; notes: string | null }): string {
-  return [isSelf(p) ? null : p.relationship, p.notes].filter(Boolean).join(" · ");
 }
 
 const dateFormat = new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: "UTC" });

@@ -7,6 +7,7 @@ import { loadReport, saveExport, timeZoneParam } from "@/lib/report/load-report"
 import { renderReportPdf } from "@/lib/report/report-pdf";
 import { getCaregiver, upsertCaregiver } from "@/lib/records";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth";
 
 const bodySchema = z.object({
   to: z.email("Enter a valid email address").max(254),
@@ -24,6 +25,10 @@ export async function POST(request: NextRequest, ctx: RouteContext<"/api/patient
     return error(501, "Email isn't set up for this MedCheck. Use Share or Download PDF and send it yourself.");
   }
   if (!z.uuid().safeParse(patientId).success) return error(404, "Patient not found");
+  // Guests get a fresh anonymous user (and send limit) every time, so only accounts send from MedCheck's address.
+  const user = await getCurrentUser();
+  if (!user) return error(401, "Please sign in");
+  if (user.isAnonymous) return error(403, "Sign in to send email from MedCheck. Use Share or Download PDF instead.");
 
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return error(400, parsed.error.issues[0]?.message ?? "Check the form and try again");

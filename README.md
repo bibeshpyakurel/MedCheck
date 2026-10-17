@@ -1,15 +1,15 @@
 # MedCheck
 
-MedCheck helps caregivers see when two medicines share an active ingredient, and when a prescription, discharge list and bottle disagree on strength or units — then turns each finding into a clear question for a pharmacist. **Evidence, not advice.**
+MedCheck helps anyone managing medicines see when two medicines share an active ingredient, and when two of them disagree on strength or units — and shows each finding as a plain-English warning. **Evidence, not advice.**
 
 Hackathon MVP · Healthcare and Wellness track · acetaminophen first.
 
 ## Stack
-Next.js 16 · Tailwind + shadcn/ui · Supabase (Postgres, anonymous auth, storage) · Gemini via AI SDK · ZXing barcode scanning · Vercel.
+Next.js 16 · Tailwind + shadcn/ui · Supabase (Postgres, Auth: Google / email code / guest, storage) · Gemini via AI SDK · ZXing barcode scanning · Vercel.
 
 ## Branches
-- `main` — default branch and production (Vercel production). Updated only by `dev → main` PRs, merged by the project owner.
-- `dev` — working branch, always the latest; every feature PR lands here first (Vercel preview).
+- `dev` — working branch and Vercel production; every feature PR lands here.
+- `main` — mirrors what is live, fast-forwarded automatically after each successful `dev` deploy. See `AGENTS.md` § Git.
 
 ## Local setup
 ```bash

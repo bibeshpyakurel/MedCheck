@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import type { PhotoSource } from "@/components/capture/capture-options";
 import { PhotoCapture, type PhotoAction } from "@/components/capture/photo-capture";
 import { cn } from "@/lib/utils";
 
 export type PhotoKind = "prescription_label" | "discharge_list" | "otc_package" | "drug_facts_photo";
 
 const KINDS: { value: PhotoKind; title: string; detail: string }[] = [
-  { value: "prescription_label", title: "Prescription label", detail: "The sticker the pharmacy puts on a bottle." },
+  { value: "prescription_label", title: "Prescription label", detail: "The sticker the pharmacy puts on the container." },
   {
     value: "discharge_list",
     title: "Discharge list",
@@ -15,7 +16,7 @@ const KINDS: { value: PhotoKind; title: string; detail: string }[] = [
   },
   {
     value: "otc_package",
-    title: "Medicine box or bottle",
+    title: "Medicine package",
     detail: "A store-bought package, or its Drug Facts panel — the box listing ingredients and directions.",
   },
 ];
@@ -26,6 +27,7 @@ export function PhotoForm({
   formulationId,
   action,
   otherWaysHref,
+  source,
 }: {
   patientId: string;
   initialKind: PhotoKind;
@@ -33,6 +35,7 @@ export function PhotoForm({
   formulationId: string | null;
   action: PhotoAction;
   otherWaysHref: string;
+  source?: PhotoSource;
 }) {
   const [kind, setKind] = useState<PhotoKind>(initialKind);
   // Both package kinds share one option; keep a Drug Facts kind passed in the URL.
@@ -41,14 +44,14 @@ export function PhotoForm({
   );
 
   return (
-    <PhotoCapture action={action} submitLabel="Read this photo" otherWaysHref={otherWaysHref}>
+    <PhotoCapture action={action} submitLabel="Read this photo" otherWaysHref={otherWaysHref} source={source}>
       <input type="hidden" name="patientId" value={patientId} />
       {formulationId && <input type="hidden" name="formulationId" value={formulationId} />}
       {formulationId ? (
         <input type="hidden" name="kind" value="drug_facts_photo" />
       ) : (
         <fieldset className="space-y-2">
-          <legend className="mb-3 text-base font-semibold">What are you photographing?</legend>
+          <legend className="mb-3 text-base font-semibold">What is this a photo of?</legend>
           {kinds.map((k) => (
             <label
               key={k.value}

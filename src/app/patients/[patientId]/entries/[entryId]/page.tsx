@@ -20,7 +20,7 @@ import { isUuid } from "@/lib/uuid";
 export const metadata: Metadata = { title: "Details and label" };
 
 const DOCUMENT_KIND: Record<SourceDocumentKind, string> = {
-  otc_package: "Box or bottle",
+  otc_package: "Medicine package",
   drug_facts_photo: "Drug Facts photo",
   prescription_label: "Prescription label",
   discharge_list: "Discharge list",
@@ -110,12 +110,11 @@ export default async function EntryLabelPage({ params }: PageProps<"/patients/[p
               </Badge>
               <Badge variant="outline">{INPUT_METHOD[entry.inputMethod]}</Badge>
               {doc && <Badge variant="outline">{DOCUMENT_KIND[doc.kind]}</Badge>}
-              {formulation?.isFictional && <Badge variant="outline">Fictional demo product</Badge>}
             </div>
             {entry.status === "draft" && (
               <div className="flex flex-col gap-3 rounded-2xl border border-unresolved/35 bg-unresolved-surface/70 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-unresolved-foreground">
-                  You haven&apos;t confirmed these values yet. Checks only use confirmed values.
+                  You haven&apos;t confirmed these details yet. MedCheck only compares details you confirmed.
                 </p>
                 <Button
                   className="h-11 shrink-0 px-4 text-base"

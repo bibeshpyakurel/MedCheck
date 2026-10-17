@@ -8,34 +8,26 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "cn";
 import { useTimeZone } from "./local-time";
+import { ACTION_CLASS } from "./share-button";
 
 type Status = { kind: "idle" } | { kind: "sending" } | { kind: "sent"; to: string } | { kind: "error"; message: string };
 
 type EmailProps = { patientId: string; defaultSubject: string; defaultBody: string };
 
-/** Why there is no Email button: said plainly, so it never looks like a delivery option that doesn't work. */
-export function EmailUnavailable() {
-  return (
-    <p className="text-sm text-muted-foreground">
-      Email isn&apos;t set up on this MedCheck. Use <strong className="text-foreground">Share</strong> to send the PDF from
-      your own email or messages app, or <strong className="text-foreground">Download PDF</strong> to attach it yourself.
-    </p>
-  );
-}
-
-/** "Email" button that opens the email form. Only rendered when email sending is configured. */
+/** "Send by email" button that opens the email form. Only rendered when email sending is configured. */
 export function EmailDialog(props: EmailProps & { className?: string }) {
   const { className, ...form } = props;
   return (
     <Dialog>
-      <DialogTrigger render={<Button variant="outline" className={className} />}>
-        <MailIcon aria-hidden /> Email
+      <DialogTrigger render={<Button variant="outline" className={cn(ACTION_CLASS, className)} />}>
+        <MailIcon aria-hidden /> Send by email
       </DialogTrigger>
       <DialogContent className="max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Email the report</DialogTitle>
-          <DialogDescription>Send the PDF to a pharmacist or doctor.</DialogDescription>
+          <DialogTitle>Send the report by email</DialogTitle>
+          <DialogDescription>MedCheck emails the PDF to the address you enter.</DialogDescription>
         </DialogHeader>
         <EmailForm {...form} />
       </DialogContent>
@@ -43,7 +35,7 @@ export function EmailDialog(props: EmailProps & { className?: string }) {
   );
 }
 
-/** Email the report PDF to a doctor or pharmacist. Subject and message are prefilled and editable. */
+/** Emails the report PDF. Subject and message are prefilled and editable. */
 function EmailForm({ patientId, defaultSubject, defaultBody }: EmailProps) {
   const timeZone = useTimeZone();
   const [to, setTo] = useState("");
@@ -82,7 +74,7 @@ function EmailForm({ patientId, defaultSubject, defaultBody }: EmailProps) {
           required
           autoComplete="email"
           inputMode="email"
-          placeholder="pharmacist@example.com"
+          placeholder="name@example.com"
           value={to}
           onChange={(e) => setTo(e.target.value)}
           className="h-11 text-base"

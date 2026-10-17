@@ -2,9 +2,12 @@
 
 import { ArrowLeftIcon, CameraIcon, ImageIcon, ImageUpIcon, LoaderCircleIcon } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
+import { useEffect, useEffectEvent, useRef, useState, useTransition, type ReactNode } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import type { PhotoSource } from "./capture-options";
+import { takePendingPhoto } from "./pending-photo";
 
 const MAX_DIMENSION = 2000;
 const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
@@ -31,19 +34,23 @@ export type PhotoAction = (formData: FormData) => Promise<{ error: string } | vo
 
 /**
  * Take or choose a photo, preview it, and submit it (downscaled) with the surrounding form's
- * fields to a Server Action. The photo is sent as `photo`. When reading fails the photo stays, the
- * button becomes "Try again", and `otherWaysHref` offers another way to add the medicine.
+ * fields to a Server Action. The photo is sent as `photo`. A photo picked on the capture page
+ * arrives already loaded; otherwise `source` puts the camera or the library button first. When
+ * reading fails the photo stays, the button becomes "Try again", and `otherWaysHref` offers
+ * another way to add the medicine.
  */
 export function PhotoCapture({
   action,
   children,
   submitLabel = "Read this photo",
   otherWaysHref,
+  source,
 }: {
   action: PhotoAction;
   children?: ReactNode;
   submitLabel?: string;
   otherWaysHref: string;
+  source?: PhotoSource;
 }) {
   const [photo, setPhoto] = useState<Blob | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -83,6 +90,13 @@ export function PhotoCapture({
     }
   }
 
+  // A photo picked on the capture page: load it once, on arrival.
+  const loadPhoto = useEffectEvent((file: File) => void onFile(file));
+  useEffect(() => {
+    const file = takePendingPhoto();
+    if (file) queueMicrotask(() => loadPhoto(file));
+  }, []);
+
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!photo || !formRef.current) return;
@@ -104,54 +118,52 @@ export function PhotoCapture({
 
   return (
     <form ref={formRef} onSubmit={submit} className="space-y-5">
-      {children}
-
       <div className="space-y-3">
         {previewUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- local object URL preview
-          <img src={previewUrl} alt="Your photo" className="max-h-80 w-full rounded-2xl border bg-muted object-contain shadow-xs" />
+          <img src={previewUrl} alt="Your photo" className="max-h-64 w-full rounded-2xl border bg-muted object-contain shadow-xs" />
         ) : (
-          <div className="grid h-48 place-items-center rounded-2xl border-2 border-dashed bg-surface text-sm text-muted-foreground">
+          <div className="grid h-40 place-items-center rounded-2xl border-2 border-dashed bg-surface text-sm text-muted-foreground">
             <span className="flex flex-col items-center gap-2">
               <span className="grid size-11 place-items-center rounded-xl bg-card ring-1 ring-border">
-                <ImageUpIcon aria-hidden className="size-5" />
+                {preparing ? (
+                  <LoaderCircleIcon aria-hidden className="size-5 animate-spin" />
+                ) : (
+                  <ImageUpIcon aria-hidden className="size-5" />
+                )}
               </span>
-              No photo yet
+              {preparing ? "Preparing photo…" : "No photo yet"}
             </span>
           </div>
         )}
 
-        <div className="grid gap-2 sm:grid-cols-2">
-          <label className="inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-lg border bg-card px-4 text-base font-medium shadow-xs transition-colors hover:border-input hover:bg-muted/70 has-focus-visible:ring-3 has-focus-visible:ring-ring/50">
-            <CameraIcon aria-hidden className="size-5" />
-            {photo ? "Retake photo" : "Take photo"}
-            <input
-              type="file"
-              name="camera"
-              accept="image/*"
-              capture="environment"
-              className="sr-only"
-              disabled={busy}
-              onChange={(e) => onFile(e.target.files?.[0])}
-            />
-          </label>
-          <label className="inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-lg border bg-card px-4 text-base font-medium shadow-xs transition-colors hover:border-input hover:bg-muted/70 has-focus-visible:ring-3 has-focus-visible:ring-ring/50">
-            <ImageIcon aria-hidden className="size-5" />
-            Choose from photos
-            <input
-              type="file"
-              name="library"
-              accept="image/*"
-              className="sr-only"
-              disabled={busy}
-              onChange={(e) => onFile(e.target.files?.[0])}
-            />
-          </label>
+        <div className={cn("flex flex-col gap-2 sm:flex-row", source === "library" && "flex-col-reverse sm:flex-row-reverse")}>
+          <PickerButton
+            name="camera"
+            capture
+            primary={!photo && source === "camera"}
+            disabled={busy}
+            icon={<CameraIcon aria-hidden className="size-5" />}
+            label={photo ? "Retake photo" : "Take a photo"}
+            onFile={onFile}
+          />
+          <PickerButton
+            name="library"
+            primary={!photo && source === "library"}
+            disabled={busy}
+            icon={<ImageIcon aria-hidden className="size-5" />}
+            label={photo ? "Choose a different photo" : "Choose a photo"}
+            onFile={onFile}
+          />
         </div>
-        <p className="text-sm text-muted-foreground">
-          Hold the label flat, fill the frame, and avoid glare. You&apos;ll check every value before it&apos;s saved.
-        </p>
+        {!photo && (
+          <p className="text-sm text-muted-foreground">
+            Hold the label flat, fill the frame, and avoid glare. You&apos;ll check every value before it&apos;s saved.
+          </p>
+        )}
       </div>
+
+      {children}
 
       {error && (
         <Alert variant="destructive">
@@ -178,5 +190,50 @@ export function PhotoCapture({
         </Button>
       )}
     </form>
+  );
+}
+
+/** A tap-sized button that opens the camera (`capture`) or the photo library. */
+function PickerButton({
+  name,
+  capture = false,
+  primary,
+  disabled,
+  icon,
+  label,
+  onFile,
+}: {
+  name: "camera" | "library";
+  capture?: boolean;
+  primary: boolean;
+  disabled: boolean;
+  icon: ReactNode;
+  label: string;
+  onFile: (file: File | undefined) => void;
+}) {
+  return (
+    <label
+      className={cn(
+        "inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-lg border px-4 text-base font-medium shadow-xs transition-colors has-focus-visible:ring-3 has-focus-visible:ring-ring/50 has-disabled:cursor-not-allowed has-disabled:opacity-50 sm:flex-1",
+        primary
+          ? "border-transparent bg-primary text-primary-foreground hover:bg-primary/90"
+          : "bg-card hover:border-input hover:bg-muted/70",
+      )}
+    >
+      {icon}
+      {label}
+      <input
+        type="file"
+        name={name}
+        accept="image/*"
+        capture={capture ? "environment" : undefined}
+        className="sr-only"
+        disabled={disabled}
+        onChange={(e) => {
+          onFile(e.target.files?.[0]);
+          e.target.value = "";
+        }}
+      />
+    </label>
   );
 }

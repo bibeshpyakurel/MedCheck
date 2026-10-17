@@ -21,9 +21,9 @@ export default async function ScanPage({ params }: PageProps<"/patients/[patient
       <RecordHeader patient={patient} current="medicines" />
       <div className="mx-auto max-w-lg space-y-8">
         <PageHeader
-          back={{ href: `/patients/${patient.id}/add`, label: "Other ways to add" }}
+          back={{ href: `/patients/${patient.id}/add`, label: "Back" }}
           title="Scan a barcode"
-          description="Point the camera at the barcode on an over-the-counter box or bottle. MedCheck looks up the label the FDA has on file for it."
+          description="Point the camera at the barcode on the medicine package. MedCheck looks up the label the FDA has on file for it."
         />
         <ScanFlow patientId={patient.id} />
       </div>
