@@ -3,6 +3,8 @@ import {
   calmoraA,
   calmoraAAgain,
   calmoraB,
+  calmoraBCorrected,
+  described,
   ibuprofen,
   input,
   nyquilBarcode,
@@ -60,6 +62,24 @@ describe("concentration", () => {
   it("ignores solids and liquids with different ingredients", () => {
     expect(checkConcentration(input(calmoraA, nyquilBarcode)).status).toBe("not_applicable");
     expect(checkConcentration(input(calmoraA, ibuprofen)).status).toBe("not_applicable");
+  });
+
+  it("marks strengths the user typed or described instead of calling them printed", () => {
+    const f = checkConcentration(input(calmoraA, calmoraBCorrected)).findings[0];
+    expect(f.detail).toContain(
+      "As recorded: Calmora Fever Relief (Bottle A): 100 mg per 5 mL; Calmora Extra Fever Relief (Bottle B): 200 mg per 5 mL (you entered this).",
+    );
+    expect(f.pharmacistQuestion).toBe(
+      "Calmora Fever Relief (Bottle A) says 100 mg per 5 mL but I entered 200 mg per 5 mL for Calmora Extra Fever Relief (Bottle B). Which strength should I be using, and how much?",
+    );
+
+    const d = checkConcentration(input(calmoraA, described)).findings[0];
+    expect(d.detail).toContain("Calmora Extra: 200 mg per 5 mL (from your description)");
+    expect(d.pharmacistQuestion).toContain("my description of Calmora Extra says 200 mg per 5 mL");
+  });
+
+  it("says As printed when every strength came from a label", () => {
+    expect(checkConcentration(input(calmoraA, calmoraB)).findings[0].detail).toContain("As printed: ");
   });
 
   it("lists three distinct strengths in one finding", () => {

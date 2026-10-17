@@ -14,6 +14,8 @@ import {
   labelOf,
   makeFinding,
   plural,
+  type Provenance,
+  provenanceOf,
   sourceLabel,
   sourcePhrase,
   unusableReason,
@@ -34,22 +36,36 @@ function problemFor(doseUnit: string, liquid: boolean, perUnit: string | null): 
   return "unclear_unit";
 }
 
-function describe(problem: UnitsProblem, dose: string, strength: string): { title: string; detail: string } {
+/** How the detail says where a value came from: printed on a label, typed by the user, or given in a description. */
+const DOSE_VERB: Record<Provenance, string> = { label: "The dose is written as", entered: "You entered the dose as", described: "The dose is given as" };
+const STRENGTH_VERB: Record<Provenance, string> = {
+  label: "the strength is printed as",
+  entered: "you entered the strength as",
+  described: "the strength is given as",
+};
+
+function describe(
+  problem: UnitsProblem,
+  dose: { text: string; from: Provenance },
+  strength: { text: string; from: Provenance },
+): { title: string; detail: string } {
+  const d = `${DOSE_VERB[dose.from]} ${dose.text}`;
+  const s = `${STRENGTH_VERB[strength.from]} ${strength.text}`;
   switch (problem) {
     case "volume_units":
       return {
         title: "Dose and strength use different units",
-        detail: `The dose is written as ${dose}, but the strength is printed as ${strength}. These units don't line up.`,
+        detail: `${d}, but ${s}. These units don't line up.`,
       };
     case "mass_dose":
       return {
         title: "Dose written in mg for a liquid",
-        detail: `The dose is written as ${dose}, but this liquid's strength is printed as ${strength}. The directions don't say what amount of liquid to measure.`,
+        detail: `${d} for a liquid, but ${s}. That doesn't say what amount of liquid to measure.`,
       };
     case "unclear_unit":
       return {
         title: "Dose has no clear measuring unit",
-        detail: `The dose is written as ${dose}, which isn't a measuring unit that matches the strength printed as ${strength}.`,
+        detail: `${d}, but ${s}. The dose isn't in a measuring unit that matches the strength.`,
       };
   }
 }
@@ -78,9 +94,9 @@ export function checkUnits({ entries }: CheckInput): CheckRun {
     const problem = problemFor(ds.dose.unit, liquid, strength.perUnit);
     if (!problem) continue;
 
-    const doseText = formatDose(ds.dose);
-    const strengthText = formatStrength(strength);
-    const { title, detail } = describe(problem, doseText, strengthText);
+    const dose = { text: formatDose(ds.dose), from: provenanceOf(entry, ds.field) };
+    const strengthAs = { text: formatStrength(strength), from: provenanceOf(entry, strengthField) };
+    const { title, detail } = describe(problem, dose, strengthAs);
     findings.push(
       makeFinding({
         check: "units",
@@ -89,11 +105,15 @@ export function checkUnits({ entries }: CheckInput): CheckRun {
         title: `${title}: ${labelOf(entry)}`,
         detail: `${sourceLabel(entry)}: ${detail}`,
         evidence: [
-          evidenceItem(entry, "doseAsWritten", doseText, ds.field.evidence),
-          evidenceItem(entry, `ingredients[${index}].strength`, strengthText, strengthField.evidence),
+          evidenceItem(entry, "doseAsWritten", dose.text, ds.field.evidence),
+          evidenceItem(entry, `ingredients[${index}].strength`, strengthAs.text, strengthField.evidence),
         ],
         labelWarningQuote: null,
-        pharmacistQuestion: unitsQuestion(problem, sourcePhrase(entry), doseText, strengthText),
+        pharmacistQuestion: unitsQuestion(
+          problem,
+          { source: sourcePhrase(entry, dose.from), value: dose.text, from: dose.from },
+          { source: sourcePhrase(entry, strengthAs.from), value: strengthAs.text, from: strengthAs.from },
+        ),
       }),
     );
   }

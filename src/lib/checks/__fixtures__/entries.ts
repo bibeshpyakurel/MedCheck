@@ -346,6 +346,45 @@ export const ibuprofen = makeEntry({
   doc: { kind: "otc_package", date: null },
 });
 
+const photoOf = (id: string): Evidence => ({ kind: "photo", sourceDocumentId: `doc-${id}` });
+
+/** Discharge list read with no AI suggestion: the user typed the strength and dose themselves. */
+export const dischargeTyped = makeEntry({
+  ...specOf(discharge),
+  id: "e-discharge-typed",
+  ingredients: [{ name: "Acetaminophen", strength: edited(null, mgPer(160, 5, "mL"), photoOf("e-discharge-typed")) }],
+  dose: edited(null, dose(10, "mL"), photoOf("e-discharge-typed")),
+});
+
+/** Prescription label where the user typed the dose and the strength. */
+export const prescriptionTyped = makeEntry({
+  ...specOf(prescription),
+  id: "e-rx-typed",
+  ingredients: [{ name: "Acetaminophen", strength: edited(null, mgPer(160, 5, "mL"), photoOf("e-rx-typed")) }],
+  dose: edited(null, dose(2, "tsp"), photoOf("e-rx-typed")),
+});
+
+/** Calmora Bottle B photographed, the AI misread the strength and the user corrected it. */
+export const calmoraBCorrected = makeEntry({
+  ...specOf(calmoraB),
+  id: "e-calmora-b-corrected",
+  ingredients: [{ name: "Acetaminophen", strength: edited(mgPer(20, 5, "mL"), mgPer(200, 5, "mL"), photoOf("e-calmora-b-corrected")) }],
+});
+
+const said = (text: string): Evidence => ({ kind: "quote", text, sourceDocumentId: "doc-e-described" });
+
+/** A typed description: "Calmora Extra, acetaminophen 200 mg per 5 mL, give 2 tsp". */
+export const described = makeEntry({
+  id: "e-described",
+  name: "Calmora Extra",
+  form: "liquid",
+  ingredients: [{ name: "Acetaminophen", strength: confirmed(mgPer(200, 5, "mL"), said("200 mg per 5 mL")) }],
+  dose: confirmed(dose(2, "tsp"), said("give 2 tsp")),
+  doc: { kind: "description", date: null },
+  inputMethod: "typed",
+  evidence: said("Calmora Extra, acetaminophen 200 mg per 5 mL, give 2 tsp"),
+});
+
 /** Recover a spec from an entry so variants can override one thing. */
 function specOf(e: MedicationEntry): EntrySpec {
   return {
