@@ -16,6 +16,8 @@ import {
   makeFinding,
   mgPerMl,
   plural,
+  PROVENANCE_NOTE,
+  provenanceOf,
   strengthKey,
   unusableReason,
   usableIngredients,
@@ -62,15 +64,23 @@ export function checkConcentration({ entries }: CheckInput): CheckRun {
     if (new Set(k.map((x) => strengthKey(x.strength))).size < 2) continue;
 
     const shown = displayIngredientName(k[0].name);
-    const sides: Side[] = uniqueSides(k.map((x) => ({ source: labelOf(x.entry), value: formatStrength(x.strength) })));
-    const lines = sides.map((s) => `${s.source}: ${s.value}`);
+    const sides = k.map((x) => ({
+      label: labelOf(x.entry),
+      value: formatStrength(x.strength),
+      from: provenanceOf(x.entry, x.entry.fields.ingredients[x.index].strength),
+    }));
+    const lines = [...new Set(sides.map((s) => `${s.label}: ${s.value}${PROVENANCE_NOTE[s.from]}`))];
+    const asPrinted = sides.every((s) => s.from === "label") ? "As printed" : "As recorded";
+    const questionSides: Side[] = uniqueSides(
+      sides.map((s) => ({ source: s.from === "described" ? `my description of ${s.label}` : s.label, value: s.value, from: s.from })),
+    );
     findings.push(
       makeFinding({
         check: "concentration",
         discriminator: ingredient,
         entryIds: k.map((x) => x.entry.id),
         title: `${capitalize(shown)} liquids with different strengths`,
-        detail: `The same volume holds different amounts of ${ingredient} in these liquids. As printed: ${lines.join("; ")}.`,
+        detail: `The same volume holds different amounts of ${ingredient} in these liquids. ${asPrinted}: ${lines.join("; ")}.`,
         evidence: k.map((x) =>
           evidenceItem(
             x.entry,
@@ -80,7 +90,7 @@ export function checkConcentration({ entries }: CheckInput): CheckRun {
           ),
         ),
         labelWarningQuote: null,
-        pharmacistQuestion: strengthQuestion(sides),
+        pharmacistQuestion: strengthQuestion(questionSides),
       }),
     );
   }

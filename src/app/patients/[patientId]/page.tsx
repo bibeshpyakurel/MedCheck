@@ -1,4 +1,5 @@
 import {
+  ChevronDownIcon,
   ChevronRightIcon,
   CircleDashedIcon,
   ClipboardCheckIcon,
@@ -12,7 +13,6 @@ import {
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { resetDemo } from "@/app/actions/session";
 import { AlreadyGaveBoth } from "@/components/already-gave-both";
 import { AppShell } from "@/components/app-shell";
 import { ChecksPanel } from "@/components/checks/checks-panel";
@@ -21,7 +21,7 @@ import { HistoryList } from "@/components/records/history-list";
 import { MedicationList } from "@/components/records/medication-list";
 import { PatientSwitcher } from "@/components/records/patient-switcher";
 import { PersonAvatar } from "@/components/records/person-avatar";
-import { SubmitButton } from "@/components/records/submit-button";
+import { ResetDemoButton } from "@/components/records/reset-demo-button";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { requireUser } from "@/lib/auth";
@@ -109,21 +109,21 @@ export default async function PatientRecordPage({ params }: PageProps<"/patients
         </div>
       </header>
 
-      <dl className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <dl className="mt-6 grid grid-cols-2 gap-2 sm:mt-8 sm:gap-3 lg:grid-cols-4">
         <Metric icon={PillIcon} label="Confirmed medicines" value={confirmed.length} />
         <Metric icon={FileTextIcon} label="Waiting for review" value={drafts.length} tone={drafts.length > 0 ? "unresolved" : undefined} />
         <Metric icon={SearchCheckIcon} label="Checks that found something" value={found} tone={found > 0 ? "finding" : undefined} />
         <Metric icon={CircleDashedIcon} label="Couldn't be completed" value={unresolved} tone={unresolved > 0 ? "unresolved" : undefined} />
       </dl>
 
+      <OnThisPage />
+
       {drafts.length > 0 ? <NeedsReview base={base} drafts={drafts} /> : null}
 
+      {/* Medicines come first in the DOM so phones reach them without scrolling past every finding;
+          the jump links above lead to the checks. Wide screens show both side by side. */}
       <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
-        <div className="lg:sticky lg:top-24 lg:order-2">
-          <ChecksPanel runs={runs} />
-        </div>
-
-        <Tabs defaultValue="medicines" className="gap-4 lg:order-1">
+        <Tabs id="medicines" defaultValue="medicines" className="scroll-mt-24 gap-4">
           <TabsList className="h-11! w-full sm:w-auto sm:self-start">
             <TabsTrigger value="medicines" className="min-w-32 px-4">
               Medicines
@@ -146,20 +146,37 @@ export default async function PatientRecordPage({ params }: PageProps<"/patients
             <HistoryList items={history} />
           </TabsContent>
         </Tabs>
+
+        <div id="checks" className="scroll-mt-24 lg:sticky lg:top-24">
+          <ChecksPanel runs={runs} patientId={patientId} entries={confirmed} formulations={formulations} />
+        </div>
       </div>
 
       {patient.isDemo ? (
-        <form
-          action={resetDemo}
-          className="mt-14 flex flex-col gap-3 rounded-2xl border border-dashed bg-surface p-5 text-sm sm:flex-row sm:items-center sm:justify-between"
-        >
+        <div className="mt-14 flex flex-col gap-3 rounded-2xl border border-dashed bg-surface p-5 text-sm sm:flex-row sm:items-center sm:justify-between">
           <p className="text-muted-foreground">Presenting? Put the demo household back the way it started.</p>
-          <SubmitButton variant="outline" className="h-11" pendingLabel="Resetting…">
+          <ResetDemoButton variant="outline" className="h-11">
             <RotateCcwIcon aria-hidden /> Reset demo
-          </SubmitButton>
-        </form>
+          </ResetDemoButton>
+        </div>
       ) : null}
     </AppShell>
+  );
+}
+
+/** Phones: jump links under the counts, so the medicines are one tap away instead of below every finding. */
+function OnThisPage() {
+  const link =
+    "flex min-h-11 items-center justify-between gap-2 rounded-lg border bg-card px-3 text-sm font-medium transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-none";
+  return (
+    <nav aria-label="On this page" className="mt-3 grid grid-cols-2 gap-2 lg:hidden">
+      <a href="#medicines" className={link}>
+        Medicines <ChevronDownIcon aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+      </a>
+      <a href="#checks" className={link}>
+        Checks <ChevronDownIcon aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+      </a>
+    </nav>
   );
 }
 
@@ -177,7 +194,7 @@ function Metric({
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-xs",
+        "flex flex-col gap-1.5 rounded-xl border bg-card p-3 shadow-xs sm:gap-3 sm:p-4",
         tone === "finding" && "border-finding/40 bg-finding-surface/60",
         tone === "unresolved" && "border-unresolved/35 bg-unresolved-surface/60",
       )}
@@ -193,7 +210,7 @@ function Metric({
         />
         {label}
       </dt>
-      <dd className="font-display text-3xl font-semibold tracking-tight nums">{value}</dd>
+      <dd className="font-display text-2xl font-semibold tracking-tight nums sm:text-3xl">{value}</dd>
     </div>
   );
 }

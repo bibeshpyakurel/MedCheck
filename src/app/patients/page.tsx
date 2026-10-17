@@ -2,11 +2,12 @@ import { ArrowRightIcon, FlaskConicalIcon, PlusIcon, RotateCcwIcon, UserRoundIco
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { resetDemo, startDemo } from "@/app/actions/session";
+import { startDemo } from "@/app/actions/session";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { DemoBadge } from "@/components/records/demo-badge";
 import { PersonAvatar } from "@/components/records/person-avatar";
+import { ResetDemoButton } from "@/components/records/reset-demo-button";
 import { SubmitButton } from "@/components/records/submit-button";
 import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth";
@@ -85,11 +86,9 @@ export default async function PatientsPage() {
             </p>
           </div>
           {hasDemo ? (
-            <form action={resetDemo}>
-              <SubmitButton variant="outline" className="h-11 w-full px-4 sm:w-auto" pendingLabel="Resetting…">
-                <RotateCcwIcon aria-hidden /> Reset demo household
-              </SubmitButton>
-            </form>
+            <ResetDemoButton variant="outline" className="h-11 w-full px-4 sm:w-auto">
+              <RotateCcwIcon aria-hidden /> Reset demo household
+            </ResetDemoButton>
           ) : (
             <form action={startDemo}>
               <SubmitButton variant="outline" className="h-11 w-full px-4 sm:w-auto" pendingLabel="Adding…">

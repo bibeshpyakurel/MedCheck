@@ -7,7 +7,7 @@ import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { parseBarcode } from "@/lib/ndc";
+import { ndcLookupKeys } from "@/lib/ndc";
 
 type CameraState = "starting" | "scanning" | "denied" | "unavailable";
 
@@ -73,8 +73,12 @@ export function BarcodeScanner({ onDetected }: { onDetected: (text: string) => v
 
   function submitManual(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!parseBarcode(manual)) {
-      setManualError("That doesn't look like an NDC (e.g. 37000-523-02) or a barcode number.");
+    if (!manual.trim()) {
+      setManualError("Type the NDC or the number under the barcode first.");
+      return;
+    }
+    if (!ndcLookupKeys(manual)) {
+      setManualError("That doesn't look like an NDC (like 37000-523-02) or a 12-digit barcode number.");
       return;
     }
     setManualError(null);
@@ -154,17 +158,24 @@ export function BarcodeScanner({ onDetected }: { onDetected: (text: string) => v
             id={`${inputId}-ndc`}
             value={manual}
             onChange={(e) => setManual(e.target.value)}
-            placeholder="37000-523-02"
+            placeholder="NDC or barcode number"
             autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck={false}
             inputMode="text"
             className="h-11 text-base"
             aria-invalid={manualError ? true : undefined}
-            aria-describedby={manualError ? `${inputId}-ndc-error` : undefined}
+            aria-describedby={`${inputId}-ndc-hint${manualError ? ` ${inputId}-ndc-error` : ""}`}
           />
           <Button type="submit" className="h-11 px-4 text-base">
             Look up
           </Button>
         </div>
+        <p id={`${inputId}-ndc-hint`} className="text-sm text-muted-foreground">
+          For example, NDC <span className="font-mono text-foreground">37000-523-02</span> or barcode{" "}
+          <span className="font-mono text-foreground">3 37000 52302 5</span>.
+        </p>
         {manualError && (
           <p id={`${inputId}-ndc-error`} className="text-sm text-destructive">
             {manualError}

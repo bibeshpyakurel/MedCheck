@@ -15,6 +15,9 @@ import {
   labelOf,
   makeFinding,
   plural,
+  type Provenance,
+  PROVENANCE_NOTE,
+  provenanceOf,
   type UsableIngredient,
   usableIngredients,
 } from "./shared";
@@ -23,6 +26,12 @@ import {
 function labelText(ing: UsableIngredient): string {
   const name = displayIngredientName(ing.name);
   return ing.strength ? `${name} ${formatStrength(ing.strength)}` : name;
+}
+
+/** "entered" when the user typed the name or the shown strength. */
+function ingredientProvenance(entry: MedicationEntry, ing: UsableIngredient): Provenance {
+  const name = provenanceOf(entry, entry.fields.ingredients[ing.index].name);
+  return name === "label" && ing.strength ? provenanceOf(entry, ing.strengthField) : name;
 }
 
 /**
@@ -63,7 +72,7 @@ export function checkIngredientOverlap({ entries, formulations }: CheckInput): C
     if (hits.length < 2) continue;
     const names = [...new Set(hits.map((h) => labelOf(h.entry)))];
     const shown = displayIngredientName(hits[0].ing.name);
-    const lines = [...new Set(hits.map((h) => `${labelOf(h.entry)} lists ${labelText(h.ing)}`))];
+    const lines = [...new Set(hits.map((h) => `${labelOf(h.entry)} lists ${labelText(h.ing)}${PROVENANCE_NOTE[ingredientProvenance(h.entry, h.ing)]}`))];
     findings.push(
       makeFinding({
         check: "ingredient_overlap",

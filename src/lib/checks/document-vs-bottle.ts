@@ -15,6 +15,8 @@ import {
   labelOf,
   makeFinding,
   plural,
+  type Provenance,
+  provenanceOf,
   sourceLabel,
   sourcePhrase,
   strengthKey,
@@ -32,14 +34,17 @@ function dated(entry: MedicationEntry): string {
   return date ? `${sourceLabel(entry)} (${date})` : `${sourceLabel(entry)} (${labelOf(entry)})`;
 }
 
-type Item = { entry: MedicationEntry; field: string; text: string; key: string; evidence: Evidence };
+type Item = { entry: MedicationEntry; field: string; text: string; key: string; evidence: Evidence; from: Provenance };
 
 function conflictFinding(ingredient: string, aspect: "strength" | "dose", items: Item[]): Finding {
   // "the bottle" is ambiguous when two different bottles are involved; name them instead.
   const bottles = new Set(items.filter((i) => documentClass(i.entry) === "bottle").map((i) => labelOf(i.entry)));
-  const source = (e: MedicationEntry) => (documentClass(e) === "bottle" && bottles.size > 1 ? labelOf(e) : sourcePhrase(e));
-  const lines = [...new Set(items.map((i) => `${dated(i.entry)} says ${i.text}`))];
-  const sides = uniqueSides(items.map((i) => ({ source: source(i.entry), value: i.text })));
+  const source = (i: Item) =>
+    documentClass(i.entry) === "bottle" && bottles.size > 1 ? labelOf(i.entry) : sourcePhrase(i.entry, i.from);
+  const lines = [
+    ...new Set(items.map((i) => (i.from === "entered" ? `${dated(i.entry)}: you entered ${i.text}` : `${dated(i.entry)} says ${i.text}`))),
+  ];
+  const sides = uniqueSides(items.map((i) => ({ source: source(i), value: i.text, from: i.from })));
   return makeFinding({
     check: "document_vs_bottle",
     discriminator: `${ingredient}:${aspect}`,
@@ -83,7 +88,16 @@ export function checkDocumentVsBottle({ entries }: CheckInput): CheckRun {
         return [];
       }
       const s = field.value;
-      return [{ entry: h.entry, field: `ingredients[${h.index}].strength`, text: formatStrength(s), key: strengthKey(s), evidence: field.evidence }];
+      return [
+        {
+          entry: h.entry,
+          field: `ingredients[${h.index}].strength`,
+          text: formatStrength(s),
+          key: strengthKey(s),
+          evidence: field.evidence,
+          from: provenanceOf(h.entry, field),
+        },
+      ];
     });
 
     // Dose as written (only where a dose is written; catalog labels often have none)
@@ -92,7 +106,9 @@ export function checkDocumentVsBottle({ entries }: CheckInput): CheckRun {
       if (ds.kind === "unresolved") reasons.push(ds.reason);
       if (ds.kind !== "usable") return [];
       const key = `${ds.dose.amount}|${ds.dose.unit.trim().toLowerCase().replace(/s$/, "")}`;
-      return [{ entry: h.entry, field: "doseAsWritten", text: formatDose(ds.dose), key, evidence: ds.field.evidence }];
+      return [
+        { entry: h.entry, field: "doseAsWritten", text: formatDose(ds.dose), key, evidence: ds.field.evidence, from: provenanceOf(h.entry, ds.field) },
+      ];
     });
 
     for (const [aspect, items] of [

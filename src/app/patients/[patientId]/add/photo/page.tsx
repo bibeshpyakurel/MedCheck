@@ -44,7 +44,8 @@ export default async function PhotoPage({ params, searchParams }: PageProps<"/pa
             formulation ? (
               <>
                 Scanned: <strong className="text-foreground">{formulation.brandName}</strong>. A photo of the box lets
-                MedCheck compare what&apos;s printed with the FDA label on file.
+                MedCheck compare what&apos;s printed with the {formulation.isFictional ? "fictional demo label" : "FDA label"} on
+                file.
               </>
             ) : (
               <>MedCheck reads the values; you check each one before anything is saved.</>

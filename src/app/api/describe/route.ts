@@ -4,6 +4,7 @@ import {
   describeMedicine,
   detectAlreadyGaveBoth,
   fieldsFromDescription,
+  type DescribeFailure,
   type DescribeResponse,
   type DescribeResult,
 } from "@/lib/ai/describe";
@@ -17,8 +18,10 @@ const MAX_AUDIO_BYTES = 4 * 1024 * 1024;
 const MAX_TEXT_CHARS = 4000;
 
 /**
- * multipart/form-data: `patientId`, and `text` (typed) or `audio` (a recording).
+ * multipart/form-data: `patientId`, and `text` (typed) or `audio` (a recording); `manual=1` skips AI.
  * Creates a `description` source document and one draft entry, and reports "already gave both".
+ * If Gemini fails, nothing is saved and it answers 503 `{ error, retry: true }` so the user can try
+ * again or choose manual entry — unless the words already say "I already gave both".
  */
 export async function POST(request: NextRequest) {
   if (!(await getCurrentUser())) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
@@ -37,9 +40,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "That recording is too long. Try a shorter one, or type it." }, { status: 413 });
   }
 
+  const manual = form?.get("manual") === "1" && !audio;
+
   let result: DescribeResult | null = null;
   let notice: DescribeResponse["notice"] = null;
-  if (!hasGeminiKey()) {
+  if (manual) {
+    // The user chose to type the values after automatic reading failed.
+    notice = "ai-failed";
+  } else if (!hasGeminiKey()) {
     notice = "ai-unavailable";
   } else {
     try {
@@ -50,6 +58,16 @@ export async function POST(request: NextRequest) {
         : await describeMedicine({ text });
     } catch (error) {
       console.error("Gemini describe failed", error);
+      // "I already gave both" must still reach the fixed message; anything else lets the user retry.
+      if (audio || !detectAlreadyGaveBoth(text)) {
+        const failure: DescribeFailure = {
+          error: audio
+            ? "We couldn't listen to the recording just now. Try again, or type the description instead."
+            : "We couldn't read your description automatically just now. Your words are still here — try again, or enter the details yourself.",
+          retry: true,
+        };
+        return NextResponse.json(failure, { status: 503 });
+      }
       notice = "ai-failed";
     }
   }

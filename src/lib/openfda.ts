@@ -1,6 +1,8 @@
 // openFDA drug labels → catalog formulations. The mapper is pure; the fetchers call the public
 // API at api.fda.gov (no key needed). No "server-only" here: scripts/seed-catalog.ts uses it too.
-import DOMPurify from "isomorphic-dompurify";
+// sanitize-html (htmlparser2), not DOMPurify: isomorphic-dompurify loads jsdom, which crashes on
+// Vercel's runtime (ERR_REQUIRE_ESM) and took the label page down with it.
+import sanitizeHtml from "sanitize-html";
 import type { CatalogIngredient, Formulation } from "@/lib/domain/schema";
 import { normalizeIngredient } from "@/lib/domain/ingredients";
 import type { Database, Json } from "@/lib/supabase/database.types";
@@ -22,6 +24,7 @@ export type OpenFdaLabel = {
     product_type?: string[];
     package_ndc?: string[];
     substance_name?: string[];
+    upc?: string[]; // 13 digits, leading 0: "0300450449108"
   };
   [section: string]: unknown;
 };
@@ -153,7 +156,11 @@ const TABLE_TAGS = ["table", "caption", "colgroup", "col", "thead", "tbody", "tf
 export function sanitizeDosageTable(html: string): string {
   // SPL puts several <paragraph>/<item> elements in one cell; keep them on separate lines.
   const separated = html.replace(/<\/(paragraph|item)>\s*<(paragraph|item)\b[^>]*>/gi, "<br>");
-  return DOMPurify.sanitize(separated, { ALLOWED_TAGS: TABLE_TAGS, ALLOWED_ATTR: ["colspan", "rowspan", "scope"] })
+  return sanitizeHtml(separated, {
+    allowedTags: TABLE_TAGS,
+    allowedAttributes: { "*": ["colspan", "rowspan", "scope"] },
+  })
+    .replace(/<br \/>/g, "<br>")
     .replace(/<caption>\s*<\/caption>/g, "")
     .trim();
 }
@@ -237,9 +244,11 @@ export function formulationToRow(
 
 const LABEL_ENDPOINT = "https://api.fda.gov/drug/label.json";
 
-/** openFDA search matching any of the given hyphenated NDCs. */
-export function ndcSearchQuery(hyphenatedNdcs: string[]): string {
-  return hyphenatedNdcs.map((n) => `openfda.package_ndc:"${n}"`).join(" OR ");
+/** openFDA search matching any of the given hyphenated NDCs, or the 13-digit UPC when given. */
+export function ndcSearchQuery(hyphenatedNdcs: string[], upc: string | null = null): string {
+  const terms = hyphenatedNdcs.map((n) => `openfda.package_ndc:"${n}"`);
+  if (upc) terms.push(`openfda.upc:"${upc}"`);
+  return terms.join(" OR ");
 }
 
 /** Runs an openFDA label search. No matches → []. Throws on network errors or timeouts. */
@@ -252,8 +261,12 @@ export async function searchLabels(search: string, limit = 100, timeoutMs = 8000
   return body.results ?? [];
 }
 
-/** Labels whose packages carry any of the given hyphenated NDCs. */
-export async function fetchLabelsByNdc(hyphenatedNdcs: string[], timeoutMs?: number): Promise<OpenFdaLabel[]> {
-  if (hyphenatedNdcs.length === 0) return [];
-  return searchLabels(ndcSearchQuery(hyphenatedNdcs), 5, timeoutMs);
+/** Labels whose packages carry any of the given hyphenated NDCs, or the given UPC. */
+export async function fetchLabelsByNdc(
+  hyphenatedNdcs: string[],
+  upc: string | null,
+  timeoutMs?: number,
+): Promise<OpenFdaLabel[]> {
+  if (hyphenatedNdcs.length === 0 && !upc) return [];
+  return searchLabels(ndcSearchQuery(hyphenatedNdcs, upc), 5, timeoutMs);
 }

@@ -129,7 +129,32 @@ describe("sanitizeDosageTable", () => {
     const html = sanitizeDosageTable(
       '<table border="1" style="color:red"><tr><td colspan="2" onclick="x()">a<script>alert(1)</script></td></tr></table><img src=x onerror=alert(1)>',
     );
-    expect(html).toBe('<table><tbody><tr><td colspan="2">a</td></tr></tbody></table>');
+    expect(html).toBe('<table><tr><td colspan="2">a</td></tr></table>');
+  });
+
+  it("keeps thead/tbody and scope/rowspan", () => {
+    const html = sanitizeDosageTable(
+      '<table><thead><tr><th scope="col" class="x">age</th></tr></thead><tbody><tr><td rowspan="2" id="r">2-3 years</td></tr></tbody></table>',
+    );
+    expect(html).toBe(
+      '<table><thead><tr><th scope="col">age</th></tr></thead><tbody><tr><td rowspan="2">2-3 years</td></tr></tbody></table>',
+    );
+  });
+
+  it("drops links, javascript: URLs, iframes and styles but keeps cell text", () => {
+    const html = sanitizeDosageTable(
+      '<table><tr><td><a href="javascript:alert(1)">under 2 years</a><iframe src="javascript:alert(1)"></iframe><style>td{}</style></td><td><svg onload="alert(1)"><text>x</text></svg>ask a doctor</td></tr></table>',
+    );
+    expect(html).not.toMatch(/javascript:|onload|<a\b|<iframe|<style|<svg/i);
+    expect(html).toContain("<td>under 2 years</td>");
+    expect(html).toContain("ask a doctor</td>");
+  });
+
+  it("drops SPL markup but keeps its text, and escapes stray angle brackets", () => {
+    const html = sanitizeDosageTable(
+      '<table><tr><td><content styleCode="bold">12 years &amp; over</content></td><td>&lt;script&gt;</td></tr></table>',
+    );
+    expect(html).toBe("<table><tr><td>12 years &amp; over</td><td>&lt;script&gt;</td></tr></table>");
   });
 
   it("keeps several SPL paragraphs in one cell on separate lines", () => {
@@ -145,5 +170,12 @@ describe("ndcSearchQuery", () => {
     expect(ndcSearchQuery(["3700-0523-02", "37000-523-02"])).toBe(
       'openfda.package_ndc:"3700-0523-02" OR openfda.package_ndc:"37000-523-02"',
     );
+  });
+
+  it("also searches openfda.upc for a scanned UPC", () => {
+    expect(ndcSearchQuery(["0045-0449-10"], "0300450449108")).toBe(
+      'openfda.package_ndc:"0045-0449-10" OR openfda.upc:"0300450449108"',
+    );
+    expect(ndcSearchQuery([], "0036000291452")).toBe('openfda.upc:"0036000291452"');
   });
 });

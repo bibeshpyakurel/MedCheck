@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDocDate, isSelf, personDetails, personLabel, recordTitle } from "./record-format";
+import { catalogLabelSource, catalogMatchLabel, formatDocDate, isSelf, personDetails, personLabel, recordTitle } from "./record-format";
 
 describe("self profiles", () => {
   const me = { displayName: "Jamie", relationship: "self", notes: null };
@@ -29,5 +29,28 @@ describe("formatDocDate", () => {
   it("formats a calendar date without shifting it", () => {
     expect(formatDocDate("2026-10-16")).toBe("Oct 16, 2026");
     expect(formatDocDate(null)).toBeNull();
+  });
+});
+
+describe("catalog provenance", () => {
+  const openfda = { isFictional: false, source: "openfda" as const, labelEffectiveDate: "2026-07-22" };
+  const fictional = { isFictional: true, source: "fictional" as const, labelEffectiveDate: "2026-10-01" };
+
+  it("names the FDA label only for openFDA products", () => {
+    expect(catalogLabelSource(openfda)).toBe("FDA label (openFDA), effective 2026-07-22");
+    expect(catalogLabelSource({ ...openfda, labelEffectiveDate: null })).toBe("FDA label (openFDA)");
+  });
+
+  it("never calls a fictional product an FDA label, even with an effective date", () => {
+    expect(catalogLabelSource(fictional)).toBe("Fictional demo label");
+    // Either flag alone is enough to keep "FDA" off a demo product.
+    expect(catalogLabelSource({ ...fictional, source: "openfda" })).toBe("Fictional demo label");
+    expect(catalogLabelSource({ ...openfda, source: "fictional" })).toBe("Fictional demo label");
+  });
+
+  it("says how the catalog match was made, by input method", () => {
+    expect(catalogMatchLabel("barcode", "NyQuil Severe")).toBe("Barcode: NyQuil Severe");
+    expect(catalogMatchLabel("picker", "Calmora Fever Relief (Bottle A)")).toBe("Picked from list: Calmora Fever Relief (Bottle A)");
+    expect(catalogMatchLabel("photo", "Tylenol")).toBe("Catalog match: Tylenol");
   });
 });

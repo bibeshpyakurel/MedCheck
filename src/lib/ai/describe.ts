@@ -2,6 +2,7 @@
 import { generateText, Output, type UserContent } from "ai";
 import { z } from "zod";
 import type { EntryFields, Evidence } from "@/lib/domain/schema";
+import { DESCRIBE_BUDGET_MS } from "./fallback";
 import { withGemini } from "./model";
 import { buildEntryFields, unknownEntryFields } from "./raw-fields";
 
@@ -57,6 +58,9 @@ export type DescribeResponse = {
   /** Set when AI couldn't read the words, so every field starts unknown. */
   notice: "ai-unavailable" | "ai-failed" | null;
 };
+
+/** What POST /api/describe returns on an error. `retry`: the same request may work if sent again. */
+export type DescribeFailure = { error: string; retry?: boolean };
 
 const INSTRUCTIONS = `A caregiver is describing a medicine they have at home, in their own words.
 Rules:
@@ -130,13 +134,15 @@ export async function describeMedicine(input: {
     throw new Error("Nothing to describe");
   }
 
-  const { output } = await withGemini((settings) =>
-    generateText({
-      ...settings,
-      instructions: INSTRUCTIONS,
-      output: Output.object({ schema: geminiDescriptionSchema }),
-      messages: [{ role: "user", content }],
-    }),
+  const { output } = await withGemini(
+    (settings) =>
+      generateText({
+        ...settings,
+        instructions: INSTRUCTIONS,
+        output: Output.object({ schema: geminiDescriptionSchema }),
+        messages: [{ role: "user", content }],
+      }),
+    { budgetMs: DESCRIBE_BUDGET_MS },
   );
 
   // Typed text is already the user's exact words; only audio needs the model's transcript.

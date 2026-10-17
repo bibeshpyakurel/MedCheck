@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { FICTIONAL_FORMULATIONS } from "@/data/fictional-formulations";
 import { entryFieldsSchema, type EntryFields, type Field, type Formulation } from "@/lib/domain/schema";
 import { isFullyReviewed } from "@/lib/domain/fields";
-import { buildDemoHousehold, DEMO_CALMORA_SLUG, DEMO_TYLENOL_SLUG } from "./household";
+import { buildDemoHousehold, DEMO_CALMORA_SLUG, DEMO_CAREGIVER_NAME, DEMO_TYLENOL_SLUG, hasOwnRecords } from "./household";
 
 const bottleA = FICTIONAL_FORMULATIONS.find((f) => f.slug === DEMO_CALMORA_SLUG)!;
 const catalogBottleA: Formulation = { ...bottleA, id: "11111111-1111-4111-8111-111111111111" };
@@ -62,6 +62,7 @@ describe("buildDemoHousehold", () => {
     const [entry, ...rest] = buildDemoHousehold(catalog).patients[0].entries;
     expect(rest).toHaveLength(0);
     expect(entry).toMatchObject({ formulationSlug: DEMO_TYLENOL_SLUG, formulationId: catalogTylenol.id, inputMethod: "picker" });
+    expect(entry.documentKind).toBeNull(); // picked from the list: there is no package document
     expect(entry.fields.productName.value).toBe("Tylenol Extra Strength");
     expect(entry.fields.ingredients[0].strength.value).toEqual({ amount: 500, unit: "mg", perAmount: 1, perUnit: "caplet" });
     expectAllConfirmed(entry.fields);
@@ -70,7 +71,7 @@ describe("buildDemoHousehold", () => {
   it("gives Sam one confirmed Calmora Bottle A entry linked to the catalog row", () => {
     const [entry, ...rest] = buildDemoHousehold(catalog).patients[1].entries;
     expect(rest).toHaveLength(0);
-    expect(entry).toMatchObject({ formulationSlug: DEMO_CALMORA_SLUG, formulationId: catalogBottleA.id, documentKind: "otc_package" });
+    expect(entry).toMatchObject({ formulationSlug: DEMO_CALMORA_SLUG, formulationId: catalogBottleA.id, inputMethod: "picker", documentKind: null });
     expect(entry.fields.productName.value).toBe("Calmora Fever Relief (Bottle A)");
     expect(entry.fields.ingredients[0].strength.value).toEqual({ amount: 100, unit: "mg", perAmount: 5, perUnit: "mL" });
     expect(entry.fields.productName.evidence).toEqual({
@@ -108,5 +109,24 @@ describe("buildDemoHousehold", () => {
   it("can leave out the self profile (for someone who already has their own)", () => {
     const h = buildDemoHousehold(catalog, { includeSelf: false });
     expect(h.patients.map((p) => p.displayName)).toEqual(["Sam"]);
+  });
+});
+
+describe("hasOwnRecords", () => {
+  const demo = { isDemo: true };
+  const own = { isDemo: false };
+
+  it("is false for a demo-only session, named Alex by the demo or not named at all", () => {
+    expect(hasOwnRecords(DEMO_CAREGIVER_NAME, [demo, demo])).toBe(false);
+    expect(hasOwnRecords(null, [demo])).toBe(false);
+    expect(hasOwnRecords(null, [])).toBe(false);
+  });
+
+  it("is true when the user added a profile of their own", () => {
+    expect(hasOwnRecords(DEMO_CAREGIVER_NAME, [demo, own])).toBe(true);
+  });
+
+  it("is true when the user typed their own name, even before adding anyone", () => {
+    expect(hasOwnRecords("Jordan", [demo])).toBe(true);
   });
 });

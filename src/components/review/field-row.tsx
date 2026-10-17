@@ -1,10 +1,11 @@
 "use client";
 
 import { CheckIcon, CircleHelpIcon, PencilIcon } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import type { Field, FieldState } from "@/lib/domain/schema";
 import { cn } from "@/lib/utils";
+import { ShowEditorErrors } from "./editors";
 import { EvidenceCrop } from "./evidence-crop";
 import { applyEdit, markMatches, markUnknown } from "./field-actions";
 
@@ -45,10 +46,26 @@ export function FieldRow<T>({
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<T | null>(null);
+  // Save attempts with an invalid value: the editor shows its errors and we focus the first one.
+  const [rejectedSaves, setRejectedSaves] = useState(0);
+  const editorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (rejectedSaves) editorRef.current?.querySelector<HTMLElement>("[aria-invalid=true]")?.focus();
+  }, [rejectedSaves]);
 
   function startEdit() {
     setDraft(field.value ?? field.aiValue);
+    setRejectedSaves(0);
     setEditing(true);
+  }
+
+  function save() {
+    // Editors report null while what's typed isn't valid; keep editing (and the typed text) until it is.
+    // An empty or invalid value never becomes "Can't tell" — only that button does.
+    if (draft === null) return setRejectedSaves((n) => n + 1);
+    onChange(applyEdit(field, draft));
+    setEditing(false);
   }
 
   return (
@@ -96,17 +113,10 @@ export function FieldRow<T>({
       </div>
 
       {editing ? (
-        <div className="space-y-3 rounded-xl bg-surface p-3 ring-1 ring-border">
-          {editor(draft, setDraft)}
+        <div ref={editorRef} className="space-y-3 rounded-xl bg-surface p-3 ring-1 ring-border">
+          <ShowEditorErrors.Provider value={rejectedSaves > 0}>{editor(draft, setDraft)}</ShowEditorErrors.Provider>
           <div className="flex gap-2">
-            <Button
-              type="button"
-              className="h-11 flex-1"
-              onClick={() => {
-                onChange(applyEdit(field, draft));
-                setEditing(false);
-              }}
-            >
+            <Button type="button" className="h-11 flex-1" onClick={save}>
               Save
             </Button>
             <Button type="button" variant="ghost" className="h-11" onClick={() => setEditing(false)}>

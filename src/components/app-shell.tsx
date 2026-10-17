@@ -2,20 +2,25 @@ import { PhoneIcon, ShieldCheckIcon } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { BrandLogo } from "@/components/brand";
+import { DemoBar } from "@/components/records/demo-bar";
 import { cn } from "@/lib/utils";
 
 /**
- * Page chrome shared by every screen: brand, content column, and the boundary statement.
+ * Page chrome shared by every screen: brand, demo strip, content column, and the boundary statement.
  * `bleed` hands the full width to the page (the landing page draws its own sections).
+ * `mobileActionBar`: the page pins a bar (one row of h-11 buttons) to the bottom of phone screens;
+ * the footer gets room underneath it so the Poison Control link is never covered.
  */
 export function AppShell({
   children,
   actions,
   bleed = false,
+  mobileActionBar = false,
 }: {
   children: ReactNode;
   actions?: ReactNode;
   bleed?: boolean;
+  mobileActionBar?: boolean;
 }) {
   return (
     <div className="flex min-h-dvh flex-col">
@@ -30,15 +35,16 @@ export function AppShell({
           <div className="flex items-center gap-2">{actions}</div>
         </div>
       </header>
+      <DemoBar />
       <main className={cn("w-full flex-1", !bleed && "mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12")}>{children}</main>
-      <SiteFooter />
+      <SiteFooter mobileActionBar={mobileActionBar} />
     </div>
   );
 }
 
-function SiteFooter() {
+function SiteFooter({ mobileActionBar }: { mobileActionBar: boolean }) {
   return (
-    <footer className="border-t bg-surface">
+    <footer className={cn("border-t bg-surface", mobileActionBar && "pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:pb-0")}>
       <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] md:items-start">
         <div className="space-y-4">
           <BrandLogo markClassName="size-7" />

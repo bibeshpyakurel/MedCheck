@@ -30,8 +30,8 @@ export default async function ExportPage({ params }: PageProps<"/patients/[patie
   );
 
   return (
-    <AppShell>
-      <div className="pb-28 sm:pb-0">
+    <AppShell mobileActionBar>
+      <div>
         <PageHeader
           back={{ href: `/patients/${patientId}`, label: <>Back to {report.isSelf ? "my medicines" : report.patientName}</> }}
           title="Pharmacist report"
