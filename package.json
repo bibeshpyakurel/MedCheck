@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:types": "supabase gen types typescript --linked > src/lib/supabase/database.types.ts",
-    "seed": "tsx --env-file=.env.local scripts/seed-catalog.ts"
+    "seed": "tsx --env-file=.env.local scripts/seed-catalog.ts",
+    "score": "tsx --env-file=.env.local scripts/score-extraction.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.99",
