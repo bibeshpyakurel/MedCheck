@@ -5,12 +5,11 @@ import {
   calmoraB,
   ibuprofen,
   input,
-  NYQUIL_LIVER_WARNING,
   nyquilBarcode,
   prescription,
   unreadableIngredient,
 } from "./__fixtures__/entries";
-import { checkIngredientOverlap } from "./overlap";
+import { checkIngredientOverlap, warningQuote } from "./overlap";
 
 describe("ingredient overlap", () => {
   it("finds NyQuil + Calmora A sharing acetaminophen, with the label's own warning", () => {
@@ -25,7 +24,7 @@ describe("ingredient overlap", () => {
     // the label text for each product
     expect(f.detail).toContain("Acetaminophen 325 mg per caplet");
     expect(f.detail).toContain("Acetaminophen 100 mg per 5 mL");
-    expect(f.labelWarningQuote).toBe(NYQUIL_LIVER_WARNING);
+    expect(f.labelWarningQuote).toMatch(/^Do not use with any other drug containing acetaminophen/);
     expect(f.entryIds).toEqual(["e-calmora-a", "e-nyquil"]);
     expect(f.id).toBe("ingredient_overlap:e-calmora-a,e-nyquil:acetaminophen");
     expect(f.evidence.map((e) => e.entryId)).toEqual(["e-nyquil", "e-calmora-a"]);
@@ -54,6 +53,14 @@ describe("ingredient overlap", () => {
   it("uses no warning quote when no catalog label mentions the ingredient", () => {
     const run = checkIngredientOverlap(input(calmoraB, prescription));
     expect(run.findings[0].labelWarningQuote).toBeNull();
+  });
+
+  it("prefers the label's direct 'do not use with other drugs containing' line over the liver warning", () => {
+    const liver = "Liver warning: Severe liver damage may occur if your child takes more than 5 doses in 24 hours, or with other drugs containing acetaminophen.";
+    const doNotUse = "Do not use with any other drug containing acetaminophen (prescription or nonprescription).";
+    const e = { ...calmoraA, formulationId: "f-x" };
+    const formulations = { "f-x": { warningsQuotes: [liver, doNotUse] } } as unknown as Parameters<typeof warningQuote>[1];
+    expect(warningQuote([e], formulations, "acetaminophen")).toBe(doNotUse);
   });
 
   it("is no_finding when nothing is shared", () => {
