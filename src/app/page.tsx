@@ -1,4 +1,4 @@
-import { MailIcon } from "lucide-react";
+import { MailIcon, UserRoundIcon } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { startGuest } from "@/app/actions/session";
@@ -50,8 +50,14 @@ export default async function Home({ searchParams }: PageProps<"/">) {
               <MailIcon aria-hidden /> Continue with email
             </Button>
             <form action={startGuest}>
-              <SubmitButton variant="ghost" size="lg" className="h-12 w-full px-6 text-base" pendingLabel="Starting…">
-                Continue as a guest
+              {/* A real third door, not a footnote: tinted outline so it reads as a choice next to the other two. */}
+              <SubmitButton
+                variant="outline"
+                size="lg"
+                className="h-12 w-full border-primary/50 bg-primary/8 px-6 text-base font-semibold text-primary hover:border-primary hover:bg-primary/14 hover:text-primary dark:border-primary/60 dark:bg-primary/15 dark:hover:bg-primary/25"
+                pendingLabel="Starting…"
+              >
+                <UserRoundIcon aria-hidden /> Continue as a guest
               </SubmitButton>
             </form>
             <p className="text-center text-sm text-muted-foreground">As a guest, nothing is kept after you leave.</p>
