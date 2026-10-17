@@ -1,9 +1,9 @@
-import { ArrowLeftIcon, MailIcon } from "lucide-react";
+import { MailIcon, SendIcon } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { AppShell } from "@/components/app-shell";
+import { PageHeader } from "@/components/page-header";
 import { EmailForm } from "@/components/report/email-form";
 import { ReportPreview } from "@/components/report/report-preview";
 import { DownloadButton, ShareButton } from "@/components/report/share-button";
@@ -32,25 +32,22 @@ export default async function ExportPage({ params }: PageProps<"/patients/[patie
   return (
     <AppShell>
       <div className="pb-28 sm:pb-0">
-        <Link
-          href={`/patients/${patientId}`}
-          className="inline-flex min-h-11 items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeftIcon aria-hidden className="size-4" /> Back to {report.isSelf ? "my medicines" : report.patientName}
-        </Link>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">Pharmacist report</h1>
-        <p className="mt-1 text-muted-foreground">
-          Bring this to a pharmacist or doctor, or send it ahead. It shows what the labels and documents say and the questions
-          to ask.
-        </p>
+        <PageHeader
+          back={{ href: `/patients/${patientId}`, label: <>Back to {report.isSelf ? "my medicines" : report.patientName}</> }}
+          title="Pharmacist report"
+          description="Bring this to a pharmacist or doctor, or send it ahead. It shows what the labels and documents say and the questions to ask."
+        />
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
+        <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
           <ReportPreview report={report} />
 
-          <aside className="space-y-6 lg:sticky lg:top-20">
+          <aside className="space-y-5 lg:sticky lg:top-24">
             {/* Phones: a sticky bar at the bottom. Wider screens: a regular panel beside the preview. */}
-            <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur sm:static sm:rounded-xl sm:border sm:bg-card sm:p-4">
-              <p className="mb-3 hidden font-semibold sm:block">Send or save</p>
+            <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur sm:static sm:rounded-2xl sm:border sm:bg-card sm:p-5 sm:shadow-xs">
+              <p className="mb-1 hidden items-center gap-2 font-semibold sm:flex">
+                <SendIcon aria-hidden className="size-4 text-primary" /> Send or save
+              </p>
+              <p className="mb-4 hidden text-sm text-muted-foreground sm:block">A PDF with the same content as this preview.</p>
               <div className="grid grid-cols-3 gap-2 sm:grid-cols-1">
                 {share}
                 <DownloadButton patientId={patientId} className="w-full" />
@@ -65,8 +62,9 @@ export default async function ExportPage({ params }: PageProps<"/patients/[patie
               </div>
             </div>
 
-            <section id="email" aria-labelledby="email-heading" className="scroll-mt-20 rounded-xl border bg-card p-4">
-              <h2 id="email-heading" className="mb-3 font-semibold">
+            <section id="email" aria-labelledby="email-heading" className="scroll-mt-24 rounded-2xl border bg-card p-5 shadow-xs">
+              <h2 id="email-heading" className="mb-4 flex items-center gap-2 font-semibold">
+                <MailIcon aria-hidden className="size-4 text-primary" />
                 Email the report
               </h2>
               <EmailForm

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
+import { BackLink } from "@/components/page-header";
 import { ReviewForm } from "@/components/review/review-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -64,13 +64,11 @@ export default async function ReviewPage({ params, searchParams }: PageProps<"/p
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-2xl space-y-6">
-        <div className="space-y-2">
-          <Link href={`/patients/${patientId}`} className="text-sm text-muted-foreground underline-offset-4 hover:underline">
-            ← {patient.displayName}
-          </Link>
-          <h1 className="text-2xl font-semibold tracking-tight">Check what we read</h1>
-          <p className="text-muted-foreground">
+      <div className="mx-auto max-w-3xl space-y-6">
+        <div className="space-y-3">
+          <BackLink href={`/patients/${patientId}`}>{patient.displayName}</BackLink>
+          <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">Check what we read</h1>
+          <p className="max-w-2xl leading-relaxed text-muted-foreground">
             For each value, compare it with {isDescription ? "what you said" : "the label"} and choose <strong>Matches</strong>,{" "}
             <strong>Edit</strong> or <strong>Can&apos;t tell</strong>. Nothing counts until you do.
           </p>
@@ -95,7 +93,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps<"/p
         )}
 
         {isDescription && doc?.transcriptText && (
-          <figure className="rounded-xl border bg-muted/40 p-4">
+          <figure className="rounded-2xl border bg-surface p-5">
             <figcaption className="text-sm font-medium text-muted-foreground">What you said</figcaption>
             <blockquote className="mt-1 text-base">&ldquo;{doc.transcriptText}&rdquo;</blockquote>
           </figure>

@@ -38,13 +38,13 @@ export function PhotoForm({
         <input type="hidden" name="kind" value="drug_facts_photo" />
       ) : (
         <fieldset className="space-y-2">
-          <legend className="mb-2 text-base font-medium">What are you photographing?</legend>
+          <legend className="mb-3 text-base font-semibold">What are you photographing?</legend>
           {kinds.map((k) => (
             <label
               key={k.value}
               className={cn(
-                "flex min-h-14 cursor-pointer items-start gap-3 rounded-xl border p-3 has-focus-visible:ring-3 has-focus-visible:ring-ring/50",
-                kind === k.value ? "border-primary bg-primary/5" : "bg-card",
+                "flex min-h-14 cursor-pointer items-start gap-3 rounded-xl border p-4 shadow-xs transition-[border-color,background-color] has-focus-visible:ring-3 has-focus-visible:ring-ring/50",
+                kind === k.value ? "border-primary bg-accent ring-1 ring-primary/30" : "bg-card hover:border-input hover:bg-muted/40",
               )}
             >
               <input

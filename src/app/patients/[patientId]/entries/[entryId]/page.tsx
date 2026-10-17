@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BadgeCheckIcon, FileTextIcon, TriangleAlertIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/app-shell";
+import { BackLink } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth";
@@ -49,9 +51,9 @@ function FieldValue<T>({ field, format }: { field: Field<T>; format: (v: T) => s
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="space-y-0.5">
-      <dt className="text-sm text-muted-foreground">{label}</dt>
-      <dd className="font-medium">{children}</dd>
+    <div className="space-y-1 px-5 py-3.5">
+      <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
+      <dd className="font-medium nums">{children}</dd>
     </div>
   );
 }
@@ -84,15 +86,10 @@ export default async function EntryLabelPage({ params }: PageProps<"/patients/[p
 
   return (
     <AppShell>
-      <article className="mx-auto max-w-3xl space-y-8">
+      <article className="mx-auto max-w-4xl space-y-8">
         <header className="space-y-3">
-          <Link
-            href={`/patients/${patient.id}`}
-            className="inline-flex min-h-11 items-center text-sm text-muted-foreground underline-offset-4 hover:underline"
-          >
-            ← {patient.displayName}&apos;s medicines
-          </Link>
-          <h1 className="text-2xl font-semibold tracking-tight text-balance">{entryLabel(fields)}</h1>
+          <BackLink href={`/patients/${patient.id}`}>{patient.displayName}&apos;s medicines</BackLink>
+          <h1 className="font-display text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{entryLabel(fields)}</h1>
           <div className="flex flex-wrap gap-2">
             <Badge variant={entry.status === "confirmed" ? "secondary" : "outline"}>
               {entry.status === "confirmed" ? "Confirmed" : "Needs review"}
@@ -102,7 +99,7 @@ export default async function EntryLabelPage({ params }: PageProps<"/patients/[p
             {formulation?.isFictional && <Badge variant="outline">Fictional demo product</Badge>}
           </div>
           {entry.status === "draft" && (
-            <div className="flex flex-col gap-3 rounded-xl border border-unresolved/40 bg-unresolved-surface p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 rounded-2xl border border-unresolved/35 bg-unresolved-surface/70 p-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-unresolved-foreground">
                 You haven&apos;t confirmed these values yet. Checks only use confirmed values.
               </p>
@@ -117,12 +114,17 @@ export default async function EntryLabelPage({ params }: PageProps<"/patients/[p
           )}
         </header>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <section aria-labelledby="confirmed" className="space-y-4 rounded-xl border p-4">
-            <h2 id="confirmed" className="font-semibold">
-              What you confirmed
-            </h2>
-            <dl className="space-y-3">
+        <div className="grid gap-5 lg:grid-cols-2">
+          <section aria-labelledby="confirmed" className="overflow-hidden rounded-2xl border bg-card shadow-xs">
+            <div className="flex items-center gap-3 border-b bg-surface px-5 py-3.5">
+              <span className="grid size-8 place-items-center rounded-lg bg-accent text-accent-foreground ring-1 ring-primary/15">
+                <BadgeCheckIcon aria-hidden className="size-4" />
+              </span>
+              <h2 id="confirmed" className="font-semibold">
+                What you confirmed
+              </h2>
+            </div>
+            <dl className="divide-y">
               <Row label="Form">
                 <FieldValue field={fields.dosageForm} format={(v) => v} />
               </Row>
@@ -141,14 +143,19 @@ export default async function EntryLabelPage({ params }: PageProps<"/patients/[p
             </dl>
           </section>
 
-          <section aria-labelledby="label-says" className="space-y-4 rounded-xl border p-4">
-            <div>
-              <h2 id="label-says" className="font-semibold">
-                What the label says
-              </h2>
-              {labelSource && <p className="text-xs text-muted-foreground">{labelSource}</p>}
+          <section aria-labelledby="label-says" className="overflow-hidden rounded-2xl border bg-card shadow-xs">
+            <div className="flex items-center gap-3 border-b bg-surface px-5 py-3.5">
+              <span className="grid size-8 place-items-center rounded-lg bg-card text-muted-foreground ring-1 ring-border">
+                <FileTextIcon aria-hidden className="size-4" />
+              </span>
+              <div className="min-w-0">
+                <h2 id="label-says" className="font-semibold">
+                  What the label says
+                </h2>
+                {labelSource && <p className="truncate text-xs text-muted-foreground">{labelSource}</p>}
+              </div>
             </div>
-            <dl className="space-y-3">
+            <dl className="divide-y">
               {formulation && (
                 <Row label="Strength on the label">
                   {formulation.activeIngredients.map((i) => `${i.name} ${formatStrength(i.strength)}`).join(" · ")}
@@ -164,13 +171,14 @@ export default async function EntryLabelPage({ params }: PageProps<"/patients/[p
 
         {warnings.length > 0 && (
           <section aria-labelledby="warnings" className="space-y-3">
-            <h2 id="warnings" className="text-lg font-semibold">
+            <h2 id="warnings" className="flex items-center gap-2 text-lg font-semibold">
+              <TriangleAlertIcon aria-hidden className="size-5 text-finding" />
               Warnings, quoted from the label
             </h2>
-            <ul className="space-y-2">
+            <ul className="overflow-hidden rounded-2xl border border-finding/30 bg-finding-surface/60 divide-y divide-finding/20">
               {warnings.map((quote) => (
-                <li key={quote}>
-                  <blockquote className="border-l-4 border-finding pl-3 text-sm">“{quote}”</blockquote>
+                <li key={quote} className="px-5 py-3.5">
+                  <blockquote className="border-l-2 border-finding pl-3 text-sm leading-relaxed">“{quote}”</blockquote>
                 </li>
               ))}
             </ul>
@@ -188,7 +196,7 @@ export default async function EntryLabelPage({ params }: PageProps<"/patients/[p
               </p>
             </div>
             <div
-              className="overflow-x-auto rounded-xl border text-sm [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:p-2 [&_td]:align-top [&_th]:border [&_th]:p-2 [&_th]:text-left"
+              className="overflow-x-auto rounded-2xl border bg-card text-sm shadow-xs [&_table]:w-full [&_table]:border-collapse [&_td]:border-t [&_td]:px-4 [&_td]:py-3 [&_td]:align-top [&_th]:bg-surface [&_th]:px-4 [&_th]:py-3 [&_th]:text-left [&_th]:font-semibold [&_tr:first-child_td]:border-t-0"
               dangerouslySetInnerHTML={{ __html: tableHtml }}
             />
           </section>
@@ -201,7 +209,7 @@ export default async function EntryLabelPage({ params }: PageProps<"/patients/[p
             </h2>
             {/* Signed, short-lived Supabase URL; next/image would need the host configured. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={photoUrl} alt={`Photo of ${entryLabel(fields)}`} className="max-h-[32rem] w-full rounded-xl border object-contain" />
+            <img src={photoUrl} alt={`Photo of ${entryLabel(fields)}`} className="max-h-[32rem] w-full rounded-2xl border bg-surface object-contain shadow-xs" />
           </section>
         )}
       </article>

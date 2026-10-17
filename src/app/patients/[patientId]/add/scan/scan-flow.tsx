@@ -43,8 +43,11 @@ export function ScanFlow({ patientId }: { patientId: string }) {
 
   if (state.step === "looking-up") {
     return (
-      <p role="status" className="rounded-xl border p-4 text-muted-foreground">
-        Looking up <span className="font-mono text-foreground">{state.code}</span>…
+      <p role="status" className="flex items-center gap-3 rounded-2xl border bg-card p-5 text-muted-foreground shadow-xs">
+        <span aria-hidden className="size-4 animate-spin rounded-full border-2 border-primary/25 border-t-primary" />
+        <span>
+          Looking up <span className="font-mono text-foreground">{state.code}</span>…
+        </span>
       </p>
     );
   }
@@ -53,13 +56,13 @@ export function ScanFlow({ patientId }: { patientId: string }) {
     const f = state.formulation;
     return (
       <div className="space-y-5">
-        <section aria-labelledby="db-label" className="space-y-4 rounded-xl border p-4">
-          <p id="db-label" className="text-sm font-medium text-primary">
+        <section aria-labelledby="db-label" className="space-y-4 rounded-2xl border bg-card p-5 shadow-sm">
+          <p id="db-label" className="inline-flex items-center gap-1.5 rounded-full bg-accent px-2.5 py-1 text-xs font-semibold text-accent-foreground ring-1 ring-primary/15">
             Found in the database
           </p>
           <FormulationSummary formulation={f} />
           {f.directionsText && (
-            <div className="space-y-1 text-sm">
+            <div className="space-y-1 border-t pt-4 text-sm">
               <p className="font-medium">Directions on the label</p>
               <p className="text-muted-foreground">{f.directionsText}</p>
             </div>
@@ -71,8 +74,8 @@ export function ScanFlow({ patientId }: { patientId: string }) {
           )}
         </section>
 
-        <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">
+        <div className="space-y-2.5">
+          <p className="rounded-xl bg-surface p-3 text-sm text-muted-foreground ring-1 ring-border">
             Database labels can differ from the box in your hand. Photograph the Drug Facts panel so MedCheck can
             compare them.
           </p>
@@ -99,7 +102,7 @@ export function ScanFlow({ patientId }: { patientId: string }) {
 
   return (
     <div className="space-y-4">
-      <div role="status" className="rounded-xl border p-4">
+      <div role="status" className="rounded-2xl border bg-card p-5 shadow-xs">
         <p className="font-medium">
           {state.step === "not-found" ? "Not in our supported list" : "Couldn't look that up right now"}
         </p>
