@@ -1,9 +1,10 @@
 name: CI
 
+# PRs into dev only: `dev` requires these checks and an up-to-date branch, so the merged commit was
+# already verified. Vercel's production build of `dev` is the last gate (see promote-main.yml).
 on:
   pull_request:
-  push:
-    branches: [dev, main]
+    branches: [dev]
 
 concurrency:
   group: ci-${{ github.ref }}
