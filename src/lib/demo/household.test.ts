@@ -62,6 +62,7 @@ describe("buildDemoHousehold", () => {
     const [entry, ...rest] = buildDemoHousehold(catalog).patients[0].entries;
     expect(rest).toHaveLength(0);
     expect(entry).toMatchObject({ formulationSlug: DEMO_TYLENOL_SLUG, formulationId: catalogTylenol.id, inputMethod: "picker" });
+    expect(entry.documentKind).toBeNull(); // picked from the list: there is no package document
     expect(entry.fields.productName.value).toBe("Tylenol Extra Strength");
     expect(entry.fields.ingredients[0].strength.value).toEqual({ amount: 500, unit: "mg", perAmount: 1, perUnit: "caplet" });
     expectAllConfirmed(entry.fields);
@@ -70,7 +71,7 @@ describe("buildDemoHousehold", () => {
   it("gives Sam one confirmed Calmora Bottle A entry linked to the catalog row", () => {
     const [entry, ...rest] = buildDemoHousehold(catalog).patients[1].entries;
     expect(rest).toHaveLength(0);
-    expect(entry).toMatchObject({ formulationSlug: DEMO_CALMORA_SLUG, formulationId: catalogBottleA.id, documentKind: "otc_package" });
+    expect(entry).toMatchObject({ formulationSlug: DEMO_CALMORA_SLUG, formulationId: catalogBottleA.id, inputMethod: "picker", documentKind: null });
     expect(entry.fields.productName.value).toBe("Calmora Fever Relief (Bottle A)");
     expect(entry.fields.ingredients[0].strength.value).toEqual({ amount: 100, unit: "mg", perAmount: 5, perUnit: "mL" });
     expect(entry.fields.productName.evidence).toEqual({

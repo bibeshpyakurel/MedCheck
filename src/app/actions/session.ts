@@ -46,10 +46,10 @@ async function createDemoHousehold(): Promise<string> {
     });
     firstPatientId ??= patient.id;
     for (const e of p.entries) {
-      const doc = await createSourceDocument({ patientId: patient.id, kind: e.documentKind });
+      const doc = e.documentKind ? await createSourceDocument({ patientId: patient.id, kind: e.documentKind }) : null;
       const draft = await createDraftEntry({
         patientId: patient.id,
-        sourceDocumentId: doc.id,
+        sourceDocumentId: doc?.id ?? null,
         formulationId: e.formulationId,
         inputMethod: e.inputMethod,
         fields: e.fields,

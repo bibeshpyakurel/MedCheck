@@ -19,7 +19,8 @@ export type DemoEntry = {
   formulationSlug: string;
   formulationId: string | null;
   inputMethod: InputMethod;
-  documentKind: SourceDocumentKind;
+  /** Null for catalog picks: nothing was photographed or scanned, so there is no source document. */
+  documentKind: SourceDocumentKind | null;
   fields: EntryFields;
 };
 
@@ -55,7 +56,7 @@ export function buildDemoHousehold(
         formulationSlug: DEMO_TYLENOL_SLUG,
         formulationId: tylenol?.id ?? null,
         inputMethod: "picker",
-        documentKind: "otc_package",
+        documentKind: null,
         fields: confirmAll(tylenol ? fieldsFromFormulation(tylenol) : tylenolFallbackFields()),
       },
     ],
@@ -70,7 +71,7 @@ export function buildDemoHousehold(
         formulationSlug: DEMO_CALMORA_SLUG,
         formulationId: calmora?.id ?? null,
         inputMethod: "picker",
-        documentKind: "otc_package",
+        documentKind: null,
         fields: confirmAll(calmora ? fieldsFromFormulation(calmora) : calmoraFallbackFields()),
       },
     ],
