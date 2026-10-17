@@ -1,0 +1,23 @@
+{
+  "item": "prescription-label",
+  "kind": "prescription_label",
+  "description": "Riverside Community Pharmacy label for Sam Rivera, printed from /demo-kit",
+  "document": {
+    "documentDate": "2026-10-16",
+    "facility": null,
+    "prescriber": "Dr. Jordan Lee",
+    "pharmacy": "Riverside Community Pharmacy"
+  },
+  "medications": [
+    {
+      "productName": "Acetaminophen oral suspension",
+      "dosageForm": "liquid",
+      "ingredients": [
+        { "name": "Acetaminophen", "strength": { "amount": 160, "unit": "mg", "perAmount": 5, "perUnit": "mL" } }
+      ],
+      "instructions": "Give 2 tsp by mouth every 6 hours as needed for fever",
+      "doseAsWritten": { "amount": 2, "unit": "tsp" },
+      "max24h": null
+    }
+  ]
+}
