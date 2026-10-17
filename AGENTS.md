@@ -26,7 +26,7 @@ Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` before changing beha
 - `src/lib/supabase/database.types.ts` — generated (`npm run db:types`); never hand-edit.
 - `src/lib/auth.ts` — `getCurrentUser()` / `requireUser()`.
 - `src/app/actions/session.ts` — the sign-in doors and sign-out: `startGuest`, `startGoogle`, `sendEmailCode`, `verifyEmailCode`, `signOut`.
-- `src/app/auth/callback/route.ts` — Google OAuth callback.
+- `src/app/auth/callback/route.ts` — the OAuth/PKCE callback for Google and for emailed sign-in links.
 - `supabase/migrations/` — schema; add new files with `npx supabase migration new <name>`; every table has RLS.
 - `src/components/ui/` — shadcn components (`npx shadcn@latest add <name>`). Style `base-nova` = **Base UI, not Radix**: compose with the `render` prop (`<Button render={<Link href="/x" />} nativeButton={false}>`), there is no `asChild`.
 - `src/lib/records.ts` — all patient/document/entry/history/photo data access (runs as the user). Use these; don't query tables directly from features. `ensureSelfPatient()` returns the account's one person (relationship `self`), creating it on first use.
@@ -38,7 +38,8 @@ Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` before changing beha
 
 ## Supabase Auth
 - The Google provider and the SMTP sender for email codes are configured in the Supabase dashboard (Auth → Providers / SMTP), not in code or env.
-- The Magic Link and Confirm signup email templates must contain `{{ .Token }}` so the email carries a one-time code.
+- The Magic Link and Confirm signup email templates must contain `{{ .Token }}` so the email carries a one-time code. Supabase only allows template edits once custom SMTP is set; until then the email carries a sign-in link, which lands on `/auth/callback` (it handles both Google and email links), so keep both paths working.
+- The built-in Supabase mailer sends only to the project's team members, at about 2 emails an hour. Real users need custom SMTP.
 
 ## Conventions
 - Next.js 16 App Router, `cacheComponents` off. Middleware is `src/proxy.ts`.
