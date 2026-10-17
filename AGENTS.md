@@ -13,11 +13,11 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` before changing behavior.
 
 ## Product boundaries (never cross)
-- Evidence, not advice. Never calculate a dose, volume or schedule; never infer a dose from age or weight; never say a combination is "safe"; never pick which bottle/amount is right.
+- Evidence, not advice. Never calculate a dose, volume or schedule; never infer a dose from age or weight; never say a combination is "safe"; never pick which product or amount is right.
 - `no_finding` is displayed as "No … found in confirmed fields", never "safe", never green.
 - AI only suggests. A value counts only after the user confirms or edits it; `pending` and `unknown` fields make dependent checks `unresolved`.
 - Children's dosing tables are shown in full; never highlight a row.
-- "I already gave both" always shows the fixed message: contact a pharmacist or Poison Control at 1-800-222-1222 (tap-to-call), nothing else.
+- "I already gave both" always shows the fixed message: contact a pharmacist or Poison Control at 1-800-222-1222 (tap-to-call), nothing else. It is reachable from **Get help** in the header on every page.
 
 ## Code map
 - `src/lib/domain/schema.ts` — the shared contract (zod + types). Do not change it inside a feature PR; propose changes separately.
@@ -25,14 +25,20 @@ Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` before changing beha
 - `src/lib/supabase/{client,server,proxy}.ts` — Supabase clients. `createAdminClient()` (secret key) is only for catalog writes.
 - `src/lib/supabase/database.types.ts` — generated (`npm run db:types`); never hand-edit.
 - `src/lib/auth.ts` — `getCurrentUser()` / `requireUser()`.
+- `src/app/actions/session.ts` — the sign-in doors and sign-out: `startGuest`, `startGoogle`, `sendEmailCode`, `verifyEmailCode`, `signOut`.
+- `src/app/auth/callback/route.ts` — Google OAuth callback.
 - `supabase/migrations/` — schema; add new files with `npx supabase migration new <name>`; every table has RLS.
 - `src/components/ui/` — shadcn components (`npx shadcn@latest add <name>`). Style `base-nova` = **Base UI, not Radix**: compose with the `render` prop (`<Button render={<Link href="/x" />} nativeButton={false}>`), there is no `asChild`.
-- `src/lib/records.ts` — all patient/document/entry/history/photo data access (runs as the user). Use these; don't query tables directly from features.
+- `src/lib/records.ts` — all patient/document/entry/history/photo data access (runs as the user). Use these; don't query tables directly from features. `ensureSelfPatient()` returns the account's one person (relationship `self`), creating it on first use.
 - `src/lib/catalog.ts` — catalog reads (`listFormulations`, `getFormulation(s)ByIds`, `findFormulationByNdc11`).
 - `src/lib/domain/fields.ts` — build/read `EntryFields` (`suggestedField`, `fieldsFromFormulation`, `isUsable`, `isFullyReviewed`, `formatStrength`, `entryLabel`).
-- `src/data/fictional-formulations.ts` — the fictional demo products (Calmora Bottle A/B) with NDCs and UPC-A codes.
+- `src/data/fictional-formulations.ts` — fictional formulations (Calmora) with NDCs and UPC-A codes.
 - `src/components/already-gave-both.tsx` — the fixed "I already gave both" message; reuse it, never re-word it.
 - Status colors: `finding`, `unresolved` tokens in `globals.css`.
+
+## Supabase Auth
+- The Google provider and the SMTP sender for email codes are configured in the Supabase dashboard (Auth → Providers / SMTP), not in code or env.
+- The Magic Link and Confirm signup email templates must contain `{{ .Token }}` so the email carries a one-time code.
 
 ## Conventions
 - Next.js 16 App Router, `cacheComponents` off. Middleware is `src/proxy.ts`.
