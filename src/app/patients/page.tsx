@@ -2,9 +2,10 @@ import { ChevronRightIcon, PlusIcon, RotateCcwIcon, UserRoundIcon } from "lucide
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { resetDemo, startDemo } from "@/app/actions/session";
+import { startDemo } from "@/app/actions/session";
 import { AppShell } from "@/components/app-shell";
 import { DemoBadge } from "@/components/records/demo-badge";
+import { ResetDemoButton } from "@/components/records/reset-demo-button";
 import { SubmitButton } from "@/components/records/submit-button";
 import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth";
@@ -74,12 +75,12 @@ export default async function PatientsPage() {
 
         <div className="mt-8 rounded-xl bg-muted/60 p-4 text-sm">
           {hasDemo ? (
-            <form action={resetDemo} className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-muted-foreground">Changed the demo household? Put it back the way it started.</p>
-              <SubmitButton variant="outline" className="h-11 px-4" pendingLabel="Resetting…">
+              <ResetDemoButton className="h-11 px-4">
                 <RotateCcwIcon aria-hidden /> Reset demo household
-              </SubmitButton>
-            </form>
+              </ResetDemoButton>
+            </div>
           ) : (
             <form action={startDemo} className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-muted-foreground">Want to look around first? Add a synthetic demo household.</p>

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentUser, requireUser } from "@/lib/auth";
 import { listFormulations } from "@/lib/catalog";
-import { buildDemoHousehold, DEMO_CAREGIVER_NAME } from "@/lib/demo/household";
+import { buildDemoHousehold, DEMO_CAREGIVER_NAME, hasOwnRecords } from "@/lib/demo/household";
 import {
   confirmEntry,
   createDraftEntry,
@@ -87,6 +87,26 @@ export async function resetDemo(): Promise<void> {
   const patientId = await createDemoHousehold();
   revalidatePath("/", "layout");
   redirect(`/patients/${patientId}`);
+}
+
+/**
+ * "Exit demo": deletes the demo profiles (never the user's own). Someone with their own records stays
+ * signed in and goes back to them; a demo-only session is signed out and lands on the start page,
+ * where "Start my own" begins fresh.
+ */
+export async function exitDemo(): Promise<void> {
+  await requireUser();
+  const [caregiver, patients] = await Promise.all([getCaregiver(), listPatients()]);
+  const keepSession = hasOwnRecords(caregiver?.displayName ?? null, patients);
+  for (const p of patients) {
+    if (p.isDemo) await deletePatient(p.id);
+  }
+  if (!keepSession) {
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+  }
+  revalidatePath("/", "layout");
+  redirect(keepSession ? "/patients" : "/");
 }
 
 /**
