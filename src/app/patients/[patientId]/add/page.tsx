@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { AppShell } from "@/components/app-shell";
 import { CaptureOptions } from "@/components/capture/capture-options";
-import { PageHeader } from "@/components/page-header";
 import { RecordHeader } from "@/components/records/record-header";
 import { requireUser } from "@/lib/auth";
 import { getPatient } from "@/lib/records";
@@ -21,11 +20,14 @@ export default async function AddPage({ params }: PageProps<"/patients/[patientI
   return (
     <AppShell>
       <RecordHeader patient={patient} current="medicines" />
-      <div className="mx-auto max-w-4xl space-y-5 sm:space-y-8">
-        <PageHeader
-          title="Add a medicine"
-          description={<>Scan the barcode or photograph the label. You&apos;ll check what MedCheck read before it&apos;s used.</>}
-        />
+      <div className="max-w-4xl space-y-4 sm:space-y-8">
+        {/* Compact on phones: the heading and all three options fit one screen. */}
+        <header className="space-y-1 sm:space-y-2">
+          <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">Add a medicine</h1>
+          <p className="text-sm text-muted-foreground text-pretty sm:text-base">
+            Scan the barcode or photograph the label. You&apos;ll check what MedCheck read before it&apos;s used.
+          </p>
+        </header>
         <CaptureOptions base={`/patients/${patientId}/add`} />
       </div>
     </AppShell>

@@ -3,7 +3,7 @@
 import { CameraIcon, ImageIcon, LoaderCircleIcon, ScanBarcodeIcon, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition, type ReactNode } from "react";
+import { useEffect, useEffectEvent, useRef, useState, useTransition, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { setPendingPhoto } from "./pending-photo";
 
@@ -34,6 +34,24 @@ export function CaptureOptions({ base }: { base: string }) {
   const router = useRouter();
   const [opening, startOpening] = useTransition();
   const [picked, setPicked] = useState<PhotoSource | null>(null);
+  const inputs = useRef<Partial<Record<PhotoSource, HTMLInputElement | null>>>({});
+
+  function openPhoto(source: PhotoSource, input: HTMLInputElement) {
+    const file = input.files?.[0];
+    input.value = "";
+    if (!file) return;
+    setPendingPhoto(file);
+    setPicked(source);
+    startOpening(() => router.push(`${base}/photo?source=${source}`));
+  }
+
+  // A photo picked before the page finished loading fired no change event; pick it up now.
+  const openEarlyPhoto = useEffectEvent((source: PhotoSource, input: HTMLInputElement) => openPhoto(source, input));
+  useEffect(() => {
+    for (const [source, input] of Object.entries(inputs.current) as [PhotoSource, HTMLInputElement | null][]) {
+      if (input?.files?.length) queueMicrotask(() => openEarlyPhoto(source, input));
+    }
+  }, []);
 
   function photoTile(source: PhotoSource, icon: LucideIcon, title: string, detail: string): ReactNode {
     return (
@@ -45,14 +63,10 @@ export function CaptureOptions({ base }: { base: string }) {
           capture={source === "camera" ? "environment" : undefined}
           className="sr-only"
           disabled={opening}
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            e.target.value = "";
-            if (!file) return;
-            setPendingPhoto(file);
-            setPicked(source);
-            startOpening(() => router.push(`${base}/photo?source=${source}`));
+          ref={(el) => {
+            inputs.current[source] = el;
           }}
+          onChange={(e) => openPhoto(source, e.target)}
         />
       </label>
     );
@@ -63,11 +77,11 @@ export function CaptureOptions({ base }: { base: string }) {
       <ul className="grid gap-3 sm:grid-cols-3 sm:gap-4">
         <li>
           <Link href={`${base}/scan`} className={cn(tileClass, "focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none")}>
-            <TileBody icon={ScanBarcodeIcon} title="Scan a barcode" detail="Use the barcode on the medicine package." />
+            <TileBody icon={ScanBarcodeIcon} title="Scan a barcode" detail="On the medicine package." />
           </Link>
         </li>
-        <li>{photoTile("camera", CameraIcon, "Take a photo", "Photograph the label with your camera.")}</li>
-        <li>{photoTile("library", ImageIcon, "Choose a photo", "Use a photo of the label you already have.")}</li>
+        <li>{photoTile("camera", CameraIcon, "Take a photo", "Opens your camera.")}</li>
+        <li>{photoTile("library", ImageIcon, "Choose a photo", "From your photo library.")}</li>
       </ul>
       <p role="status" className="sr-only">
         {opening ? "Opening your photo…" : null}

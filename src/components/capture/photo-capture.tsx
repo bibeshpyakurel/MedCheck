@@ -214,7 +214,7 @@ function PickerButton({
   return (
     <label
       className={cn(
-        "inline-flex h-12 flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border px-4 text-base font-medium shadow-xs transition-colors has-focus-visible:ring-3 has-focus-visible:ring-ring/50 has-disabled:cursor-not-allowed has-disabled:opacity-50",
+        "inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-lg border px-4 text-base font-medium shadow-xs transition-colors has-focus-visible:ring-3 has-focus-visible:ring-ring/50 has-disabled:cursor-not-allowed has-disabled:opacity-50 sm:flex-1",
         primary
           ? "border-transparent bg-primary text-primary-foreground hover:bg-primary/90"
           : "bg-card hover:border-input hover:bg-muted/70",
