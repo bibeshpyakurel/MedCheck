@@ -5,7 +5,7 @@ MedCheck helps anyone managing medicines see when two medicines share an active 
 Hackathon MVP · Healthcare and Wellness track · acetaminophen first.
 
 ## Stack
-Next.js 16 · Tailwind + shadcn/ui · Supabase (Postgres, Auth: Google / email code / guest, storage) · Gemini via AI SDK · ZXing barcode scanning · Vercel.
+Next.js 16 · Tailwind + shadcn/ui · Supabase (Postgres, Auth: Google / email code / guest, storage) · Gemini via AI SDK · Vercel.
 
 ## Branches
 - `dev` — working branch and Vercel production; every feature PR lands here.
@@ -17,7 +17,6 @@ npm install
 cp .env.example .env.local   # fill in keys (or `vercel env pull .env.local`)
 npm run dev
 ```
-Camera access needs HTTPS on phones — use the Vercel preview URL, or `npm run dev -- --experimental-https`.
 
 ## Scripts
 `npm run lint` · `npm run typecheck` · `npm test` · `npm run build` · `npm run db:types` · `npm run seed`

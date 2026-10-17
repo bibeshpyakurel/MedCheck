@@ -32,7 +32,7 @@ Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` before changing beha
 - `src/lib/records.ts` — all patient/document/entry/history/photo data access (runs as the user). Use these; don't query tables directly from features. `ensureSelfPatient()` returns the account's one person (relationship `self`), creating it on first use.
 - `src/lib/catalog.ts` — catalog reads (`listFormulations`, `getFormulation(s)ByIds`, `findFormulationByNdc11`).
 - `src/lib/domain/fields.ts` — build/read `EntryFields` (`suggestedField`, `fieldsFromFormulation`, `isUsable`, `isFullyReviewed`, `formatStrength`, `entryLabel`).
-- `src/data/fictional-formulations.ts` — fictional formulations (Calmora) with NDCs and UPC-A codes.
+- `src/data/fictional-formulations.ts` — fictional formulations (Calmora) with their NDCs.
 - `src/components/already-gave-both.tsx` — the fixed "I already gave both" message; reuse it, never re-word it.
 - Status colors: `finding`, `unresolved` tokens in `globals.css`.
 
