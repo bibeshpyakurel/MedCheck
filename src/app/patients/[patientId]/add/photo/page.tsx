@@ -49,7 +49,7 @@ export default async function PhotoPage({ params, searchParams }: PageProps<"/pa
               <>
                 Scanned: <strong className="text-foreground">{formulation.brandName}</strong>. The Drug Facts panel is the
                 box on the back listing ingredients, uses and directions. A photo of it lets MedCheck compare what&apos;s
-                printed with the {formulation.isFictional ? "fictional demo label" : "FDA label"} on file.
+                printed with the {formulation.isFictional ? "fictional label" : "FDA label"} on file.
               </>
             ) : (
               <>Say what the photo shows, then MedCheck reads it. You check each detail before anything is used.</>

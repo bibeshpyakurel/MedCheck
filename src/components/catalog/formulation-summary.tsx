@@ -10,7 +10,7 @@ export function FormulationSummary({ formulation: f, headingLevel = "h2" }: { fo
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2">
         <Heading className="text-lg font-semibold leading-tight">{f.brandName}</Heading>
-        {f.isFictional && <Badge variant="outline">Fictional demo product</Badge>}
+        {f.isFictional && <Badge variant="outline">Fictional product</Badge>}
       </div>
       <p className="text-sm text-muted-foreground">
         {f.genericName} · {f.dosageForm}
