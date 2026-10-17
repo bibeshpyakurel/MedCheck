@@ -1,21 +1,20 @@
-import { ChevronDownIcon, ChevronRightIcon, FileTextIcon, FlaskConicalIcon, HistoryIcon, PillIcon, PlusIcon, RotateCcwIcon } from "lucide-react";
+import { ChevronDownIcon, ChevronRightIcon, CircleDashedIcon, FileTextIcon, HistoryIcon, PillIcon, PlusIcon, SearchIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/app-shell";
-import { AttentionSummary } from "@/components/checks/attention-summary";
+import { WarningCard } from "@/components/checks/warning-card";
 import { HistoryList } from "@/components/records/history-list";
 import { MedicationList } from "@/components/records/medication-list";
 import { RecordHeader } from "@/components/records/record-header";
-import { ResetDemoButton } from "@/components/records/reset-demo-button";
 import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth";
 import { getFormulationsByIds } from "@/lib/catalog";
 import { runChecks } from "@/lib/checks";
-import { attentionSummary, checksSummaryParts } from "@/lib/checks/summary";
+import { type WarningsView, warningsView } from "@/lib/checks/warnings";
 import { entryLabel } from "@/lib/domain/fields";
-import type { MedicationEntry } from "@/lib/domain/schema";
+import type { Formulation, MedicationEntry } from "@/lib/domain/schema";
 import { DOCUMENT_KIND_LABELS, formatDocDate, INPUT_METHOD_LABELS, recordTitle } from "@/lib/record-format";
 import { getPatient, listEntries, listHistory } from "@/lib/records";
 import { isUuid } from "@/lib/uuid";
@@ -23,12 +22,12 @@ import { isUuid } from "@/lib/uuid";
 export async function generateMetadata({ params }: PageProps<"/patients/[patientId]">): Promise<Metadata> {
   const { patientId } = await params;
   const patient = isUuid(patientId) ? await getPatient(patientId) : null;
-  return { title: patient ? recordTitle(patient) : "Record" };
+  return { title: patient ? recordTitle(patient) : "Medicines" };
 }
 
 /**
- * A person's medicines. Phone order: who · what needs attention · what's waiting · Add a medicine ·
- * the list · activity and demo tools. The full checks live on their own screen (Checks).
+ * The Medicines tab: the person's medicine history. Phone order: title and Add a medicine · what's
+ * waiting for review · warnings (actual findings only) · the list · activity.
  */
 export default async function PatientRecordPage({ params }: PageProps<"/patients/[patientId]">) {
   await requireUser();
@@ -41,7 +40,7 @@ export default async function PatientRecordPage({ params }: PageProps<"/patients
   const confirmed = entries.filter((e) => e.status === "confirmed");
   const drafts = entries.filter((e) => e.status === "draft");
   const formulations = await getFormulationsByIds(confirmed.flatMap((e) => (e.formulationId ? [e.formulationId] : [])));
-  const runs = runChecks({ entries: confirmed, formulations });
+  const view = warningsView(runChecks({ entries: confirmed, formulations }));
   const base = `/patients/${patientId}`;
 
   return (
@@ -49,61 +48,79 @@ export default async function PatientRecordPage({ params }: PageProps<"/patients
       <div className="mx-auto max-w-4xl">
         <RecordHeader patient={patient} current="medicines" />
 
-        <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">{recordTitle(patient)}</h1>
-            <p className="mt-1 text-muted-foreground nums">{confirmed.length} on file</p>
+            <p className="mt-1 text-muted-foreground nums">
+              {confirmed.length} {confirmed.length === 1 ? "medicine" : "medicines"} on file
+            </p>
           </div>
-          <Button size="lg" className="hidden h-11 px-4 sm:inline-flex" nativeButton={false} render={<Link href={`${base}/add`} />}>
+          <Button size="lg" className="h-12 w-full px-4 text-base sm:h-11 sm:w-auto" nativeButton={false} render={<Link href={`${base}/add`} />}>
             <PlusIcon aria-hidden /> Add a medicine
           </Button>
         </header>
 
-        <div className="mt-6 space-y-4">
-          <AttentionSummary
-            summary={attentionSummary(runs)}
-            href={`${base}/checks`}
-            compared={checksSummaryParts(runs)[0]}
-          />
+        <div className="mt-6 space-y-8">
           {drafts.length > 0 ? <NeedsReview base={base} drafts={drafts} /> : null}
-          <Button size="lg" className="h-12 w-full text-base sm:hidden" nativeButton={false} render={<Link href={`${base}/add`} />}>
-            <PlusIcon aria-hidden /> Add a medicine
-          </Button>
-        </div>
 
-        <section id="medicines" aria-labelledby="medicines-heading" className="mt-10 scroll-mt-24">
-          <h2 id="medicines-heading" className="mb-3 text-lg font-semibold">
-            Medicines
-          </h2>
-          {confirmed.length === 0 ? (
-            <EmptyMedicines base={base} hasDrafts={drafts.length > 0} />
-          ) : (
-            <MedicationList patientId={patientId} entries={confirmed} />
-          )}
-        </section>
+          {confirmed.length > 0 ? (
+            <Warnings view={view} patientId={patientId} entries={confirmed} formulations={formulations} />
+          ) : null}
 
-        <div className="mt-10 space-y-3">
+          <section id="medicines" aria-labelledby="medicines-heading" className="scroll-mt-24">
+            <h2 id="medicines-heading" className="mb-3 text-lg font-semibold">
+              Medicines
+            </h2>
+            {confirmed.length === 0 ? (
+              <EmptyMedicines hasDrafts={drafts.length > 0} />
+            ) : (
+              <MedicationList patientId={patientId} entries={confirmed} />
+            )}
+          </section>
+
           <Disclosure icon={HistoryIcon} title="Activity" hint="What was added or changed, newest first">
             <HistoryList items={history} />
           </Disclosure>
-          {patient.isDemo ? (
-            <Disclosure icon={FlaskConicalIcon} title="Demo tools" hint="Reset the demo household or print the demo kit">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-muted-foreground">Presenting? Put the demo household back the way it started.</p>
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <Button variant="ghost" className="h-11 px-4" nativeButton={false} render={<Link href="/demo-kit" />}>
-                    Printable demo kit
-                  </Button>
-                  <ResetDemoButton variant="outline" className="h-11 px-4">
-                    <RotateCcwIcon aria-hidden /> Reset demo
-                  </ResetDemoButton>
-                </div>
-              </div>
-            </Disclosure>
-          ) : null}
         </div>
       </div>
     </AppShell>
+  );
+}
+
+/** Only real findings, each in plain English with its evidence one tap away. Never green, never "safe". */
+function Warnings({
+  view,
+  patientId,
+  entries,
+  formulations,
+}: {
+  view: WarningsView;
+  patientId: string;
+  entries: MedicationEntry[];
+  formulations: Record<string, Formulation>;
+}) {
+  const byId = new Map(entries.map((e) => [e.id, e]));
+  return (
+    <section aria-labelledby="warnings-heading" className="space-y-3">
+      <h2 id="warnings-heading" className="text-lg font-semibold">
+        Warnings{view.warnings.length > 0 ? <span className="nums"> ({view.warnings.length})</span> : null}
+      </h2>
+      {view.warnings.map((finding) => (
+        <WarningCard key={finding.id} finding={finding} patientId={patientId} entries={byId} formulations={formulations} />
+      ))}
+      {view.emptyLine ? (
+        <p className="flex items-start gap-3 rounded-2xl border bg-card px-4 py-3.5 text-pretty">
+          <SearchIcon aria-hidden className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+          {view.emptyLine}
+        </p>
+      ) : null}
+      {view.incompleteLine ? (
+        <p className="flex items-start gap-3 rounded-2xl border border-unresolved/35 bg-unresolved-surface/70 px-4 py-3.5 text-sm text-unresolved-foreground text-pretty">
+          <CircleDashedIcon aria-hidden className="mt-0.5 size-4 shrink-0" />
+          {view.incompleteLine}
+        </p>
+      ) : null}
+    </section>
   );
 }
 
@@ -142,7 +159,7 @@ function NeedsReview({ base, drafts }: { base: string; drafts: MedicationEntry[]
         Waiting for your review ({drafts.length})
       </h2>
       <p className="mt-1 text-sm text-unresolved-foreground/85">
-        {drafts.length === 1 ? "This medicine isn't" : "These medicines aren't"} in the checks until you confirm what MedCheck read.
+        {drafts.length === 1 ? "This medicine isn't" : "These medicines aren't"} compared for warnings until you confirm what MedCheck read.
       </p>
       <ul className="mt-3 space-y-2">
         {drafts.map((d) => {
@@ -171,9 +188,9 @@ function NeedsReview({ base, drafts }: { base: string; drafts: MedicationEntry[]
   );
 }
 
-function EmptyMedicines({ base, hasDrafts }: { base: string; hasDrafts: boolean }) {
+function EmptyMedicines({ hasDrafts }: { hasDrafts: boolean }) {
   return (
-    <div className="rounded-2xl border border-dashed bg-card/50 px-6 py-12 text-center">
+    <div className="rounded-2xl border border-dashed bg-card/50 px-6 py-10 text-center">
       <PillIcon aria-hidden className="mx-auto size-6 text-muted-foreground" />
       <p className="mt-3 font-semibold">No confirmed medicines yet</p>
       <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground text-pretty">
@@ -181,11 +198,6 @@ function EmptyMedicines({ base, hasDrafts }: { base: string; hasDrafts: boolean 
           ? "Check the details of the medicines waiting above to add them here."
           : "Scan a barcode, take a photo of a label or document, or type what the label says."}
       </p>
-      {hasDrafts ? null : (
-        <Button className="mt-5 h-11 px-4" nativeButton={false} render={<Link href={`${base}/add`} />}>
-          <PlusIcon aria-hidden /> Add a medicine
-        </Button>
-      )}
     </div>
   );
 }

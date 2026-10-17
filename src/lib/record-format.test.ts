@@ -42,10 +42,10 @@ describe("catalog provenance", () => {
   });
 
   it("never calls a fictional product an FDA label, even with an effective date", () => {
-    expect(catalogLabelSource(fictional)).toBe("Fictional demo label");
+    expect(catalogLabelSource(fictional)).toBe("Fictional label (not a real product)");
     // Either flag alone is enough to keep "FDA" off a demo product.
-    expect(catalogLabelSource({ ...fictional, source: "openfda" })).toBe("Fictional demo label");
-    expect(catalogLabelSource({ ...openfda, source: "fictional" })).toBe("Fictional demo label");
+    expect(catalogLabelSource({ ...fictional, source: "openfda" })).toBe("Fictional label (not a real product)");
+    expect(catalogLabelSource({ ...openfda, source: "fictional" })).toBe("Fictional label (not a real product)");
   });
 
   it("says how the catalog match was made, by input method", () => {

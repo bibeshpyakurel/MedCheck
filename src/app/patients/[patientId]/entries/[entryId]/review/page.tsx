@@ -85,16 +85,15 @@ export default async function ReviewPage({ params, searchParams }: PageProps<"/p
               {isDescription ? "said" : "printed"}.
             </li>
             <li>
-              <strong className="text-foreground">{choices.unknown}</strong> — MedCheck will leave this detail unknown, and
-              checks that need it won&apos;t run.
+              <strong className="text-foreground">{choices.unknown}</strong> — MedCheck will leave this detail unknown and
+              won&apos;t compare it.
             </li>
           </ul>
-          <p className="text-sm text-muted-foreground">Nothing is used in a check until you choose.</p>
+          <p className="text-sm text-muted-foreground">Nothing is compared until you choose.</p>
           <div className="flex flex-wrap gap-2">
             {doc && <Badge variant="secondary">{KIND_LABEL[doc.kind]}</Badge>}
             {isDescription && <Badge variant="outline">From your description, not a label</Badge>}
             {formulation && <Badge variant="outline">{catalogMatchLabel(entry.inputMethod, formulation.brandName)}</Badge>}
-            {formulation?.isFictional && <Badge variant="outline">Fictional demo product</Badge>}
             {entry.status === "confirmed" && <Badge variant="outline">Already confirmed</Badge>}
           </div>
           {othersWaiting > 0 && (

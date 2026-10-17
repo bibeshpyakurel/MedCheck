@@ -18,11 +18,11 @@ export const INPUT_METHOD_LABELS: Record<InputMethod, string> = {
 };
 
 /**
- * Where a catalog product's label came from. Fictional demo products are never called an FDA label,
+ * Where a catalog product's label came from. Fictional products are never called an FDA label,
  * even though they carry an effective date like the real ones.
  */
 export function catalogLabelSource(f: Pick<Formulation, "isFictional" | "source" | "labelEffectiveDate">): string {
-  if (f.isFictional || f.source !== "openfda") return "Fictional demo label";
+  if (f.isFictional || f.source !== "openfda") return "Fictional label (not a real product)";
   return `FDA label (openFDA)${f.labelEffectiveDate ? `, effective ${f.labelEffectiveDate}` : ""}`;
 }
 

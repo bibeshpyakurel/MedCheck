@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { CHECK_IDS } from "@/lib/domain/schema";
 import {
   calmoraA,
   calmoraADraft,
@@ -13,7 +12,7 @@ import {
   prescription,
   prescriptionStrengthUnknown,
 } from "./__fixtures__/entries";
-import { runChecks } from "./index";
+import { ACTIVE_CHECK_IDS, runChecks } from "./index";
 
 const everything = input(
   nyquilBarcode,
@@ -28,13 +27,24 @@ const everything = input(
 );
 
 describe("runChecks", () => {
-  it("returns exactly six runs in CHECK_IDS order", () => {
-    expect(runChecks(everything).map((r) => r.check)).toEqual([...CHECK_IDS]);
+  it("returns one run per active check, in order", () => {
+    expect(runChecks(everything).map((r) => r.check)).toEqual([
+      "ingredient_overlap",
+      "repeated_record",
+      "concentration",
+      "units",
+      "database_vs_box",
+    ]);
+    expect(ACTIVE_CHECK_IDS).toEqual(runChecks(everything).map((r) => r.check));
+  });
+
+  it("no longer compares documents with the bottle", () => {
+    expect(runChecks(everything).map((r) => r.check)).not.toContain("document_vs_bottle");
   });
 
   it("marks every check not applicable with no entries", () => {
     const runs = runChecks(input());
-    expect(runs).toHaveLength(6);
+    expect(runs).toHaveLength(5);
     expect(runs.every((r) => r.status === "not_applicable")).toBe(true);
   });
 
@@ -45,7 +55,7 @@ describe("runChecks", () => {
 
   it("finds something in every check for the full demo record", () => {
     const runs = runChecks(everything);
-    expect(runs.map((r) => r.status)).toEqual(["finding", "finding", "finding", "finding", "finding", "finding"]);
+    expect(runs.map((r) => r.status)).toEqual(["finding", "finding", "finding", "finding", "finding"]);
   });
 
   it("never says 'safe' anywhere", () => {

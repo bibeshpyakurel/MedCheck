@@ -17,12 +17,12 @@ export function uniqueSides(sides: Side[]): Side[] {
   });
 }
 
-/** "the bottle label says 100 mg per 5 mL" or "I entered 100 mg per 5 mL for the bottle". */
+/** "the package label says 100 mg per 5 mL" or "I entered 100 mg per 5 mL for the package". */
 function sideClause(s: Side): string {
   return s.from === "entered" ? `I entered ${s.value} for ${s.source}` : `${s.source} says ${s.value}`;
 }
 
-/** "The discharge list says 160 mg per 5 mL but the bottle label says 100 mg per 5 mL." */
+/** "The discharge list says 160 mg per 5 mL but the package label says 100 mg per 5 mL." */
 function saysSentence(sides: Side[]): string {
   const parts = sides.map(sideClause);
   const sentence = parts.length === 2 ? `${parts[0]} but ${parts[1]}` : joinList(parts);
