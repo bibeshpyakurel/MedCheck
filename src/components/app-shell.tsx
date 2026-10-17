@@ -48,8 +48,12 @@ function SiteFooter() {
   return (
     <footer className="border-t">
       <p className="mx-auto w-full max-w-6xl px-4 py-3 text-center text-xs leading-relaxed text-muted-foreground text-pretty sm:px-6">
-        <strong className="font-semibold text-foreground/80">Evidence, not advice.</strong> MedCheck shows what labels say
-        — it never calculates a dose or says a combination is safe.
+        <strong className="font-semibold text-foreground/80">Evidence, not advice.</strong>
+        {/* One line on a phone; the full sentence would wrap and make short pages scroll. */}
+        <span className="hidden sm:inline">
+          {" "}
+          MedCheck shows what labels say — it never calculates a dose or says a combination is safe.
+        </span>
       </p>
     </footer>
   );
