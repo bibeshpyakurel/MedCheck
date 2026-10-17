@@ -1,6 +1,8 @@
 // openFDA drug labels → catalog formulations. The mapper is pure; the fetchers call the public
 // API at api.fda.gov (no key needed). No "server-only" here: scripts/seed-catalog.ts uses it too.
-import DOMPurify from "isomorphic-dompurify";
+// sanitize-html (htmlparser2), not DOMPurify: isomorphic-dompurify loads jsdom, which crashes on
+// Vercel's runtime (ERR_REQUIRE_ESM) and took the label page down with it.
+import sanitizeHtml from "sanitize-html";
 import type { CatalogIngredient, Formulation } from "@/lib/domain/schema";
 import { normalizeIngredient } from "@/lib/domain/ingredients";
 import type { Database, Json } from "@/lib/supabase/database.types";
@@ -153,7 +155,11 @@ const TABLE_TAGS = ["table", "caption", "colgroup", "col", "thead", "tbody", "tf
 export function sanitizeDosageTable(html: string): string {
   // SPL puts several <paragraph>/<item> elements in one cell; keep them on separate lines.
   const separated = html.replace(/<\/(paragraph|item)>\s*<(paragraph|item)\b[^>]*>/gi, "<br>");
-  return DOMPurify.sanitize(separated, { ALLOWED_TAGS: TABLE_TAGS, ALLOWED_ATTR: ["colspan", "rowspan", "scope"] })
+  return sanitizeHtml(separated, {
+    allowedTags: TABLE_TAGS,
+    allowedAttributes: { "*": ["colspan", "rowspan", "scope"] },
+  })
+    .replace(/<br \/>/g, "<br>")
     .replace(/<caption>\s*<\/caption>/g, "")
     .trim();
 }
