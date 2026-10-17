@@ -1,0 +1,37 @@
+import Link from "next/link";
+import type { ReactNode } from "react";
+
+/** Page chrome shared by every screen: brand, content column, and the boundary statement. */
+export function AppShell({ children, actions }: { children: ReactNode; actions?: ReactNode }) {
+  return (
+    <div className="flex min-h-dvh flex-col">
+      <header className="sticky top-0 z-20 border-b bg-background/90 backdrop-blur">
+        <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between gap-3 px-4">
+          <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
+            <span aria-hidden className="grid size-7 place-items-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
+              M
+            </span>
+            MedCheck
+          </Link>
+          <div className="flex items-center gap-2">{actions}</div>
+        </div>
+      </header>
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:py-10">{children}</main>
+      <footer className="border-t">
+        <div className="mx-auto w-full max-w-5xl px-4 py-5 text-sm text-muted-foreground">
+          <p>
+            <strong className="font-medium text-foreground">Evidence, not advice.</strong> MedCheck shows what labels and
+            documents say and organizes questions for a pharmacist. It never calculates a dose or says a combination is safe.
+          </p>
+          <p className="mt-2">
+            Already gave or took a double dose? Call Poison Control at{" "}
+            <a className="font-medium text-foreground underline underline-offset-4" href="tel:18002221222">
+              1-800-222-1222
+            </a>{" "}
+            or talk to a pharmacist.
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
+}
