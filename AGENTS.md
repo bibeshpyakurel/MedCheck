@@ -42,5 +42,6 @@ Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` before changing beha
 - Before pushing: `npm run lint && npm run typecheck && npm test && npm run build`.
 
 ## Git
-- Branch `feat/<name>` off `dev`; PR into `dev`. Never push to or open PRs into `main` — the user merges `dev → main`.
+- `main` is the default branch and production; `dev` is the working branch. Branch `feat/<name>` off `dev`; PR into `dev` (pass `--base dev` — the default base is `main`). Never push to or open feature PRs into `main`; only the coordinator opens `dev → main` PRs and only the user merges them.
+- Ingredient synonyms live in `normalizeIngredient()`; don't add RxNorm or other external normalization services.
 - Commit messages: conventional (`feat:`, `fix:`, `docs:`, `test:`, `chore:`).
