@@ -196,7 +196,7 @@ function EmptyMedicines({ hasDrafts }: { hasDrafts: boolean }) {
       <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground text-pretty">
         {hasDrafts
           ? "Check the details of the medicines waiting above to add them here."
-          : "Scan a barcode, take a photo of a label or document, or type what the label says."}
+          : "Take or choose a photo of a label or document."}
       </p>
     </div>
   );

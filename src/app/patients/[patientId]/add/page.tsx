@@ -9,7 +9,7 @@ import { getPatient } from "@/lib/records";
 
 export const metadata: Metadata = { title: "Add a medicine" };
 
-/** The capture page: where people land after signing in. Scan a barcode, take a photo, or choose one. */
+/** The capture page: where people land after signing in. Take a photo or choose one. */
 export default async function AddPage({ params }: PageProps<"/patients/[patientId]/add">) {
   await requireUser();
   const { patientId } = await params;
@@ -21,11 +21,11 @@ export default async function AddPage({ params }: PageProps<"/patients/[patientI
     <AppShell>
       <RecordHeader patient={patient} current="medicines" />
       <div className="max-w-4xl space-y-4 sm:space-y-8">
-        {/* Compact on phones: the heading and all three options fit one screen. */}
+        {/* Compact on phones: the heading and both options fit one screen. */}
         <header className="space-y-1 sm:space-y-2">
           <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">Add a medicine</h1>
           <p className="text-sm text-muted-foreground text-pretty sm:text-base">
-            Scan the barcode or photograph the label. You&apos;ll check what MedCheck read before it&apos;s used.
+            Photograph the label. You&apos;ll check what MedCheck read before it&apos;s used.
           </p>
         </header>
         <CaptureOptions base={`/patients/${patientId}/add`} />
