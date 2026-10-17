@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { CheckStatus } from "@/lib/domain/schema";
 import type { Report } from "@/lib/report/build-report";
 import { cn } from "cn";
+import { BrandLogo } from "@/components/brand";
 import { LocalTime } from "./local-time";
 
 const statusStyles: Record<CheckStatus, string> = {
@@ -14,7 +15,7 @@ const statusStyles: Record<CheckStatus, string> = {
 
 function SectionTitle({ id, children }: { id: string; children: ReactNode }) {
   return (
-    <h2 id={id} className="border-b pb-2 text-lg font-semibold tracking-tight text-primary">
+    <h2 id={id} className="border-b pb-2.5 text-base font-semibold tracking-tight text-primary">
       {children}
     </h2>
   );
@@ -22,14 +23,12 @@ function SectionTitle({ id, children }: { id: string; children: ReactNode }) {
 
 export function ReportPreview({ report }: { report: Report }) {
   return (
-    <article aria-label={report.title} className="rounded-2xl border bg-card p-5 text-card-foreground shadow-sm sm:p-8">
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-primary pb-4">
-        <div className="flex items-center gap-2 text-lg font-semibold tracking-tight">
-          <span aria-hidden className="grid size-8 place-items-center rounded-lg bg-primary font-bold text-primary-foreground">
-            M
-          </span>
-          MedCheck
-        </div>
+    <article
+      aria-label={report.title}
+      className="rounded-2xl border bg-card p-5 text-card-foreground shadow-lg ring-1 ring-foreground/5 sm:p-10"
+    >
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-primary pb-5">
+        <BrandLogo />
         <div className="sm:text-right">
           <p className="text-xs font-semibold tracking-widest text-primary uppercase">Pharmacist report</p>
           <p className="text-sm text-muted-foreground">
@@ -39,7 +38,7 @@ export function ReportPreview({ report }: { report: Report }) {
       </header>
 
       <div className="mt-5">
-        <p className="text-3xl font-bold tracking-tight">{report.heading}</p>
+        <p className="font-display text-3xl font-semibold tracking-tight">{report.heading}</p>
         {report.subheading && <p className="mt-1 text-muted-foreground">{report.subheading}</p>}
         {report.isDemo && (
           <span className="mt-2 inline-block rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
@@ -50,7 +49,7 @@ export function ReportPreview({ report }: { report: Report }) {
 
       <section aria-labelledby="r-questions" className="mt-8 space-y-3">
         <SectionTitle id="r-questions">Questions to ask</SectionTitle>
-        <div className="rounded-xl bg-primary/5 p-4 sm:p-5">
+        <div className="rounded-xl bg-accent/60 p-4 ring-1 ring-primary/10 sm:p-5">
           {report.questions.length === 0 ? (
             <p className="text-muted-foreground italic">No questions came up from the checks run on confirmed fields.</p>
           ) : (
@@ -80,7 +79,7 @@ export function ReportPreview({ report }: { report: Report }) {
           <p className="text-muted-foreground italic">No findings in confirmed fields.</p>
         ) : (
           report.findings.map((f) => (
-            <div key={f.id} className="rounded-lg border-l-4 border-finding bg-finding-surface p-4">
+            <div key={f.id} className="rounded-xl border border-finding/30 border-l-4 border-l-finding bg-finding-surface/70 p-4">
               <p className="text-xs font-semibold tracking-wider text-finding-foreground uppercase">{f.checkName}</p>
               <p className="mt-1 font-semibold">{f.title}</p>
               <p className="mt-1">{f.detail}</p>
@@ -145,7 +144,7 @@ export function ReportPreview({ report }: { report: Report }) {
           <p className="text-muted-foreground italic">No confirmed medicines on file.</p>
         ) : (
           report.medicines.map((m) => (
-            <div key={m.id} className="rounded-lg border p-4">
+            <div key={m.id} className="rounded-xl border bg-surface/50 p-4">
               <p className="font-semibold">{m.name}</p>
               <p className="text-sm text-muted-foreground">{m.source}</p>
               <dl className="mt-2 grid gap-x-4 gap-y-1 text-sm sm:grid-cols-[9rem_1fr]">
@@ -166,7 +165,7 @@ export function ReportPreview({ report }: { report: Report }) {
         {report.unreviewedNote && <p className="text-sm text-muted-foreground">{report.unreviewedNote}</p>}
       </section>
 
-      <aside className="mt-8 rounded-lg border bg-muted/50 p-4 text-sm">
+      <aside className="mt-8 rounded-xl border border-dashed bg-surface p-4 text-sm">
         <p className="font-semibold">Evidence, not advice</p>
         <p className="mt-1 text-muted-foreground">{report.boundary}</p>
       </aside>

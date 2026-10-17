@@ -25,12 +25,17 @@ export default async function WelcomePage({ searchParams }: PageProps<"/welcome"
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-md">
-        <p className="text-sm font-medium text-primary">Welcome to MedCheck</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Let&apos;s get you set up</h1>
+      <div className="mx-auto max-w-lg">
+        <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+          <span className="h-1 w-8 rounded-full bg-primary" aria-hidden />
+          <span className="h-1 w-8 rounded-full bg-border" aria-hidden />
+          <span className="ml-1">Set up · then add a medicine</span>
+        </div>
+        <p className="mt-6 text-sm font-semibold text-primary">Welcome to MedCheck</p>
+        <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight">Let&apos;s get you set up</h1>
         <p className="mt-2 text-muted-foreground text-pretty">Two quick questions, then you can add a medicine.</p>
 
-        <form action={saveCaregiverName} className="mt-8 space-y-8">
+        <form action={saveCaregiverName} className="mt-8 space-y-8 rounded-2xl border bg-card p-5 shadow-sm sm:p-8">
           <div className="space-y-2">
             <Label htmlFor="displayName" className="text-base">
               Your name
@@ -63,7 +68,7 @@ export default async function WelcomePage({ searchParams }: PageProps<"/welcome"
             {CHOICES.map((c) => (
               <label
                 key={c.value}
-                className="flex min-h-16 cursor-pointer items-center gap-3 rounded-xl border bg-card px-4 py-3 transition-colors hover:bg-muted has-checked:border-primary has-checked:bg-accent has-focus-visible:ring-3 has-focus-visible:ring-ring/50"
+                className="flex min-h-16 cursor-pointer items-center gap-3 rounded-xl border bg-card px-4 py-3 shadow-xs transition-[border-color,background-color,box-shadow] hover:border-input hover:bg-muted/50 has-checked:border-primary has-checked:bg-accent has-checked:ring-1 has-checked:ring-primary/30 has-focus-visible:ring-3 has-focus-visible:ring-ring/50"
               >
                 <input
                   type="radio"

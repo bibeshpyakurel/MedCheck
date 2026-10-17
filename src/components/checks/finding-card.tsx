@@ -40,62 +40,67 @@ export function FindingCard({
   return (
     <article
       aria-labelledby={headingId}
-      className="rounded-xl border border-finding/40 border-l-4 border-l-finding bg-card p-4 text-card-foreground"
+      className="relative overflow-hidden rounded-xl border border-finding/35 bg-card text-card-foreground shadow-xs"
     >
-      <h4 id={headingId} className="text-base font-semibold leading-snug">
-        {finding.title}
-      </h4>
-      <p className="mt-2 text-sm leading-relaxed">{finding.detail}</p>
-
-      {finding.evidence.length > 0 && (
-        <div className="mt-3">
-          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Evidence</p>
-          <ul className="mt-1 space-y-2">
-            {finding.evidence.map((e, i) => {
-              const entry = entries.get(e.entryId);
-              const official = officialLabelUrl(entry?.formulationId ? formulations[entry.formulationId] : undefined);
-              return (
-                <li key={`${e.entryId}-${e.field}-${i}`} className="rounded-lg bg-muted px-3 pt-2 text-sm">
-                  <span className="font-medium">{e.text}</span>
-                  <span className="block text-xs text-muted-foreground">
-                    {e.entryLabel} · {sourceOf(e, evidenceProvenance(e, entry))}
-                    {e.documentDate ? ` · ${formatDocumentDate(e.documentDate)}` : ""}
-                  </span>
-                  <span className="flex flex-wrap gap-x-4">
-                    <Link href={entrySourceHref(patientId, e.entryId)} aria-label={`View source: ${e.entryLabel}`} className={LINK}>
-                      View source
-                    </Link>
-                    {official && (
-                      <a href={official} target="_blank" rel="noopener noreferrer" className={LINK}>
-                        Official FDA label (DailyMed)
-                        <ExternalLinkIcon aria-hidden className="size-3.5" />
-                        <span className="sr-only"> (opens in a new tab)</span>
-                      </a>
-                    )}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
+      <span aria-hidden className="absolute inset-y-0 left-0 w-1 bg-finding" />
+      <div className="space-y-4 p-4 pl-5">
+        <div>
+          <h4 id={headingId} className="text-base leading-snug font-semibold text-balance">
+            {finding.title}
+          </h4>
+          <p className="mt-1.5 text-sm leading-relaxed">{finding.detail}</p>
         </div>
-      )}
 
-      {finding.labelWarningQuote && (
-        <figure className="mt-3">
-          <figcaption className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-            The label&apos;s own warning
-          </figcaption>
-          <blockquote className="mt-1 border-l-2 border-finding pl-3 text-sm italic leading-relaxed">
-            “{finding.labelWarningQuote}”
-          </blockquote>
-        </figure>
-      )}
+        {finding.evidence.length > 0 && (
+          <div>
+            <p className="text-[0.6875rem] font-semibold tracking-wider text-muted-foreground uppercase">Evidence</p>
+            <ul className="mt-2 divide-y overflow-hidden rounded-lg border">
+              {finding.evidence.map((e, i) => {
+                const entry = entries.get(e.entryId);
+                const official = officialLabelUrl(entry?.formulationId ? formulations[entry.formulationId] : undefined);
+                return (
+                  <li key={`${e.entryId}-${e.field}-${i}`} className="bg-surface/50 px-3 pt-2.5 text-sm">
+                    <span className="font-medium nums">{e.text}</span>
+                    <span className="mt-0.5 block text-xs text-muted-foreground">
+                      {e.entryLabel} · {sourceOf(e, evidenceProvenance(e, entry))}
+                      {e.documentDate ? ` · ${formatDocumentDate(e.documentDate)}` : ""}
+                    </span>
+                    <span className="flex flex-wrap gap-x-4">
+                      <Link href={entrySourceHref(patientId, e.entryId)} aria-label={`View source: ${e.entryLabel}`} className={LINK}>
+                        View source
+                      </Link>
+                      {official && (
+                        <a href={official} target="_blank" rel="noopener noreferrer" className={LINK}>
+                          Official FDA label (DailyMed)
+                          <ExternalLinkIcon aria-hidden className="size-3.5" />
+                          <span className="sr-only"> (opens in a new tab)</span>
+                        </a>
+                      )}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
 
-      <div className="mt-4 rounded-lg bg-finding-surface p-3 text-finding-foreground">
-        <p className="text-xs font-semibold tracking-wide uppercase">Ask a pharmacist</p>
-        <p className="mt-1 text-base font-medium leading-snug">{finding.pharmacistQuestion}</p>
-        <div className="mt-3">
-          <CopyQuestionButton text={finding.pharmacistQuestion} />
+        {finding.labelWarningQuote && (
+          <figure>
+            <figcaption className="text-[0.6875rem] font-semibold tracking-wider text-muted-foreground uppercase">
+              The label&apos;s own warning
+            </figcaption>
+            <blockquote className="mt-2 border-l-2 border-finding pl-3 text-sm leading-relaxed italic">
+              “{finding.labelWarningQuote}”
+            </blockquote>
+          </figure>
+        )}
+
+        <div className="rounded-lg bg-finding-surface p-3.5 ring-1 ring-finding/25">
+          <p className="text-[0.6875rem] font-semibold tracking-wider text-finding-foreground uppercase">Ask a pharmacist</p>
+          <p className="mt-1.5 text-base leading-snug font-medium">{finding.pharmacistQuestion}</p>
+          <div className="mt-3">
+            <CopyQuestionButton text={finding.pharmacistQuestion} />
+          </div>
         </div>
       </div>
     </article>

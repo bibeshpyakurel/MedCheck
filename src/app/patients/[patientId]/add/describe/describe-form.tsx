@@ -162,13 +162,24 @@ export function DescribeForm({ patientId }: { patientId: string }) {
 
   return (
     <div className="space-y-5">
-      <div className="space-y-3 rounded-xl border bg-card p-4">
-        <p className="font-medium">Say it</p>
-        <p className="text-sm text-muted-foreground">
-          Read out the name, the strength (like &ldquo;160 mg per 5 mL&rdquo;) and the directions, as printed.
-        </p>
+      <div className="space-y-4 rounded-2xl border bg-card p-5 shadow-xs">
+        <div className="flex items-start gap-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent text-accent-foreground ring-1 ring-primary/15">
+            <MicIcon aria-hidden className="size-5" />
+          </span>
+          <div>
+            <p className="font-semibold">Say it</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              Read out the name, the strength (like &ldquo;160 mg per 5 mL&rdquo;) and the directions, as printed.
+            </p>
+          </div>
+        </div>
         {recording ? (
           <Button type="button" variant="destructive" className="h-14 w-full text-base" onClick={stopRecording}>
+            <span aria-hidden className="relative flex size-2.5">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-destructive opacity-60" />
+              <span className="relative inline-flex size-2.5 rounded-full bg-destructive" />
+            </span>
             <SquareIcon aria-hidden /> Stop recording ({seconds}s)
           </Button>
         ) : (
@@ -177,13 +188,19 @@ export function DescribeForm({ patientId }: { patientId: string }) {
           </Button>
         )}
         {audio && !recording && (
-          <div className="flex items-center justify-between gap-2 text-sm">
-            <span>Recording ready ({seconds}s).</span>
+          <div className="flex items-center justify-between gap-2 rounded-lg bg-surface px-3 py-1 text-sm ring-1 ring-border">
+            <span className="font-medium">Recording ready ({seconds}s).</span>
             <Button type="button" variant="ghost" className="h-11" onClick={() => setAudio(null)}>
               Discard
             </Button>
           </div>
         )}
+      </div>
+
+      <div aria-hidden className="flex items-center gap-3 text-xs font-medium tracking-wider text-muted-foreground uppercase">
+        <span className="h-px flex-1 bg-border" />
+        or
+        <span className="h-px flex-1 bg-border" />
       </div>
 
       <div className="space-y-2">
@@ -245,7 +262,7 @@ export function DescribeForm({ patientId }: { patientId: string }) {
       <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
         {stage ? STAGE[stage].status : ""}
       </p>
-      <p className="text-sm text-muted-foreground">
+      <p className="text-center text-sm text-muted-foreground">
         Entries made this way are marked &ldquo;From your description, not a label&rdquo;.
       </p>
     </div>

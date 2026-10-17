@@ -13,23 +13,25 @@ export default async function NotFound() {
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-md py-6 text-center sm:py-10">
-        <SearchXIcon aria-hidden className="mx-auto size-10 text-muted-foreground" />
-        <h1 className="mt-4 text-2xl font-semibold tracking-tight">We couldn&apos;t find that page</h1>
+      <div className="mx-auto flex max-w-md flex-col items-center py-12 text-center">
+        <span className="grid size-14 place-items-center rounded-2xl bg-muted text-muted-foreground ring-1 ring-border">
+          <SearchXIcon aria-hidden className="size-7" />
+        </span>
+        <p className="mt-6 font-mono text-xs font-medium tracking-wider text-muted-foreground uppercase">404</p>
+        <h1 className="mt-2 font-display text-2xl font-semibold tracking-tight">We couldn&apos;t find that page</h1>
         <p className="mt-2 text-muted-foreground text-pretty">
           The link may be wrong, or the record it points to was removed — for example after the demo household was
           reset.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           {user ? (
-            <Button size="lg" className="h-12 px-5 text-base" nativeButton={false} render={<Link href="/patients" />}>
+            <Button className="h-11 px-4" nativeButton={false} render={<Link href="/patients" />}>
               <ArrowLeftIcon aria-hidden /> Back to your people
             </Button>
           ) : null}
           <Button
             variant={user ? "outline" : "default"}
-            size="lg"
-            className="h-12 px-5 text-base"
+            className="h-11 px-4"
             nativeButton={false}
             render={<Link href="/" />}
           >

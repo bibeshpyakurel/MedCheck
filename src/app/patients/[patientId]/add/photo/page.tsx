@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { AppShell } from "@/components/app-shell";
+import { PageHeader } from "@/components/page-header";
 import { requireUser } from "@/lib/auth";
 import { getFormulation } from "@/lib/catalog";
 import { getPatient } from "@/lib/records";
@@ -35,26 +35,23 @@ export default async function PhotoPage({ params, searchParams }: PageProps<"/pa
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-xl space-y-6">
-        <div className="space-y-2">
-          <Link href={`/patients/${patientId}/add`} className="text-sm text-muted-foreground underline-offset-4 hover:underline">
-            ← Add a medicine
-          </Link>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {formulation ? "Photograph the Drug Facts panel" : "Photo of a label or document"}
-          </h1>
-          <p className="text-muted-foreground">
-            {formulation ? (
+      <div className="mx-auto max-w-xl space-y-8">
+        <PageHeader
+          back={{ href: `/patients/${patientId}/add`, label: "Add a medicine" }}
+          eyebrow={`For ${patient.displayName}`}
+          title={formulation ? "Photograph the Drug Facts panel" : "Photo of a label or document"}
+          description={
+            formulation ? (
               <>
                 Scanned: <strong className="text-foreground">{formulation.brandName}</strong>. A photo of the box lets
                 MedCheck compare what&apos;s printed with the {formulation.isFictional ? "fictional demo label" : "FDA label"} on
                 file.
               </>
             ) : (
-              <>For {patient.displayName}. MedCheck reads the values; you check each one before anything is saved.</>
-            )}
-          </p>
-        </div>
+              <>MedCheck reads the values; you check each one before anything is saved.</>
+            )
+          }
+        />
         <PhotoForm
           patientId={patientId}
           initialKind={kind}

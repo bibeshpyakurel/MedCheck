@@ -3,7 +3,7 @@
 import { RotateCcwIcon, TriangleAlertIcon, UsersRoundIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect } from "react";
-import { Brand } from "@/components/brand";
+import { BrandLogo } from "@/components/brand";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -18,15 +18,17 @@ export function ErrorPanel({ error, retry }: { error: unknown; retry: () => void
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="border-b bg-background/90">
-        <div className="mx-auto flex h-14 w-full max-w-5xl items-center px-4">
-          <Brand />
+      <header className="border-b border-border/70 bg-background/80">
+        <div className="mx-auto flex h-16 w-full max-w-6xl items-center px-4 sm:px-6">
+          <Link href="/" className="-m-1.5 rounded-lg p-1.5 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none">
+            <BrandLogo />
+          </Link>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:py-10">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-12">
         <div role="alert" className="mx-auto max-w-md py-6 text-center sm:py-10">
           <TriangleAlertIcon aria-hidden className="mx-auto size-10 text-unresolved" />
-          <h1 className="mt-4 text-2xl font-semibold tracking-tight">Something went wrong</h1>
+          <h1 className="mt-4 font-display text-2xl font-semibold tracking-tight">Something went wrong</h1>
           <p className="mt-2 text-muted-foreground text-pretty">
             MedCheck couldn&apos;t load this page. Try again — if it keeps happening, go back to your people and open it
             from there.

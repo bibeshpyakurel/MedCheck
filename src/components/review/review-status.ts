@@ -16,6 +16,12 @@ function allFields(fields: EntryFields): Field<unknown>[] {
 /** Never suggested and nothing to point at (a catalog label with no written dose): not something the user couldn't tell. */
 const neverOnSource = (f: Field<unknown>) => f.aiValue === null && f.evidence.kind === "none";
 
+/** How many fields the user has acted on, for the progress bar. */
+export function reviewProgress(fields: EntryFields): { reviewed: number; total: number } {
+  const all = allFields(fields);
+  return { reviewed: all.filter((f) => f.state !== "pending").length, total: all.length };
+}
+
 export function reviewStatusMessage(fields: EntryFields): string {
   const all = allFields(fields);
   const pending = all.filter((f) => f.state === "pending").length;

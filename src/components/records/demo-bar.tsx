@@ -16,7 +16,7 @@ export async function DemoBar() {
 
   return (
     <div className="border-b bg-muted/60">
-      <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 text-sm">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 text-sm sm:px-6">
         <p className="flex min-w-0 items-center gap-2 text-muted-foreground">
           <FlaskConicalIcon aria-hidden className="size-4 shrink-0" />
           <span>You&apos;re in the demo household. Everything in it is synthetic.</span>

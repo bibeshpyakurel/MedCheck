@@ -42,6 +42,8 @@ export async function typeDose(page: Page, label: string, d: { amount: number; u
 
 /** Taps Matches on every value still waiting for review. */
 export async function matchAllPending(page: Page) {
+  // The URL changes while the loading skeleton is still up; count rows only once the form is there.
+  await page.getByRole("button", { name: "Confirm medicine" }).waitFor();
   const pending = page.locator("div[data-state=pending]");
   while ((await pending.count()) > 0) {
     await pending.first().getByRole("button", { name: "Matches" }).click();

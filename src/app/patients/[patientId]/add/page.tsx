@@ -1,9 +1,10 @@
-import { CameraIcon, ChevronRightIcon, ListIcon, MicIcon, ScanBarcodeIcon, type LucideIcon } from "lucide-react";
+import { ArrowRightIcon, CameraIcon, ListIcon, MicIcon, ScanBarcodeIcon, type LucideIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { AppShell } from "@/components/app-shell";
+import { PageHeader } from "@/components/page-header";
 import { requireUser } from "@/lib/auth";
 import { getPatient } from "@/lib/records";
 
@@ -36,29 +37,33 @@ export default async function AddPage({ params }: PageProps<"/patients/[patientI
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-xl space-y-6">
-        <div className="space-y-2">
-          <Link href={`/patients/${patientId}`} className="text-sm text-muted-foreground underline-offset-4 hover:underline">
-            ← {patient.displayName}
-          </Link>
-          <h1 className="text-2xl font-semibold tracking-tight">Add a medicine</h1>
-          <p className="text-muted-foreground">Choose the easiest way. You&apos;ll check every value before it&apos;s saved.</p>
-        </div>
-        <ul className="space-y-3">
+      <div className="mx-auto max-w-3xl space-y-8">
+        <PageHeader
+          back={{ href: `/patients/${patientId}`, label: patient.displayName }}
+          eyebrow={`For ${patient.displayName}`}
+          title="Add a medicine"
+          description={<>Choose the easiest way. You&apos;ll check every value before it&apos;s saved.</>}
+        />
+        <ul className="grid gap-4 sm:grid-cols-2">
           {options.map(({ href, icon: Icon, title, detail }) => (
             <li key={href}>
               <Link
                 href={href}
-                className="flex min-h-20 items-center gap-4 rounded-2xl border bg-card p-4 transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                className="group flex h-full min-h-20 items-center gap-4 rounded-2xl border bg-card p-5 shadow-xs transition-[border-color,box-shadow] hover:border-primary/40 hover:shadow-md focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:flex-col sm:items-start sm:gap-5 sm:p-6"
               >
-                <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-accent text-accent-foreground ring-1 ring-primary/15 transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                   <Icon aria-hidden className="size-6" />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-lg font-medium">{title}</span>
-                  <span className="block text-sm text-muted-foreground">{detail}</span>
+                  <span className="flex items-center gap-2 text-base font-semibold sm:text-lg">
+                    {title}
+                    <ArrowRightIcon
+                      aria-hidden
+                      className="hidden size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary sm:block"
+                    />
+                  </span>
+                  <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">{detail}</span>
                 </span>
-                <ChevronRightIcon aria-hidden className="size-5 text-muted-foreground" />
               </Link>
             </li>
           ))}

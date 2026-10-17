@@ -20,7 +20,7 @@ export const ALREADY_GAVE_BOTH_MESSAGE =
 export function AlreadyGaveBothMessage() {
   return (
     <div className="space-y-4">
-      <p className="text-base">{ALREADY_GAVE_BOTH_MESSAGE}</p>
+      <p className="rounded-xl border bg-surface p-4 text-base font-medium">{ALREADY_GAVE_BOTH_MESSAGE}</p>
       <Button
         nativeButton={false}
         render={<a href="tel:18002221222" />}
@@ -40,7 +40,7 @@ export function AlreadyGaveBothMessage() {
 export function AlreadyGaveBoth({ defaultOpen = false }: { defaultOpen?: boolean }) {
   return (
     <Dialog defaultOpen={defaultOpen}>
-      <DialogTrigger render={<Button variant="outline" className="h-11" />}>I already gave both</DialogTrigger>
+      <DialogTrigger render={<Button variant="outline" size="lg" className="h-11 px-4" />}>I already gave both</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Already gave or took both?</DialogTitle>

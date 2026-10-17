@@ -104,7 +104,7 @@ export function BarcodeScanner({ onDetected }: { onDetected: (text: string) => v
   return (
     <div className="space-y-6">
       {cameraBlocked ? (
-        <div role="status" className="flex gap-3 rounded-xl border bg-muted/40 p-4">
+        <div role="status" className="flex gap-3 rounded-2xl border bg-surface p-5">
           <CameraOffIcon aria-hidden className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
           <div className="space-y-1">
             <p className="font-medium">
@@ -117,10 +117,10 @@ export function BarcodeScanner({ onDetected }: { onDetected: (text: string) => v
           </div>
         </div>
       ) : (
-        <div className="relative mx-auto aspect-[4/3] w-full max-w-md overflow-hidden rounded-xl border bg-black">
+        <div className="relative mx-auto aspect-[4/3] w-full max-w-md overflow-hidden rounded-2xl border bg-black shadow-lg">
           <video ref={videoRef} className="size-full object-cover" playsInline muted autoPlay aria-label="Camera preview" />
-          <div aria-hidden className="pointer-events-none absolute inset-x-8 top-1/2 h-24 -translate-y-1/2 rounded-lg border-2 border-white/80" />
-          <p className="absolute inset-x-0 bottom-0 bg-black/60 px-3 py-2 text-center text-sm text-white" aria-live="polite">
+          <div aria-hidden className="pointer-events-none absolute inset-x-8 top-1/2 h-24 -translate-y-1/2 rounded-xl border-2 border-white/80 shadow-[0_0_0_9999px_rgb(0_0_0/0.35)]" />
+          <p className="absolute inset-x-0 bottom-0 bg-black/60 px-3 py-2.5 text-center text-sm font-medium text-white backdrop-blur" aria-live="polite">
             {camera === "starting" ? "Starting camera…" : "Point the camera at the barcode on the box"}
           </p>
         </div>
@@ -149,7 +149,7 @@ export function BarcodeScanner({ onDetected }: { onDetected: (text: string) => v
         {photoError && <p className="text-sm text-destructive">{photoError}</p>}
       </div>
 
-      <form onSubmit={submitManual} className="space-y-2" noValidate>
+      <form onSubmit={submitManual} className="space-y-2 rounded-2xl border bg-card p-4 shadow-xs" noValidate>
         <Label htmlFor={`${inputId}-ndc`} className="flex items-center gap-2">
           <KeyboardIcon aria-hidden className="size-4" /> Or type the NDC or barcode number
         </Label>

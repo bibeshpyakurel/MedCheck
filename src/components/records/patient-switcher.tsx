@@ -19,7 +19,7 @@ type Option = { id: string; label: string; isDemo: boolean };
 export function PatientSwitcher({ patients, currentId }: { patients: Option[]; currentId: string }) {
   if (patients.length < 2) {
     return (
-      <Button variant="ghost" className="h-11" nativeButton={false} render={<Link href="/patients" />}>
+      <Button variant="outline" className="h-11 px-3.5" nativeButton={false} render={<Link href="/patients" />}>
         <UsersRoundIcon aria-hidden /> People
       </Button>
     );
@@ -28,7 +28,7 @@ export function PatientSwitcher({ patients, currentId }: { patients: Option[]; c
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={<Button variant="outline" className="h-11 max-w-48 gap-2 px-3" aria-label="Switch person" />}
+        render={<Button variant="outline" className="h-11 max-w-56 gap-2 pr-2.5 pl-3" aria-label="Switch person" />}
       >
         <span className="truncate">{current?.label ?? "Switch person"}</span>
         <ChevronsUpDownIcon aria-hidden className="text-muted-foreground" />

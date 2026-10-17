@@ -1,7 +1,7 @@
 "use client";
 
 import { PlusIcon, Trash2Icon } from "lucide-react";
-import { useId, useState, useTransition } from "react";
+import { useId, useState, useTransition, type ReactNode } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,12 +11,27 @@ import type { DocumentDetails } from "@/lib/ai/extract-label";
 import type { EntryFields, Evidence, IngredientFields } from "@/lib/domain/schema";
 import { DoseEditor, StrengthEditor, TextEditor } from "./editors";
 import { FieldRow } from "./field-row";
-import { reviewStatusMessage } from "./review-status";
+import { reviewProgress, reviewStatusMessage } from "./review-status";
 
 type SubmitInput = { patientId: string; entryId: string; fields: EntryFields; document: DocumentDetails | null };
 type SubmitAction = (input: SubmitInput) => Promise<{ error: string } | void>;
 
 const text = (v: string) => v;
+
+/** Numbered group heading for the review form. */
+function GroupHeading({ id, step, children }: { id: string; step: number; children: ReactNode }) {
+  return (
+    <h2 id={id} className="flex items-center gap-3 text-lg font-semibold">
+      <span
+        aria-hidden
+        className="grid size-7 place-items-center rounded-full bg-card font-mono text-xs font-semibold text-muted-foreground ring-1 ring-border"
+      >
+        {step}
+      </span>
+      {children}
+    </h2>
+  );
+}
 
 export function ReviewForm({
   patientId,
@@ -65,6 +80,8 @@ export function ReviewForm({
   };
 
   const ready = isFullyReviewed(fields);
+  const { reviewed, total } = reviewProgress(fields);
+  const progress = total === 0 ? 1 : reviewed / total;
 
   function submit(action: SubmitAction) {
     setError(null);
@@ -77,9 +94,9 @@ export function ReviewForm({
   return (
     <div className="space-y-6">
       <section className="space-y-3" aria-labelledby={`${docId}-medicine`}>
-        <h2 id={`${docId}-medicine`} className="text-lg font-semibold">
+        <GroupHeading id={`${docId}-medicine`} step={1}>
           Medicine
-        </h2>
+        </GroupHeading>
         <FieldRow
           label="Product name"
           field={fields.productName}
@@ -99,14 +116,14 @@ export function ReviewForm({
       </section>
 
       <section className="space-y-3" aria-labelledby={`${docId}-ingredients`}>
-        <h2 id={`${docId}-ingredients`} className="text-lg font-semibold">
+        <GroupHeading id={`${docId}-ingredients`} step={2}>
           Active ingredients
-        </h2>
+        </GroupHeading>
         {fields.ingredients.length === 0 && (
           <p className="text-sm text-muted-foreground">No active ingredients read. Add each one printed on the label.</p>
         )}
         {fields.ingredients.map((ing, i) => (
-          <div key={rowKeys[i]} className="space-y-2 rounded-2xl border border-dashed p-2">
+          <div key={rowKeys[i]} className="space-y-2 rounded-2xl border border-dashed bg-surface/60 p-2">
             <FieldRow
               label={`Ingredient ${i + 1}`}
               field={ing.name}
@@ -143,9 +160,9 @@ export function ReviewForm({
       </section>
 
       <section className="space-y-3" aria-labelledby={`${docId}-directions`}>
-        <h2 id={`${docId}-directions`} className="text-lg font-semibold">
+        <GroupHeading id={`${docId}-directions`} step={3}>
           Directions
-        </h2>
+        </GroupHeading>
         <FieldRow
           label="Directions"
           field={fields.instructions}
@@ -173,10 +190,10 @@ export function ReviewForm({
       </section>
 
       {doc && (
-        <section className="space-y-3 rounded-xl border bg-card p-4" aria-labelledby={`${docId}-doc`}>
-          <h2 id={`${docId}-doc`} className="text-lg font-semibold">
+        <section className="space-y-4 rounded-2xl border bg-card p-5 shadow-xs" aria-labelledby={`${docId}-doc`}>
+          <GroupHeading id={`${docId}-doc`} step={4}>
             Document details
-          </h2>
+          </GroupHeading>
           <p className="text-sm text-muted-foreground">As printed on the label or list. Leave blank if it isn&apos;t there.</p>
           <div className="grid gap-3 sm:grid-cols-2">
             {(
@@ -209,11 +226,21 @@ export function ReviewForm({
       )}
 
       {/* Sticky, not fixed: it rides the bottom of the screen while reviewing, then settles above the footer. */}
-      <div className="sticky bottom-0 z-10 -mx-4 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:mx-0 sm:rounded-xl sm:border">
-        <div className="mx-auto flex w-full max-w-5xl flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center">
-          <p className="text-sm text-muted-foreground sm:flex-1" aria-live="polite">
-            {reviewStatusMessage(fields)}
-          </p>
+      <div className="sticky bottom-0 z-20 -mx-4 overflow-hidden border-t bg-background/90 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_-12px_rgb(15_23_42/0.15)] backdrop-blur-xl sm:mx-0 sm:rounded-xl sm:border">
+        <div
+          aria-hidden
+          className="absolute inset-x-0 top-0 h-0.5 origin-left bg-primary transition-transform duration-300"
+          style={{ transform: `scaleX(${progress})` }}
+        />
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-2.5 px-4 py-3 sm:flex-row sm:items-center sm:px-6">
+          <div className="sm:flex-1">
+            <p className="text-sm text-muted-foreground" aria-live="polite">
+              {reviewStatusMessage(fields)}
+            </p>
+            <p aria-hidden className="mt-0.5 hidden font-mono text-xs text-muted-foreground/80 sm:block">
+              {reviewed}/{total} reviewed
+            </p>
+          </div>
           <div className="flex gap-2">
             <Button
               type="button"
