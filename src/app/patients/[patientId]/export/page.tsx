@@ -30,8 +30,8 @@ export default async function ExportPage({ params }: PageProps<"/patients/[patie
   );
 
   return (
-    <AppShell>
-      <div className="pb-28 sm:pb-0">
+    <AppShell mobileActionBar>
+      <div>
         <Link
           href={`/patients/${patientId}`}
           className="inline-flex min-h-11 items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"

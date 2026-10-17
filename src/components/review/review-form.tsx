@@ -87,7 +87,7 @@ export function ReviewForm({
   }
 
   return (
-    <div className="space-y-6 pb-28">
+    <div className="space-y-6">
       <section className="space-y-3" aria-labelledby={`${docId}-medicine`}>
         <h2 id={`${docId}-medicine`} className="text-lg font-semibold">
           Medicine
@@ -220,7 +220,8 @@ export function ReviewForm({
         </Alert>
       )}
 
-      <div className="fixed inset-x-0 bottom-0 z-10 border-t bg-background/95 backdrop-blur">
+      {/* Sticky, not fixed: it rides the bottom of the screen while reviewing, then settles above the footer. */}
+      <div className="sticky bottom-0 z-10 -mx-4 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:mx-0 sm:rounded-xl sm:border">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center">
           <p className="text-sm text-muted-foreground sm:flex-1" aria-live="polite">
             {ready
