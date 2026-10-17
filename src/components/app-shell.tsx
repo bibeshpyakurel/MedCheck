@@ -2,7 +2,9 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { GetHelp } from "@/components/already-gave-both";
 import { BrandLogo } from "@/components/brand";
+import { GuestLeaveGuard } from "@/components/guest-leave-guard";
 import { SiteMenu } from "@/components/site-menu";
+import { getAccount } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 
 /**
@@ -10,19 +12,21 @@ import { cn } from "@/lib/utils";
  * `bleed` hands the full width to the page (the landing page draws its own sections).
  * "Get help" (the fixed "I already gave both" message) is in the header on every screen; the ☰ menu holds the explainer pages.
  */
-export function AppShell({
+export async function AppShell({
   children,
   bleed = false,
 }: {
   children: ReactNode;
   bleed?: boolean;
 }) {
+  const account = await getAccount();
   return (
     <div className="flex min-h-dvh flex-col">
+      <GuestLeaveGuard isGuest={account?.isGuest === true} />
       <header className="sticky top-0 z-30 border-b border-border/70 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
           <div className="flex items-center gap-1">
-            <SiteMenu />
+            <SiteMenu account={account} />
             <Link
               href="/"
               className="rounded-lg p-1.5 transition-opacity hover:opacity-85 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
