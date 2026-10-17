@@ -2,7 +2,6 @@ import { ChevronRightIcon, ClipboardCheckIcon, FileTextIcon, PillIcon, PlusIcon,
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { resetDemo } from "@/app/actions/session";
 import { AlreadyGaveBoth } from "@/components/already-gave-both";
 import { AppShell } from "@/components/app-shell";
 import { ChecksPanel } from "@/components/checks/checks-panel";
@@ -10,7 +9,7 @@ import { DemoBadge } from "@/components/records/demo-badge";
 import { HistoryList } from "@/components/records/history-list";
 import { MedicationList } from "@/components/records/medication-list";
 import { PatientSwitcher } from "@/components/records/patient-switcher";
-import { SubmitButton } from "@/components/records/submit-button";
+import { ResetDemoButton } from "@/components/records/reset-demo-button";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { requireUser } from "@/lib/auth";
@@ -120,12 +119,12 @@ export default async function PatientRecordPage({ params }: PageProps<"/patients
       </div>
 
       {patient.isDemo ? (
-        <form action={resetDemo} className="mt-12 flex flex-wrap items-center gap-3 border-t pt-6 text-sm">
+        <div className="mt-12 flex flex-wrap items-center gap-3 border-t pt-6 text-sm">
           <p className="text-muted-foreground">Presenting? Put the demo household back the way it started.</p>
-          <SubmitButton variant="ghost" className="h-11" pendingLabel="Resetting…">
+          <ResetDemoButton variant="ghost" className="h-11">
             <RotateCcwIcon aria-hidden /> Reset demo
-          </SubmitButton>
-        </form>
+          </ResetDemoButton>
+        </div>
       ) : null}
     </AppShell>
   );

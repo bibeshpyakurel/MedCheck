@@ -226,6 +226,10 @@ test.describe("demo household", () => {
   test("reset demo puts the household back", async () => {
     await page.goto(samUrl);
     await page.getByRole("button", { name: "Reset demo" }).click();
+    // Asks first; Cancel has focus, so only the explicit button resets.
+    const confirm = page.getByRole("alertdialog", { name: "Reset the demo household?" });
+    await expect(confirm.getByRole("button", { name: "Cancel" })).toBeFocused();
+    await confirm.getByRole("button", { name: "Reset demo" }).click();
     await page.waitForURL((url) => /\/patients\/[0-9a-f-]{36}$/.test(url.pathname) && url.toString() !== samUrl);
     await expect(page.getByRole("heading", { level: 1, name: "My medicines" })).toBeVisible();
     await expect(page.getByText(/6 checks run · 0 found something/)).toBeVisible();
