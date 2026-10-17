@@ -5,30 +5,49 @@ import "server-only";
 // Live rows have `reviewed_at` null — they were not hand-checked like the seeded ones.
 import { findFormulationByNdc11, rowToFormulation } from "@/lib/catalog";
 import type { Formulation } from "@/lib/domain/schema";
-import { ndc11Candidates, ndcHyphenatedCandidates, parseBarcode } from "@/lib/ndc";
-import { fetchLabelsByNdc, formulationToRow, labelToFormulation } from "@/lib/openfda";
+import { ndc11FromHyphenated, ndcLookupKeys } from "@/lib/ndc";
+import { fetchLabelsByNdc, formulationToRow, labelToFormulation, type OpenFdaLabel } from "@/lib/openfda";
 import { createAdminClient } from "@/lib/supabase/server";
 
-export async function lookupFormulationByBarcode(text: string): Promise<Formulation | null> {
-  const ndc10 = parseBarcode(text);
-  if (!ndc10) return null;
+/** A label's package NDCs in the catalog's 11-digit form. */
+function labelNdc11s(label: OpenFdaLabel): string[] {
+  return (label.openfda?.package_ndc ?? []).map(ndc11FromHyphenated).filter((n): n is string => n !== null);
+}
 
-  const candidates = ndc11Candidates(ndc10);
-  const fromCatalog = await findFormulationByNdc11(candidates);
+/**
+ * The formulation for a barcode or typed NDC; null when no label matches; "unavailable" when it
+ * isn't in the catalog and openFDA didn't answer, so we can't say it isn't supported.
+ */
+export async function lookupFormulationByBarcode(text: string): Promise<Formulation | null | "unavailable"> {
+  const keys = ndcLookupKeys(text);
+  if (!keys) return null;
+
+  const fromCatalog = await findFormulationByNdc11(keys.ndc11);
   if (fromCatalog) return fromCatalog;
 
   let labels;
   try {
-    labels = await fetchLabelsByNdc(ndcHyphenatedCandidates(ndc10), 6000);
+    labels = await fetchLabelsByNdc(keys.hyphenated, keys.upc, 6000);
   } catch (error) {
     // openFDA unavailable → catalog only.
     console.warn("openFDA lookup failed", error);
-    return null;
+    return "unavailable";
   }
 
-  for (const label of labels) {
+  const matching = labels.filter(
+    (label) =>
+      labelNdc11s(label).some((n) => keys.ndc11.includes(n)) ||
+      (keys.upc !== null && (label.openfda?.upc ?? []).includes(keys.upc)),
+  );
+
+  // A UPC can lead to a label whose own NDCs we already carry (Tylenol's UPC says 0045-…, its label
+  // 50580-…): prefer that hand-checked catalog row to a live copy.
+  const fromCatalogByLabel = await findFormulationByNdc11(matching.flatMap(labelNdc11s));
+  if (fromCatalogByLabel) return fromCatalogByLabel;
+
+  for (const label of matching) {
     const formulation = labelToFormulation(label);
-    if (!formulation || !formulation.ndcPackages.some((n) => candidates.includes(n))) continue;
+    if (!formulation) continue;
     const { data, error } = await createAdminClient()
       .from("formulations")
       .upsert(formulationToRow(formulation, null), { onConflict: "slug" })

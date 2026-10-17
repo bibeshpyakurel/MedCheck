@@ -146,4 +146,11 @@ describe("ndcSearchQuery", () => {
       'openfda.package_ndc:"3700-0523-02" OR openfda.package_ndc:"37000-523-02"',
     );
   });
+
+  it("also searches openfda.upc for a scanned UPC", () => {
+    expect(ndcSearchQuery(["0045-0449-10"], "0300450449108")).toBe(
+      'openfda.package_ndc:"0045-0449-10" OR openfda.upc:"0300450449108"',
+    );
+    expect(ndcSearchQuery([], "0036000291452")).toBe('openfda.upc:"0036000291452"');
+  });
 });

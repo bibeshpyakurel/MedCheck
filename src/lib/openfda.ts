@@ -22,6 +22,7 @@ export type OpenFdaLabel = {
     product_type?: string[];
     package_ndc?: string[];
     substance_name?: string[];
+    upc?: string[]; // 13 digits, leading 0: "0300450449108"
   };
   [section: string]: unknown;
 };
@@ -237,9 +238,11 @@ export function formulationToRow(
 
 const LABEL_ENDPOINT = "https://api.fda.gov/drug/label.json";
 
-/** openFDA search matching any of the given hyphenated NDCs. */
-export function ndcSearchQuery(hyphenatedNdcs: string[]): string {
-  return hyphenatedNdcs.map((n) => `openfda.package_ndc:"${n}"`).join(" OR ");
+/** openFDA search matching any of the given hyphenated NDCs, or the 13-digit UPC when given. */
+export function ndcSearchQuery(hyphenatedNdcs: string[], upc: string | null = null): string {
+  const terms = hyphenatedNdcs.map((n) => `openfda.package_ndc:"${n}"`);
+  if (upc) terms.push(`openfda.upc:"${upc}"`);
+  return terms.join(" OR ");
 }
 
 /** Runs an openFDA label search. No matches → []. Throws on network errors or timeouts. */
@@ -252,8 +255,12 @@ export async function searchLabels(search: string, limit = 100, timeoutMs = 8000
   return body.results ?? [];
 }
 
-/** Labels whose packages carry any of the given hyphenated NDCs. */
-export async function fetchLabelsByNdc(hyphenatedNdcs: string[], timeoutMs?: number): Promise<OpenFdaLabel[]> {
-  if (hyphenatedNdcs.length === 0) return [];
-  return searchLabels(ndcSearchQuery(hyphenatedNdcs), 5, timeoutMs);
+/** Labels whose packages carry any of the given hyphenated NDCs, or the given UPC. */
+export async function fetchLabelsByNdc(
+  hyphenatedNdcs: string[],
+  upc: string | null,
+  timeoutMs?: number,
+): Promise<OpenFdaLabel[]> {
+  if (hyphenatedNdcs.length === 0 && !upc) return [];
+  return searchLabels(ndcSearchQuery(hyphenatedNdcs, upc), 5, timeoutMs);
 }
