@@ -37,7 +37,8 @@ export function EvidenceCrop({
     return (
       <figure className={cn("rounded-lg border bg-muted/40 p-3 text-sm", className)}>
         <figcaption className="mb-1 flex items-center gap-1 text-xs font-medium text-muted-foreground">
-          <DatabaseIcon aria-hidden className="size-3" /> FDA label in our catalog
+          {/* Not "FDA label": catalog products include the fictional demo bottles. */}
+          <DatabaseIcon aria-hidden className="size-3" /> Label in the MedCheck catalog
         </figcaption>
         {evidence.text && <p>{evidence.text}</p>}
       </figure>

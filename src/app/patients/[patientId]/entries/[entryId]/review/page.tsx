@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { requireUser } from "@/lib/auth";
 import { getFormulation } from "@/lib/catalog";
 import type { Evidence, SourceDocumentKind } from "@/lib/domain/schema";
+import { catalogMatchLabel } from "@/lib/record-format";
 import { getEntry, getPatient, listEntries, signedPhotoUrl } from "@/lib/records";
 import { confirmReviewAction, saveDraftAction } from "./actions";
 
@@ -77,7 +78,8 @@ export default async function ReviewPage({ params, searchParams }: PageProps<"/p
           <div className="flex flex-wrap gap-2">
             {doc && <Badge variant="secondary">{KIND_LABEL[doc.kind]}</Badge>}
             {isDescription && <Badge variant="outline">From your description, not a label</Badge>}
-            {formulation && <Badge variant="outline">Barcode: {formulation.brandName}</Badge>}
+            {formulation && <Badge variant="outline">{catalogMatchLabel(entry.inputMethod, formulation.brandName)}</Badge>}
+            {formulation?.isFictional && <Badge variant="outline">Fictional demo product</Badge>}
             {entry.status === "confirmed" && <Badge variant="outline">Already confirmed</Badge>}
           </div>
           {othersWaiting > 0 && (

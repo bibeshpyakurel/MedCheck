@@ -10,6 +10,7 @@ import { getFormulation } from "@/lib/catalog";
 import { entryLabel, formatDose, formatStrength } from "@/lib/domain/fields";
 import type { Field, SourceDocumentKind } from "@/lib/domain/schema";
 import { sanitizeDosageTable } from "@/lib/openfda";
+import { catalogLabelSource } from "@/lib/record-format";
 import { getEntry, getPatient, signedPhotoUrl } from "@/lib/records";
 import { isUuid } from "@/lib/uuid";
 
@@ -72,12 +73,10 @@ export default async function EntryLabelPage({ params }: PageProps<"/patients/[p
   const directions = formulation?.directionsText ?? fields.instructions.value ?? fields.instructions.aiValue;
   const max24h = formulation?.max24hText ?? fields.max24h.value ?? fields.max24h.aiValue;
   const warnings = formulation?.warningsQuotes ?? [];
-  // Sanitized at ingest too; sanitize again on the way out (DOMPurify, table tags only).
+  // Sanitized at ingest too; sanitize again on the way out (table tags only).
   const tableHtml = formulation?.dosageTableHtml ? sanitizeDosageTable(formulation.dosageTableHtml) : null;
   const labelSource = formulation
-    ? formulation.isFictional
-      ? "Fictional demo label"
-      : `FDA label (openFDA)${formulation.labelEffectiveDate ? `, effective ${formulation.labelEffectiveDate}` : ""}`
+    ? catalogLabelSource(formulation)
     : doc
       ? `${DOCUMENT_KIND[doc.kind]}${doc.documentDate ? `, ${doc.documentDate}` : ""}`
       : null;

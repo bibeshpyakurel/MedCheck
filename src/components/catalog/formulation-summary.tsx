@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { formatStrength } from "@/lib/domain/fields";
 import type { Formulation } from "@/lib/domain/schema";
+import { catalogLabelSource } from "@/lib/record-format";
 
 /** Brand, active ingredients with strengths as printed, and where the label came from. */
 export function FormulationSummary({ formulation: f, headingLevel = "h2" }: { formulation: Formulation; headingLevel?: "h2" | "h3" }) {
@@ -21,11 +22,7 @@ export function FormulationSummary({ formulation: f, headingLevel = "h2" }: { fo
           </li>
         ))}
       </ul>
-      <p className="text-xs text-muted-foreground">
-        {f.source === "openfda"
-          ? `From the FDA label (openFDA)${f.labelEffectiveDate ? `, effective ${f.labelEffectiveDate}` : ""}`
-          : "Fictional label made for this demo"}
-      </p>
+      <p className="text-xs text-muted-foreground">{catalogLabelSource(f)}</p>
     </div>
   );
 }
