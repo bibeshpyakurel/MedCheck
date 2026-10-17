@@ -8,14 +8,13 @@ import { createDraftEntry, getPatient } from "@/lib/records";
 import { isUuid } from "@/lib/uuid";
 
 /**
- * Creates a draft entry pre-filled from a catalog formulation (barcode "Skip photo" or the picker)
- * and opens it for review. Every field stays `pending` until the user confirms it.
+ * Creates a draft entry pre-filled from a scanned catalog formulation (barcode "Skip photo") and
+ * opens it for review. Every field stays `pending` until the user confirms it.
  */
 export async function addFromCatalog(formData: FormData): Promise<void> {
   await requireUser();
   const patientId = String(formData.get("patientId") ?? "");
   const formulationId = String(formData.get("formulationId") ?? "");
-  const method = formData.get("method") === "barcode" ? "barcode" : "picker";
 
   if (!isUuid(patientId) || !isUuid(formulationId)) notFound();
 
@@ -27,7 +26,7 @@ export async function addFromCatalog(formData: FormData): Promise<void> {
     patientId,
     sourceDocumentId: null,
     formulationId: formulation.id,
-    inputMethod: method,
+    inputMethod: "barcode",
     fields: fieldsFromFormulation(formulation),
   });
   redirect(`/patients/${patientId}/entries/${entry.id}/review`);

@@ -1,0 +1,77 @@
+"use client";
+
+import { CameraIcon, ImageIcon, LoaderCircleIcon, ScanBarcodeIcon, type LucideIcon } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, useTransition, type ReactNode } from "react";
+import { cn } from "@/lib/utils";
+import { setPendingPhoto } from "./pending-photo";
+
+export type PhotoSource = "camera" | "library";
+
+const tileClass =
+  "group flex h-full min-h-20 w-full cursor-pointer items-center gap-4 rounded-2xl border bg-card p-4 text-left shadow-xs transition-[border-color,box-shadow] hover:border-primary/40 hover:shadow-md sm:min-h-44 sm:flex-col sm:items-start sm:gap-5 sm:p-6";
+
+function TileBody({ icon: Icon, title, detail, busy }: { icon: LucideIcon; title: string; detail: string; busy?: boolean }) {
+  return (
+    <>
+      <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-accent text-accent-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground sm:size-14">
+        {busy ? <LoaderCircleIcon aria-hidden className="size-6 animate-spin" /> : <Icon aria-hidden className="size-6 sm:size-7" />}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-lg font-semibold">{title}</span>
+        <span className="mt-0.5 block text-sm text-muted-foreground">{detail}</span>
+      </span>
+    </>
+  );
+}
+
+/**
+ * The three ways in: scan a barcode, take a photo (opens the camera), choose a photo (opens the
+ * library). A picked photo goes to `{base}/photo?source=camera|library`, already loaded.
+ */
+export function CaptureOptions({ base }: { base: string }) {
+  const router = useRouter();
+  const [opening, startOpening] = useTransition();
+  const [picked, setPicked] = useState<PhotoSource | null>(null);
+
+  function photoTile(source: PhotoSource, icon: LucideIcon, title: string, detail: string): ReactNode {
+    return (
+      <label className={cn(tileClass, "has-focus-visible:ring-3 has-focus-visible:ring-ring/50", opening && "pointer-events-none")}>
+        <TileBody icon={icon} title={title} detail={detail} busy={opening && picked === source} />
+        <input
+          type="file"
+          accept="image/*"
+          capture={source === "camera" ? "environment" : undefined}
+          className="sr-only"
+          disabled={opening}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            e.target.value = "";
+            if (!file) return;
+            setPendingPhoto(file);
+            setPicked(source);
+            startOpening(() => router.push(`${base}/photo?source=${source}`));
+          }}
+        />
+      </label>
+    );
+  }
+
+  return (
+    <>
+      <ul className="grid gap-3 sm:grid-cols-3 sm:gap-4">
+        <li>
+          <Link href={`${base}/scan`} className={cn(tileClass, "focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none")}>
+            <TileBody icon={ScanBarcodeIcon} title="Scan a barcode" detail="Use the barcode on the medicine package." />
+          </Link>
+        </li>
+        <li>{photoTile("camera", CameraIcon, "Take a photo", "Photograph the label with your camera.")}</li>
+        <li>{photoTile("library", ImageIcon, "Choose a photo", "Use a photo of the label you already have.")}</li>
+      </ul>
+      <p role="status" className="sr-only">
+        {opening ? "Opening your photo…" : null}
+      </p>
+    </>
+  );
+}

@@ -111,7 +111,7 @@ export function BarcodeScanner({ onDetected, initialCode = "" }: { onDetected: (
               {camera === "denied" ? "Camera access was blocked." : "No camera is available here."}
             </p>
             <p className="text-sm text-muted-foreground">
-              Take a photo of the barcode instead, or type the NDC printed on the box.
+              Take a photo of the barcode instead, or type the NDC printed on the package.
               {camera === "denied" && " To scan live, allow camera access in your browser settings and reload."}
             </p>
           </div>
@@ -121,7 +121,7 @@ export function BarcodeScanner({ onDetected, initialCode = "" }: { onDetected: (
           <video ref={videoRef} className="size-full object-cover" playsInline muted autoPlay aria-label="Camera preview" />
           <div aria-hidden className="pointer-events-none absolute inset-x-8 top-1/2 h-24 -translate-y-1/2 rounded-xl border-2 border-white/80 shadow-[0_0_0_9999px_rgb(0_0_0/0.35)]" />
           <p className="absolute inset-x-0 bottom-0 bg-black/60 px-3 py-2.5 text-center text-sm font-medium text-white backdrop-blur" aria-live="polite">
-            {camera === "starting" ? "Starting camera…" : "Point the camera at the barcode on the box"}
+            {camera === "starting" ? "Starting camera…" : "Point the camera at the barcode on the package"}
           </p>
         </div>
       )}
@@ -173,7 +173,7 @@ export function BarcodeScanner({ onDetected, initialCode = "" }: { onDetected: (
           </Button>
         </div>
         <p id={`${inputId}-ndc-hint`} className="text-sm text-muted-foreground">
-          The NDC (National Drug Code) is the product number printed on the box, like{" "}
+          The NDC (National Drug Code) is the product number printed on the package, like{" "}
           <span className="font-mono text-foreground">37000-523-02</span>. The barcode number is the row of digits under
           the bars, like <span className="font-mono text-foreground">3 37000 52302 5</span>.
         </p>

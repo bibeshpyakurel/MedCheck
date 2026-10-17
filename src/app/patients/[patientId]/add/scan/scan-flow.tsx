@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeftIcon, CameraIcon, ListIcon, RotateCcwIcon } from "lucide-react";
+import { ArrowLeftIcon, CameraIcon, RotateCcwIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { BarcodeScanner } from "@/components/capture/barcode-scanner";
@@ -106,7 +106,6 @@ export function ScanFlow({ patientId }: { patientId: string }) {
           <form action={addFromCatalog}>
             <input type="hidden" name="patientId" value={patientId} />
             <input type="hidden" name="formulationId" value={f.id} />
-            <input type="hidden" name="method" value="barcode" />
             <Button type="submit" variant="outline" className="h-11 w-full text-base">
               Skip photo — check the medicine listing
             </Button>
@@ -141,9 +140,6 @@ export function ScanFlow({ patientId }: { patientId: string }) {
         render={<Link href={`${base}/photo?kind=drug_facts_photo`} />}
       >
         <CameraIcon aria-hidden /> Photograph the label
-      </Button>
-      <Button variant="outline" className="h-11 w-full text-base" nativeButton={false} render={<Link href={`${base}/pick`} />}>
-        <ListIcon aria-hidden /> Choose from the medicine list
       </Button>
       {scanAgain}
       {otherWay}
