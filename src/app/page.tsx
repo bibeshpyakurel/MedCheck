@@ -35,7 +35,7 @@ export default async function Home({ searchParams }: PageProps<"/">) {
             Compare your medicine labels.
           </h1>
           <p className="mt-3 text-base leading-relaxed text-muted-foreground text-pretty sm:text-lg">
-            Add a medicine, check the details, and collect questions for a pharmacist.
+            Scan or photograph a medicine, check what it contains, and share a simple report.
           </p>
 
           {message ? (
