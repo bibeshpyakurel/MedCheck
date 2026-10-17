@@ -12,22 +12,10 @@ import {
   requestOrigin,
 } from "@/lib/account";
 import { completeSignIn, getCurrentUser, homePath } from "@/lib/auth";
-import { deletePatient, listPatients } from "@/lib/records";
+import { deleteGuestData } from "@/lib/records";
 import { createClient } from "@/lib/supabase/server";
 
 const field = (formData: FormData, key: string, max = 320) => String(formData.get(key) ?? "").trim().slice(0, max);
-
-/**
- * Ends a guest session: deletes the guest's records (they can't be retrieved later anyway) and signs out.
- * Does nothing for signed-out visitors or account holders.
- */
-async function endGuestSession(): Promise<void> {
-  const user = await getCurrentUser();
-  if (!user?.isAnonymous) return;
-  for (const p of await listPatients()) await deletePatient(p.id);
-  const supabase = await createClient();
-  await supabase.auth.signOut();
-}
 
 /** Whether the Google provider is switched on in Supabase Auth (signInWithOAuth builds a URL either way). */
 async function googleEnabled(): Promise<boolean> {
@@ -58,7 +46,7 @@ export async function startGuest(): Promise<void> {
 
 /**
  * "Continue with Google": sends the browser to Google; /auth/callback finishes signing in.
- * A guest is signed out first (their records don't carry over). If Google sign-in is off, the page the
+ * A guest's records are deleted in /auth/callback, once Google has signed them in. If Google sign-in is off, the page the
  * button was on (`from`: "/" or "/sign-in") shows a message instead.
  */
 export async function startGoogle(formData: FormData): Promise<void> {
@@ -66,7 +54,6 @@ export async function startGoogle(formData: FormData): Promise<void> {
   if (!(await googleEnabled())) redirect(`${from}?error=google`);
 
   const origin = requestOrigin(await headers());
-  await endGuestSession();
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
@@ -96,8 +83,7 @@ export async function sendEmailCode(formData: FormData): Promise<void> {
   };
   if (!isEmail(email)) back("email");
 
-  // Signing out also clears the PKCE verifier the emailed link needs, so a guest leaves before the email goes out.
-  await endGuestSession();
+  // A guest stays signed in (and keeps their records) until the code or link is used, so a failed send loses nothing.
   const origin = requestOrigin(await headers());
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithOtp({
@@ -133,6 +119,8 @@ export async function verifyEmailCode(formData: FormData): Promise<void> {
   const token = normalizeOtp(field(formData, "token", 40));
   if (!token) back("format");
 
+  // Guest records don't carry over to the account; delete them while this session can still reach them.
+  await deleteGuestData();
   const supabase = await createClient();
   const { data, error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
   if (error) back(authErrorCode(error, "verify"));
@@ -146,7 +134,7 @@ export async function verifyEmailCode(formData: FormData): Promise<void> {
 
 /** Signs out and returns to the landing page. A guest's records are deleted first: they can't be retrieved later. */
 export async function signOut(): Promise<void> {
-  await endGuestSession();
+  await deleteGuestData();
   const supabase = await createClient();
   await supabase.auth.signOut();
   revalidatePath("/", "layout");

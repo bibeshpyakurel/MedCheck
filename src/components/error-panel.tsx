@@ -1,6 +1,6 @@
 "use client";
 
-import { RotateCcwIcon, TriangleAlertIcon, UsersRoundIcon } from "lucide-react";
+import { PillIcon, RotateCcwIcon, TriangleAlertIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect } from "react";
 import { BrandLogo } from "@/components/brand";
@@ -30,7 +30,7 @@ export function ErrorPanel({ error, retry }: { error: unknown; retry: () => void
           <TriangleAlertIcon aria-hidden className="mx-auto size-10 text-unresolved" />
           <h1 className="mt-4 font-display text-2xl font-semibold tracking-tight">Something went wrong</h1>
           <p className="mt-2 text-muted-foreground text-pretty">
-            MedCheck couldn&apos;t load this page. Try again — if it keeps happening, go back to your people and open it
+            MedCheck couldn&apos;t load this page. Try again — if it keeps happening, go back to your medicines and open it
             from there.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
@@ -38,7 +38,7 @@ export function ErrorPanel({ error, retry }: { error: unknown; retry: () => void
               <RotateCcwIcon aria-hidden /> Try again
             </Button>
             <Button variant="outline" size="lg" className="h-12 px-5 text-base" nativeButton={false} render={<Link href="/patients" />}>
-              <UsersRoundIcon aria-hidden /> Back to your people
+              <PillIcon aria-hidden /> Back to my medicines
             </Button>
           </div>
           <Button variant="ghost" className="mt-3 h-11 px-4" nativeButton={false} render={<Link href="/" />}>

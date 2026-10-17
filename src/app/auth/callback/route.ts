@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import type { NextRequest } from "next/server";
 import { linkErrorTarget, nameFromMetadata } from "@/lib/account";
 import { completeSignIn } from "@/lib/auth";
+import { deleteGuestData } from "@/lib/records";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -15,6 +16,8 @@ export async function GET(request: NextRequest) {
   const tokenHash = params.get("token_hash");
   const type = params.get("type") as EmailOtpType | null;
 
+  // A guest who signs in leaves their guest records behind; delete them while this session can still reach them.
+  if (code || tokenHash) await deleteGuestData();
   const supabase = await createClient();
   let failure: { errorCode?: string | null; message?: string | null } | null = null;
   if (code) {

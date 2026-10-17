@@ -37,19 +37,9 @@ export function isSelf(p: { relationship: string | null }): boolean {
   return ["self", "myself", "me"].includes(p.relationship?.trim().toLowerCase() ?? "");
 }
 
-/** "Me (Jamie)" for the self profile, otherwise the person's name. */
-export function personLabel(p: { displayName: string; relationship: string | null }): string {
-  return isSelf(p) ? `Me (${p.displayName})` : p.displayName;
-}
-
 /** Record heading: "My medicines" or "Sam's medicines". */
 export function recordTitle(p: { displayName: string; relationship: string | null }): string {
   return isSelf(p) ? "My medicines" : `${p.displayName}'s medicines`;
-}
-
-/** The secondary line under a person's name; "self" is implied by "Me", so it is left out. */
-export function personDetails(p: { relationship: string | null; notes: string | null }): string {
-  return [isSelf(p) ? null : p.relationship, p.notes].filter(Boolean).join(" · ");
 }
 
 const dateFormat = new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: "UTC" });

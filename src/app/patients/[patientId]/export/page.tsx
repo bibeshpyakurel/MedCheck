@@ -27,14 +27,15 @@ function contents(report: Report): string | null {
 
 export default async function ExportPage({ params }: PageProps<"/patients/[patientId]/export">) {
   const { patientId } = await params;
-  await requireUser();
+  const user = await requireUser();
   if (!z.uuid().safeParse(patientId).success) notFound();
   const [patient, loaded] = await Promise.all([getPatient(patientId), loadReport(patientId)]);
   if (!patient || !loaded) notFound();
   const { report } = loaded;
   const draft = emailDraft(report);
   const share = { patientId, title: report.title, subject: draft.subject, body: draft.body };
-  const configured = isEmailConfigured();
+  // Guests send with their own email app; the in-app sender is for accounts only (see the email route).
+  const configured = isEmailConfigured() && !user.isAnonymous;
   const summary = contents(report);
 
   return (

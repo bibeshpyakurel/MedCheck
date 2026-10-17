@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { catalogLabelSource, catalogMatchLabel, formatDocDate, isSelf, personDetails, personLabel, recordTitle } from "./record-format";
+import { catalogLabelSource, catalogMatchLabel, formatDocDate, isSelf, recordTitle } from "./record-format";
 
 describe("self profiles", () => {
   const me = { displayName: "Jamie", relationship: "self", notes: null };
@@ -12,16 +12,9 @@ describe("self profiles", () => {
     expect(isSelf({ relationship: null })).toBe(false);
   });
 
-  it("labels people and record headings", () => {
-    expect(personLabel(me)).toBe("Me (Jamie)");
-    expect(personLabel(sam)).toBe("Sam");
+  it("titles the record", () => {
     expect(recordTitle(me)).toBe("My medicines");
     expect(recordTitle(sam)).toBe("Sam's medicines");
-  });
-
-  it("leaves 'self' out of the details line", () => {
-    expect(personDetails(me)).toBe("");
-    expect(personDetails(sam)).toBe("son · Age 13");
   });
 });
 
