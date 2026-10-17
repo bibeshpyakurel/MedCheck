@@ -35,8 +35,9 @@ describe("applyEdit", () => {
     expect(f.state).toBe("confirmed");
   });
 
-  it("treats an empty value as unknown", () => {
-    expect(applyEdit(pending, null)).toMatchObject({ value: null, state: "unknown" });
+  it("never turns an edit into Can't tell", () => {
+    // @ts-expect-error — an edit always has a value; only markUnknown clears it.
+    expect(() => applyEdit(pending, null)).toThrow();
   });
 
   it("marks a typed value on an empty field as edited", () => {
