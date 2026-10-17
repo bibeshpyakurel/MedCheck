@@ -1,4 +1,5 @@
-import { ChevronRightIcon, ClipboardCheckIcon, FileTextIcon, PillIcon, PlusIcon, RotateCcwIcon } from "lucide-react";
+import { ChevronDownIcon, ChevronRightIcon, ClipboardCheckIcon, FileTextIcon, PillIcon, PlusIcon, RotateCcwIcon } from "lucide-react";
+import { cn } from "cn";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -17,7 +18,7 @@ import { requireUser } from "@/lib/auth";
 import { getFormulationsByIds } from "@/lib/catalog";
 import { runChecks } from "@/lib/checks";
 import { entryLabel } from "@/lib/domain/fields";
-import type { MedicationEntry } from "@/lib/domain/schema";
+import type { CheckRun, MedicationEntry } from "@/lib/domain/schema";
 import {
   DOCUMENT_KIND_LABELS,
   formatDocDate,
@@ -89,14 +90,14 @@ export default async function PatientRecordPage({ params }: PageProps<"/patients
         </div>
       </header>
 
+      <OnThisPage runs={runs} medicineCount={confirmed.length} />
+
       {drafts.length > 0 ? <NeedsReview base={base} drafts={drafts} /> : null}
 
+      {/* Medicines come first in the DOM so phones reach them without scrolling past every finding;
+          the summary above links to the checks. Wide screens show both side by side. */}
       <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,25rem)]">
-        <div className="lg:sticky lg:top-20 lg:order-2">
-          <ChecksPanel runs={runs} patientId={patientId} entries={confirmed} formulations={formulations} />
-        </div>
-
-        <Tabs defaultValue="medicines" className="lg:order-1">
+        <Tabs id="medicines" defaultValue="medicines" className="scroll-mt-20">
           <TabsList className="h-11! w-full sm:w-auto">
             <TabsTrigger value="medicines" className="min-w-28 px-3">
               Medicines
@@ -117,6 +118,10 @@ export default async function PatientRecordPage({ params }: PageProps<"/patients
             <HistoryList items={history} />
           </TabsContent>
         </Tabs>
+
+        <div id="checks" className="scroll-mt-20 lg:sticky lg:top-20">
+          <ChecksPanel runs={runs} patientId={patientId} entries={confirmed} formulations={formulations} />
+        </div>
       </div>
 
       {patient.isDemo ? (
@@ -128,6 +133,37 @@ export default async function PatientRecordPage({ params }: PageProps<"/patients
         </form>
       ) : null}
     </AppShell>
+  );
+}
+
+/** Phones: a compact summary with jump links, so findings are announced up top without pushing the medicines down. */
+function OnThisPage({ runs, medicineCount }: { runs: CheckRun[]; medicineCount: number }) {
+  const found = runs.filter((r) => r.status === "finding").length;
+  const unresolved = runs.filter((r) => r.status === "unresolved").length;
+  const counts = [found > 0 && `${found} found something`, unresolved > 0 && `${unresolved} couldn't be completed`]
+    .filter(Boolean)
+    .join(" · ");
+  const link =
+    "flex min-h-14 items-center gap-2 rounded-lg border bg-card px-3 py-2 text-left transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-none";
+  return (
+    <nav aria-label="On this page" className="mt-6 grid grid-cols-2 gap-2 lg:hidden">
+      <a
+        href="#checks"
+        className={cn(link, found > 0 && "border-finding/50 bg-finding-surface text-finding-foreground hover:bg-finding-surface/70")}
+      >
+        <span className="min-w-0 flex-1">
+          <span className="block font-medium">Checks</span>
+          <span className="block text-xs opacity-80">{counts || "See results"}</span>
+        </span>
+        <ChevronDownIcon aria-hidden className="size-4 shrink-0" />
+      </a>
+      <a href="#medicines" className={link}>
+        <span className="min-w-0 flex-1 font-medium">
+          Medicines <span className="font-normal text-muted-foreground tabular-nums">({medicineCount})</span>
+        </span>
+        <ChevronDownIcon aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+      </a>
+    </nav>
   );
 }
 

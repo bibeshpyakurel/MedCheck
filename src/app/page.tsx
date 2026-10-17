@@ -52,19 +52,16 @@ export default async function Home() {
       <div className="grid items-center gap-10 lg:grid-cols-[1.15fr_1fr] lg:gap-14">
         <section>
           <p className="text-sm font-medium text-primary">For anyone managing medicines — yours or someone else&apos;s</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-balance sm:text-4xl lg:text-[2.75rem] lg:leading-[1.1]">
+          <h1 className="mt-2 text-[1.75rem] leading-[1.15] font-semibold tracking-tight text-balance min-[375px]:text-3xl sm:text-4xl lg:text-[2.75rem] lg:leading-[1.1]">
             Catch shared ingredients and mismatched strengths before they reach the spoon.
           </h1>
-          <p className="mt-4 text-lg text-muted-foreground text-pretty">
-            Scan a barcode, photograph a label, or just describe the medicine. You confirm what MedCheck reads, fixed
-            rules do the checking, and every finding links to the label text behind it — ready to bring to a pharmacist.
-          </p>
-          <p className="mt-4 border-l-2 border-primary/40 pl-3 text-sm text-muted-foreground text-pretty">
-            Caregivers have it hardest: 63 million Americans care for someone else, and only about 1 in 5 has any
-            training in managing their medicines. <span className="whitespace-nowrap">(AARP, 2025)</span>
+          {/* Headline, one-line pitch, then the buttons: they must fit above the fold on a 320×568 phone. */}
+          <p className="mt-3 text-muted-foreground text-pretty sm:mt-4 sm:text-lg">
+            <strong className="font-medium text-foreground">Evidence, not advice.</strong> MedCheck shows what the labels
+            say and turns it into questions for a pharmacist.
           </p>
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-5 flex flex-col gap-3 sm:mt-8 sm:flex-row">
             {user ? (
               <>
                 <Button size="lg" className="h-12 px-5 text-base" nativeButton={false} render={<Link href="/patients" />}>
@@ -93,6 +90,14 @@ export default async function Home() {
           </div>
           <p className="mt-3 text-sm text-muted-foreground">
             No account needed. In the demo household, Alex keeps track of their own medicines and their son Sam&apos;s (13), with one product each already on file.
+          </p>
+          <p className="mt-6 text-muted-foreground text-pretty">
+            Scan a barcode, photograph a label, or just describe the medicine. You confirm what MedCheck reads, fixed
+            rules do the checking, and every finding links to the label text behind it — ready to bring to a pharmacist.
+          </p>
+          <p className="mt-4 border-l-2 border-primary/40 pl-3 text-sm text-muted-foreground text-pretty">
+            Caregivers have it hardest: 63 million Americans care for someone else, and only about 1 in 5 has any
+            training in managing their medicines. <span className="whitespace-nowrap">(AARP, 2025)</span>
           </p>
         </section>
 

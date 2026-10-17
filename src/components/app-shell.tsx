@@ -1,8 +1,21 @@
+import { cn } from "cn";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-/** Page chrome shared by every screen: brand, content column, and the boundary statement. */
-export function AppShell({ children, actions }: { children: ReactNode; actions?: ReactNode }) {
+/**
+ * Page chrome shared by every screen: brand, content column, and the boundary statement.
+ * `mobileActionBar`: the page pins a bar (one row of h-11 buttons) to the bottom of phone screens;
+ * the footer gets room underneath it so the Poison Control link is never covered.
+ */
+export function AppShell({
+  children,
+  actions,
+  mobileActionBar = false,
+}: {
+  children: ReactNode;
+  actions?: ReactNode;
+  mobileActionBar?: boolean;
+}) {
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-20 border-b bg-background/90 backdrop-blur">
@@ -17,7 +30,7 @@ export function AppShell({ children, actions }: { children: ReactNode; actions?:
         </div>
       </header>
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:py-10">{children}</main>
-      <footer className="border-t">
+      <footer className={cn("border-t", mobileActionBar && "pb-[calc(4.5rem+env(safe-area-inset-bottom))] sm:pb-0")}>
         <div className="mx-auto w-full max-w-5xl px-4 py-5 text-sm text-muted-foreground">
           <p>
             <strong className="font-medium text-foreground">Evidence, not advice.</strong> MedCheck shows what labels and
