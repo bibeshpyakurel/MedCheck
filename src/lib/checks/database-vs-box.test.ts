@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   calmoraA,
   cantTell,
+  edited,
   input,
   makeEntry,
   mgPer,
@@ -22,6 +23,24 @@ describe("database vs box", () => {
     expect(f.detail).toContain("500 mg per caplet");
     expect(f.evidence.map((e) => e.evidence.kind)).toEqual(["database", "crop"]);
     expect(f.pharmacistQuestion).toContain("NyQuil Cold & Flu Nighttime Relief");
+  });
+
+  it("says when the box value was typed by the user", () => {
+    const crop = { kind: "crop" as const, sourceDocumentId: "d", bbox: { x: 0, y: 0, w: 1, h: 1 } };
+    const e = makeEntry({
+      id: "e-nyq-typed",
+      name: "NyQuil Cold & Flu Nighttime Relief",
+      form: "caplet",
+      ingredients: [{ name: "Acetaminophen", strength: edited(null, mgPer(500, 1, "caplet"), crop) }],
+      doc: { kind: "drug_facts_photo" },
+      inputMethod: "barcode",
+      formulationId: NYQUIL_ID,
+    });
+    const f = checkDatabaseVsBox(input(e)).findings[0];
+    expect(f.detail).toContain("you entered Acetaminophen 500 mg per caplet for the Drug Facts photo");
+    expect(f.detail).not.toContain("photo you confirmed shows");
+    expect(f.pharmacistQuestion).toContain("I entered Acetaminophen 500 mg per caplet from the box");
+    expect(f.pharmacistQuestion).not.toContain("the box says Acetaminophen");
   });
 
   it("is no_finding when the photo matches the catalog", () => {

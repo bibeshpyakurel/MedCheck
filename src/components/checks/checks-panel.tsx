@@ -1,7 +1,8 @@
 // The "Checks run" panel. Never green: a clean result must not read as "safe".
 import { cn } from "cn";
 import { CHECK_TITLES } from "@/lib/checks";
-import type { CheckRun, CheckStatus } from "@/lib/domain/schema";
+import { checksSummaryParts } from "@/lib/checks/summary";
+import type { CheckRun, CheckStatus, Formulation, MedicationEntry } from "@/lib/domain/schema";
 import { FindingCard } from "./finding-card";
 
 const STATUS: Record<CheckStatus, { label: string; className: string; dot: string; bar: string }> = {
@@ -32,9 +33,7 @@ const STATUS: Record<CheckStatus, { label: string; className: string; dot: strin
 };
 
 export function checksSummaryLine(runs: CheckRun[]): string {
-  const found = runs.filter((r) => r.status === "finding").length;
-  const unresolved = runs.filter((r) => r.status === "unresolved").length;
-  return `${runs.length} checks run · ${found} found something · ${unresolved} couldn't be completed`;
+  return checksSummaryParts(runs).join(" · ");
 }
 
 /** Small status pill shared by the panel and other summaries. */
@@ -54,7 +53,19 @@ export function CheckStatusBadge({ status, className }: { status: CheckStatus; c
   );
 }
 
-export function ChecksPanel({ runs }: { runs: CheckRun[] }) {
+export function ChecksPanel({
+  runs,
+  patientId,
+  entries,
+  formulations,
+}: {
+  runs: CheckRun[];
+  patientId: string;
+  /** The entries the checks ran on, to say which values the user typed and link each one to its source. */
+  entries: MedicationEntry[];
+  formulations: Record<string, Formulation>;
+}) {
+  const byId = new Map(entries.map((e) => [e.id, e]));
   return (
     <section
       aria-labelledby="checks-heading"
@@ -112,7 +123,13 @@ export function ChecksPanel({ runs }: { runs: CheckRun[] }) {
             {run.findings.length > 0 && (
               <div className="mt-4 space-y-3">
                 {run.findings.map((finding) => (
-                  <FindingCard key={finding.id} finding={finding} />
+                  <FindingCard
+                    key={finding.id}
+                    finding={finding}
+                    patientId={patientId}
+                    entries={byId}
+                    formulations={formulations}
+                  />
                 ))}
               </div>
             )}

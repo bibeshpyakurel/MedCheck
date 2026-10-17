@@ -34,19 +34,42 @@ export function sourceLabel(entry: MedicationEntry): string {
   return "Medicine record";
 }
 
-/** The source as a pharmacist question would say it: "the discharge list", "the bottle", … */
-export function sourcePhrase(entry: MedicationEntry): string {
+/**
+ * The source as a pharmacist question would say it: "the discharge list", "the bottle label", …
+ * A value the user typed is "for the bottle", not "the bottle label".
+ */
+export function sourcePhrase(entry: MedicationEntry, from: Provenance = "label"): string {
   switch (documentClass(entry)) {
     case "prescription_label":
       return "the prescription label";
     case "discharge_list":
       return "the discharge list";
     case "bottle":
-      return "the bottle";
+      return from === "label" ? "the bottle label" : "the bottle";
     default:
       return "my description";
   }
 }
+
+/**
+ * How a confirmed value got into the record, so a typed value is never passed off as label text.
+ * described — the entry is the user's own description (typed or spoken)
+ * entered   — the user typed or corrected this value (`edited`)
+ * label     — read from a photo, document or catalog label, and the user said it matches
+ */
+export type Provenance = "label" | "entered" | "described";
+
+export function provenanceOf(entry: MedicationEntry, field: Field<unknown>): Provenance {
+  if (documentClass(entry) === null) return "described";
+  return field.state === "edited" ? "entered" : "label";
+}
+
+/** Appended to a value in finding details: "200 mg per 5 mL (you entered this)". */
+export const PROVENANCE_NOTE: Record<Provenance, string> = {
+  label: "",
+  entered: " (you entered this)",
+  described: " (from your description)",
+};
 
 export type DocumentClass = "bottle" | "prescription_label" | "discharge_list";
 

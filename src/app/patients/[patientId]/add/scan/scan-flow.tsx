@@ -113,6 +113,11 @@ export function ScanFlow({ patientId }: { patientId: string }) {
           <span className="font-mono text-foreground">{state.code}</span>. You can photograph the label instead.
         </p>
       </div>
+      {state.step === "error" && (
+        <Button variant="outline" className="h-11 w-full text-base" onClick={() => lookUp(state.code)}>
+          <RotateCcwIcon aria-hidden /> Try the lookup again
+        </Button>
+      )}
       <Button
         className="h-11 w-full text-base"
         nativeButton={false}

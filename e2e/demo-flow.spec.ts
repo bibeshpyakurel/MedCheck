@@ -54,7 +54,8 @@ test.describe("demo household", () => {
     await expect(page.getByText("Demo data — synthetic").first()).toBeVisible();
     await expect(page.getByText("Tylenol Extra Strength (caplets)")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Checks run" })).toBeVisible();
-    await expect(page.getByText(/6 checks run/)).toBeVisible();
+    // One medicine: nothing to compare yet, and the summary says so.
+    await expect(page.getByText("None of the 6 checks could compare confirmed values yet · 6 had nothing to compare")).toBeVisible();
   });
 
   test("Act 1: NyQuil by typed barcode + Drug Facts photo → ingredient overlap with Tylenol", async () => {
@@ -83,7 +84,7 @@ test.describe("demo household", () => {
     expect(page.url()).toBe(alexUrl);
 
     const panel = checksPanel(page);
-    await expect(panel.getByText(/6 checks run/)).toBeVisible();
+    await expect(panel.getByText(/\d of 6 checks compared confirmed values · \d found something/)).toBeVisible();
     for (const check of [
       "Shared active ingredients",
       "Repeated records",
@@ -100,6 +101,14 @@ test.describe("demo household", () => {
     await expect(panel.getByText(/label's own warning/i)).toBeVisible();
     await expect(panel.getByText(/Ask a pharmacist/i).first()).toBeVisible();
     await expect(panel.getByRole("button", { name: /Copy question/ }).first()).toBeVisible();
+    // Each piece of evidence opens its source; real (openFDA) labels also link to DailyMed in a new tab.
+    await expect(panel.getByRole("link", { name: /View source: NyQuil Severe Cold & Flu/ }).first()).toHaveAttribute(
+      "href",
+      /\/patients\/[0-9a-f-]{36}\/entries\/[0-9a-f-]{36}$/,
+    );
+    const dailyMed = panel.getByRole("link", { name: /Official FDA label \(DailyMed\)/ }).first();
+    await expect(dailyMed).toHaveAttribute("href", /^https:\/\/dailymed\.nlm\.nih\.gov\/dailymed\/lookup\.cfm\?setid=/);
+    await expect(dailyMed).toHaveAttribute("target", "_blank");
     await expect(panel).not.toContainText(/\bsafe\b/i);
   });
 
@@ -158,10 +167,18 @@ test.describe("demo household", () => {
     expect(page.url()).toBe(samUrl);
 
     const panel = checksPanel(page);
-    await expect(panel.getByText(/6 checks run · 4 found something · 1 couldn't be completed/)).toBeVisible();
+    await expect(panel.getByText("5 of 6 checks compared confirmed values · 4 found something · 1 couldn't be completed")).toBeVisible();
     await expect(panel.getByText("Acetaminophen liquids with different strengths")).toBeVisible();
-    // Both strengths as printed, never turned into a volume.
-    await expect(panel.getByText(/As printed: Calmora Fever Relief \(Bottle A\): 100 mg per 5 mL;.*Calmora Extra Fever Relief \(Bottle B\): 200 mg per 5 mL\./)).toBeVisible();
+    // Both strengths as recorded, never turned into a volume; the typed ones are marked as typed.
+    await expect(
+      panel.getByText(
+        /As recorded: Calmora Fever Relief \(Bottle A\): 100 mg per 5 mL;.*\(you entered this\);.*Calmora Extra Fever Relief \(Bottle B\): 200 mg per 5 mL\./,
+      ),
+    ).toBeVisible();
+    // The strengths were typed from the photos, so the question never says "the prescription label says".
+    await expect(panel.getByText(/I entered the dose for the prescription label as 2 tsp/)).toBeVisible();
+    await expect(panel.getByText(/The prescription label says/)).toHaveCount(0);
+    await expect(panel.getByText(/You entered this/).first()).toBeVisible();
     await expect(panel.getByText(/Dose and strength use different units/)).toBeVisible();
     await expect(panel.getByText("Your documents list different acetaminophen strengths")).toBeVisible();
     await expect(panel.getByText("Your documents write the acetaminophen dose differently")).toBeVisible();
@@ -226,9 +243,13 @@ test.describe("demo household", () => {
   test("reset demo puts the household back", async () => {
     await page.goto(samUrl);
     await page.getByRole("button", { name: "Reset demo" }).click();
+    // Asks first; Cancel has focus, so only the explicit button resets.
+    const confirm = page.getByRole("alertdialog", { name: "Reset the demo household?" });
+    await expect(confirm.getByRole("button", { name: "Cancel" })).toBeFocused();
+    await confirm.getByRole("button", { name: "Reset demo" }).click();
     await page.waitForURL((url) => /\/patients\/[0-9a-f-]{36}$/.test(url.pathname) && url.toString() !== samUrl);
     await expect(page.getByRole("heading", { level: 1, name: "My medicines" })).toBeVisible();
-    await expect(page.getByText(/6 checks run · 0 found something/)).toBeVisible();
+    await expect(page.getByText("None of the 6 checks could compare confirmed values yet · 6 had nothing to compare")).toBeVisible();
     await expect(page.getByText("NyQuil Severe Cold & Flu")).toHaveCount(0);
   });
 });

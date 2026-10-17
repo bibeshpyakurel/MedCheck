@@ -1,6 +1,6 @@
 "use client";
 
-import { LoaderCircleIcon, MicIcon, SquareIcon } from "lucide-react";
+import { LoaderCircleIcon, MicIcon, RotateCwIcon, SquareIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -9,9 +9,27 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import type { DescribeResponse } from "@/lib/ai/describe";
+import type { DescribeFailure, DescribeResponse } from "@/lib/ai/describe";
+import { attemptTimeout, DESCRIBE_BUDGET_MS, geminiAttempts } from "@/lib/ai/fallback";
 
 const MAX_SECONDS = 60;
+
+// The server gives up on Gemini after DESCRIBE_BUDGET_MS. By the time the first model's share runs
+// out, the fallback model is working; we stop waiting a little after the budget (saving takes a moment).
+const RETRY_HINT_MS = attemptTimeout(geminiAttempts({}), 0, DESCRIBE_BUDGET_MS);
+const GIVE_UP_MS = DESCRIBE_BUDGET_MS + 5_000;
+
+type Stage = "reading" | "retrying" | "saving" | "opening";
+
+const STAGE: Record<Stage, { button: string; status: string }> = {
+  reading: { button: "Reading your description…", status: "Reading your description. This usually takes a few seconds." },
+  retrying: { button: "Still working — trying again…", status: "Still working — the first try was slow, so we're trying again." },
+  saving: { button: "Saving your words…", status: "Saving your words for you to fill in." },
+  opening: { button: "Opening the review…", status: "Opening the review so you can check each value." },
+};
+
+const TIMED_OUT =
+  "Reading your description took too long, so we stopped. What you entered is still here — try again.";
 
 function pickMimeType(): string | undefined {
   if (typeof MediaRecorder === "undefined") return undefined;
@@ -24,8 +42,8 @@ export function DescribeForm({ patientId }: { patientId: string }) {
   const [recording, setRecording] = useState(false);
   const [seconds, setSeconds] = useState(0);
   const [audio, setAudio] = useState<Blob | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<{ message: string; retry?: boolean } | null>(null);
+  const [stage, setStage] = useState<Stage | null>(null);
   const [gaveBoth, setGaveBoth] = useState<DescribeResponse | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -48,7 +66,7 @@ export function DescribeForm({ patientId }: { patientId: string }) {
   async function startRecording() {
     setError(null);
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
-      setError("Recording isn't available in this browser. Type the description instead.");
+      setError({ message: "Recording isn't available in this browser. Type the description instead." });
       return;
     }
     try {
@@ -73,32 +91,52 @@ export function DescribeForm({ patientId }: { patientId: string }) {
         if (elapsed >= MAX_SECONDS) stopRecording();
       }, 1000);
     } catch {
-      setError("We couldn't use the microphone. Allow microphone access, or type the description instead.");
+      setError({ message: "We couldn't use the microphone. Allow microphone access, or type the description instead." });
     }
   }
 
-  async function submit() {
+  /** Sends the description. `manual` skips automatic reading: the words are saved and every field starts unknown. */
+  async function submit({ manual = false } = {}) {
     if (!audio && !text.trim()) return;
-    setSending(true);
+    setStage(manual ? "saving" : "reading");
     setError(null);
     const form = new FormData();
     form.set("patientId", patientId);
     if (audio) form.set("audio", audio, "description");
     else form.set("text", text.trim());
+    if (manual) form.set("manual", "1");
+    const controller = new AbortController();
+    const retryHint = manual ? undefined : setTimeout(() => setStage("retrying"), RETRY_HINT_MS);
+    const giveUp = setTimeout(() => controller.abort(), GIVE_UP_MS);
+    let opening = false;
     try {
-      const res = await fetch("/api/describe", { method: "POST", body: form });
-      const body = (await res.json().catch(() => ({}))) as Partial<DescribeResponse> & { error?: string };
-      if (!res.ok) throw new Error(body.error ?? "Something went wrong. Try again.");
+      const res = await fetch("/api/describe", { method: "POST", body: form, signal: controller.signal });
+      const body = (await res.json().catch(() => ({}))) as Partial<DescribeResponse> & Partial<DescribeFailure>;
+      if (controller.signal.aborted) throw new Error("timed out");
+      if (!res.ok) {
+        setError({ message: body.error ?? "Something went wrong. Try again.", retry: body.retry ?? res.status >= 500 });
+        return;
+      }
       const result = body as DescribeResponse;
       if (result.alreadyGaveBoth) {
         setGaveBoth(result);
         return;
       }
-      if (result.entryId) router.push(reviewUrl(result));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong. Try again.");
+      if (result.entryId) {
+        // Stay busy until the review page replaces this one.
+        opening = true;
+        setStage("opening");
+        router.push(reviewUrl(result));
+      }
+    } catch {
+      setError({
+        message: controller.signal.aborted ? TIMED_OUT : "We couldn't reach MedCheck. Check your connection and try again.",
+        retry: true,
+      });
     } finally {
-      setSending(false);
+      clearTimeout(retryHint);
+      clearTimeout(giveUp);
+      if (!opening) setStage(null);
     }
   }
 
@@ -119,6 +157,7 @@ export function DescribeForm({ patientId }: { patientId: string }) {
     );
   }
 
+  const sending = stage !== null;
   const busy = sending || recording;
 
   return (
@@ -181,25 +220,48 @@ export function DescribeForm({ patientId }: { patientId: string }) {
 
       {error && (
         <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{error.message}</AlertDescription>
         </Alert>
       )}
 
-      <Button
-        type="button"
-        size="lg"
-        className="h-12 w-full text-base"
-        disabled={busy || (!audio && !text.trim())}
-        onClick={submit}
-      >
-        {sending ? (
-          <>
-            <LoaderCircleIcon aria-hidden className="animate-spin" /> Reading your description…
-          </>
-        ) : (
-          "Continue"
-        )}
-      </Button>
+      {error?.retry && !busy ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Button type="button" size="lg" className="h-12 w-full text-base" disabled={!audio && !text.trim()} onClick={() => submit()}>
+            <RotateCwIcon aria-hidden /> Try again
+          </Button>
+          {!audio && (
+            <Button
+              type="button"
+              size="lg"
+              variant="outline"
+              className="h-12 w-full text-base"
+              disabled={!text.trim()}
+              onClick={() => submit({ manual: true })}
+            >
+              Enter the details manually
+            </Button>
+          )}
+        </div>
+      ) : (
+        <Button
+          type="button"
+          size="lg"
+          className="h-12 w-full text-base"
+          disabled={busy || (!audio && !text.trim())}
+          onClick={() => submit()}
+        >
+          {stage ? (
+            <>
+              <LoaderCircleIcon aria-hidden className="animate-spin" /> {STAGE[stage].button}
+            </>
+          ) : (
+            "Continue"
+          )}
+        </Button>
+      )}
+      <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
+        {stage ? STAGE[stage].status : ""}
+      </p>
       <p className="text-center text-sm text-muted-foreground">
         Entries made this way are marked &ldquo;From your description, not a label&rdquo;.
       </p>

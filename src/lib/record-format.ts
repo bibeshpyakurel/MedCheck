@@ -1,5 +1,5 @@
 // Display labels and formatting shared by the record page, history and lists. Pure; client-safe.
-import type { InputMethod, SourceDocumentKind } from "@/lib/domain/schema";
+import type { Formulation, InputMethod, SourceDocumentKind } from "@/lib/domain/schema";
 
 export const DOCUMENT_KIND_LABELS: Record<SourceDocumentKind, string> = {
   otc_package: "Medicine package",
@@ -16,6 +16,21 @@ export const INPUT_METHOD_LABELS: Record<InputMethod, string> = {
   typed: "Typed in",
   picker: "Picked from list",
 };
+
+/**
+ * Where a catalog product's label came from. Fictional demo products are never called an FDA label,
+ * even though they carry an effective date like the real ones.
+ */
+export function catalogLabelSource(f: Pick<Formulation, "isFictional" | "source" | "labelEffectiveDate">): string {
+  if (f.isFictional || f.source !== "openfda") return "Fictional demo label";
+  return `FDA label (openFDA)${f.labelEffectiveDate ? `, effective ${f.labelEffectiveDate}` : ""}`;
+}
+
+/** How an entry got linked to a catalog product: "Barcode: NyQuil…" or "Picked from list: Calmora…". */
+export function catalogMatchLabel(inputMethod: InputMethod, brandName: string): string {
+  const how = inputMethod === "barcode" ? "Barcode" : inputMethod === "picker" ? INPUT_METHOD_LABELS.picker : "Catalog match";
+  return `${how}: ${brandName}`;
+}
 
 /** The profile for the signed-in person themselves (relationship "self"). */
 export function isSelf(p: { relationship: string | null }): boolean {

@@ -89,24 +89,25 @@ export default async function Home() {
           aria-hidden
           className="absolute -top-48 left-1/2 -z-10 h-[34rem] w-[60rem] -translate-x-1/2 rounded-full bg-brand/14 blur-3xl"
         />
-        <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-4 pt-12 pb-16 sm:px-6 sm:pt-20 sm:pb-24 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,1fr)] lg:gap-16">
+        <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-4 pt-6 pb-16 sm:px-6 sm:pt-20 sm:pb-24 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,1fr)] lg:gap-16">
           <div className="animate-fade-up">
-            <p className="inline-flex items-center gap-2 rounded-2xl border bg-card/80 px-3 py-1 text-xs font-medium text-muted-foreground shadow-xs backdrop-blur sm:rounded-full sm:text-sm">
+            <p className="hidden items-center gap-2 rounded-2xl border bg-card/80 px-3 py-1 text-xs min-[375px]:inline-flex font-medium text-muted-foreground shadow-xs backdrop-blur sm:rounded-full sm:text-sm">
               <span className="size-1.5 rounded-full bg-brand" aria-hidden />
               For anyone managing medicines — yours or someone else&apos;s
             </p>
-            <h1 className="mt-6 font-display text-[2.5rem] leading-[1.04] font-semibold tracking-[-0.035em] text-balance sm:text-5xl lg:text-[3.6rem]">
+            <h1 className="mt-4 font-display text-[1.875rem] leading-[1.08] min-[375px]:text-[2.25rem] sm:mt-6 sm:text-5xl sm:leading-[1.04] font-semibold tracking-[-0.035em] text-balance lg:text-[3.6rem]">
               Catch shared ingredients and mismatched strengths{" "}
               <span className="bg-gradient-to-r from-primary to-brand bg-clip-text text-transparent">
                 before they reach the spoon.
               </span>
             </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground text-pretty">
-              Scan a barcode, photograph a label, or just describe the medicine. You confirm what MedCheck reads, fixed
-              rules do the checking, and every finding links to the label text behind it — ready to bring to a pharmacist.
+            {/* Headline, one-line pitch, then the buttons: they must fit above the fold on a 320×568 phone. */}
+            <p className="mt-3 max-w-xl leading-relaxed text-muted-foreground text-pretty sm:mt-6 sm:text-lg">
+              <strong className="font-semibold text-foreground">Evidence, not advice.</strong> MedCheck shows what the
+              labels say and turns it into questions for a pharmacist.
             </p>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-5 flex flex-col gap-3 sm:mt-8 sm:flex-row">
               {user ? (
                 <>
                   <Button size="lg" className="h-12 px-6 text-base" nativeButton={false} render={<Link href="/patients" />}>
@@ -136,6 +137,10 @@ export default async function Home() {
             <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground">
               No account needed. In the demo household, Alex keeps track of their own medicines and their son Sam&apos;s
               (13), with one product each already on file.
+            </p>
+            <p className="mt-6 max-w-xl leading-relaxed text-muted-foreground text-pretty">
+              Scan a barcode, photograph a label, or just describe the medicine. You confirm what MedCheck reads, fixed
+              rules do the checking, and every finding links to the label text behind it — ready to bring to a pharmacist.
             </p>
 
             <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-3 border-t pt-6 text-sm text-muted-foreground">

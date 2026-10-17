@@ -3,6 +3,8 @@ import {
   calmoraA,
   calmoraAAgain,
   calmoraB,
+  calmoraBCorrected,
+  described,
   ibuprofen,
   input,
   nyquilBarcode,
@@ -31,6 +33,14 @@ describe("ingredient overlap", () => {
     expect(f.evidence[0].text).toBe("Acetaminophen 325 mg per caplet");
     expect(f.evidence[0].documentKind).toBe("drug_facts_photo");
     expect(f.pharmacistQuestion).toContain("acetaminophen");
+  });
+
+  it("marks ingredient values the user typed or described", () => {
+    const f = checkIngredientOverlap(input(calmoraA, calmoraBCorrected)).findings[0];
+    expect(f.detail).toContain("Calmora Fever Relief (Bottle A) lists Acetaminophen 100 mg per 5 mL.");
+    expect(f.detail).toContain("Calmora Extra Fever Relief (Bottle B) lists Acetaminophen 200 mg per 5 mL (you entered this)");
+    const d = checkIngredientOverlap(input(calmoraA, described)).findings[0];
+    expect(d.detail).toContain("Calmora Extra lists Acetaminophen 200 mg per 5 mL (from your description)");
   });
 
   it("never claims the dose doubled", () => {

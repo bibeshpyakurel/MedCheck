@@ -8,29 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { emptyField, formatDose, formatStrength, isFullyReviewed } from "@/lib/domain/fields";
 import type { DocumentDetails } from "@/lib/ai/extract-label";
-import type { EntryFields, Evidence, Field, IngredientFields } from "@/lib/domain/schema";
+import type { EntryFields, Evidence, IngredientFields } from "@/lib/domain/schema";
 import { DoseEditor, StrengthEditor, TextEditor } from "./editors";
 import { FieldRow } from "./field-row";
+import { reviewProgress, reviewStatusMessage } from "./review-status";
 
 type SubmitInput = { patientId: string; entryId: string; fields: EntryFields; document: DocumentDetails | null };
 type SubmitAction = (input: SubmitInput) => Promise<{ error: string } | void>;
 
 const text = (v: string) => v;
-
-function allFields(fields: EntryFields): Field<unknown>[] {
-  return [
-    fields.productName,
-    fields.dosageForm,
-    fields.instructions,
-    fields.doseAsWritten,
-    fields.max24h,
-    ...fields.ingredients.flatMap((i) => [i.name, i.strength] as Field<unknown>[]),
-  ];
-}
-
-function countPending(fields: EntryFields): number {
-  return allFields(fields).filter((f) => f.state === "pending").length;
-}
 
 /** Numbered group heading for the review form. */
 function GroupHeading({ id, step, children }: { id: string; step: number; children: ReactNode }) {
@@ -94,9 +80,8 @@ export function ReviewForm({
   };
 
   const ready = isFullyReviewed(fields);
-  const remaining = countPending(fields);
-  const total = allFields(fields).length;
-  const progress = total === 0 ? 1 : (total - remaining) / total;
+  const { reviewed, total } = reviewProgress(fields);
+  const progress = total === 0 ? 1 : reviewed / total;
 
   function submit(action: SubmitAction) {
     setError(null);
@@ -107,7 +92,7 @@ export function ReviewForm({
   }
 
   return (
-    <div className="space-y-6 pb-28">
+    <div className="space-y-6">
       <section className="space-y-3" aria-labelledby={`${docId}-medicine`}>
         <GroupHeading id={`${docId}-medicine`} step={1}>
           Medicine
@@ -240,7 +225,8 @@ export function ReviewForm({
         </Alert>
       )}
 
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t bg-background/90 shadow-[0_-8px_24px_-12px_rgb(15_23_42/0.15)] backdrop-blur-xl">
+      {/* Sticky, not fixed: it rides the bottom of the screen while reviewing, then settles above the footer. */}
+      <div className="sticky bottom-0 z-20 -mx-4 overflow-hidden border-t bg-background/90 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_-12px_rgb(15_23_42/0.15)] backdrop-blur-xl sm:mx-0 sm:rounded-xl sm:border">
         <div
           aria-hidden
           className="absolute inset-x-0 top-0 h-0.5 origin-left bg-primary transition-transform duration-300"
@@ -249,12 +235,10 @@ export function ReviewForm({
         <div className="mx-auto flex w-full max-w-3xl flex-col gap-2.5 px-4 py-3 sm:flex-row sm:items-center sm:px-6">
           <div className="sm:flex-1">
             <p className="text-sm text-muted-foreground" aria-live="polite">
-              {ready
-                ? "Everything has been checked. Values you couldn't tell stay unresolved in the checks."
-                : `${remaining} ${remaining === 1 ? "value needs" : "values need"} Matches, Edit or Can't tell.`}
+              {reviewStatusMessage(fields)}
             </p>
             <p aria-hidden className="mt-0.5 hidden font-mono text-xs text-muted-foreground/80 sm:block">
-              {total - remaining}/{total} reviewed
+              {reviewed}/{total} reviewed
             </p>
           </div>
           <div className="flex gap-2">
