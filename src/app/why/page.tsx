@@ -10,13 +10,11 @@ export default function WhyPage() {
     <AppShell>
       <PageHeader
         title="Why it matters"
-        description="Caregivers have it hardest. MedCheck is built for the moment a second bottle comes into the house."
+        description="Caregivers have it hardest. MedCheck is built for the moment a second medicine comes into the house."
       />
-      <dl className="mt-10 grid gap-px overflow-hidden rounded-2xl border bg-border sm:grid-cols-2 lg:grid-cols-4">
+      <dl className="mt-10 grid gap-px overflow-hidden rounded-2xl border bg-border sm:grid-cols-2">
         <Stat value="63M" label="Americans care for someone else" source="AARP, 2025" />
         <Stat value="1 in 5" label="caregivers has any training in managing their medicines" source="AARP, 2025" />
-        <Stat value="6" label="fixed, rule-based checks run on every confirmed medicine" />
-        <Stat value="4" label="ways to add a medicine: barcode, photo, words or the medicine list" />
       </dl>
     </AppShell>
   );

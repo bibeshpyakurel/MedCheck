@@ -12,7 +12,6 @@
     "test:watch": "vitest",
     "db:types": "supabase gen types typescript --linked > src/lib/supabase/database.types.ts",
     "seed": "tsx --env-file=.env.local scripts/seed-catalog.ts",
-    "score": "tsx --conditions=react-server --env-file=.env.local scripts/score-extraction.ts",
     "e2e": "playwright test"
   },
   "dependencies": {
