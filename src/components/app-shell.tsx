@@ -1,21 +1,18 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
+import { Brand } from "@/components/brand";
+import { DemoBar } from "@/components/records/demo-bar";
 
-/** Page chrome shared by every screen: brand, content column, and the boundary statement. */
+/** Page chrome shared by every screen: brand, demo strip, content column, and the boundary statement. */
 export function AppShell({ children, actions }: { children: ReactNode; actions?: ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-20 border-b bg-background/90 backdrop-blur">
         <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between gap-3 px-4">
-          <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
-            <span aria-hidden className="grid size-7 place-items-center rounded-lg bg-primary text-sm font-bold text-primary-foreground">
-              M
-            </span>
-            MedCheck
-          </Link>
+          <Brand />
           <div className="flex items-center gap-2">{actions}</div>
         </div>
       </header>
+      <DemoBar />
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:py-10">{children}</main>
       <footer className="border-t">
         <div className="mx-auto w-full max-w-5xl px-4 py-5 text-sm text-muted-foreground">

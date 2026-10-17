@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { FICTIONAL_FORMULATIONS } from "@/data/fictional-formulations";
 import { entryFieldsSchema, type EntryFields, type Field, type Formulation } from "@/lib/domain/schema";
 import { isFullyReviewed } from "@/lib/domain/fields";
-import { buildDemoHousehold, DEMO_CALMORA_SLUG, DEMO_TYLENOL_SLUG } from "./household";
+import { buildDemoHousehold, DEMO_CALMORA_SLUG, DEMO_CAREGIVER_NAME, DEMO_TYLENOL_SLUG, hasOwnRecords } from "./household";
 
 const bottleA = FICTIONAL_FORMULATIONS.find((f) => f.slug === DEMO_CALMORA_SLUG)!;
 const catalogBottleA: Formulation = { ...bottleA, id: "11111111-1111-4111-8111-111111111111" };
@@ -108,5 +108,24 @@ describe("buildDemoHousehold", () => {
   it("can leave out the self profile (for someone who already has their own)", () => {
     const h = buildDemoHousehold(catalog, { includeSelf: false });
     expect(h.patients.map((p) => p.displayName)).toEqual(["Sam"]);
+  });
+});
+
+describe("hasOwnRecords", () => {
+  const demo = { isDemo: true };
+  const own = { isDemo: false };
+
+  it("is false for a demo-only session, named Alex by the demo or not named at all", () => {
+    expect(hasOwnRecords(DEMO_CAREGIVER_NAME, [demo, demo])).toBe(false);
+    expect(hasOwnRecords(null, [demo])).toBe(false);
+    expect(hasOwnRecords(null, [])).toBe(false);
+  });
+
+  it("is true when the user added a profile of their own", () => {
+    expect(hasOwnRecords(DEMO_CAREGIVER_NAME, [demo, own])).toBe(true);
+  });
+
+  it("is true when the user typed their own name, even before adding anyone", () => {
+    expect(hasOwnRecords("Jordan", [demo])).toBe(true);
   });
 });

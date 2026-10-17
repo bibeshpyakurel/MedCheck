@@ -15,6 +15,14 @@ export const DEMO_CAREGIVER_NAME = "Alex Rivera";
 export const DEMO_TYLENOL_SLUG = "tylenol-extra-strength-500mg-caplet";
 export const DEMO_CALMORA_SLUG = "calmora-fever-relief-100mg-5ml";
 
+/**
+ * Whether the user has anything of their own besides the demo household: a profile, or a name they typed
+ * (the demo names a nameless user Alex). Leaving the demo keeps such a session; a demo-only one is signed out.
+ */
+export function hasOwnRecords(caregiverName: string | null, patients: { isDemo: boolean }[]): boolean {
+  return (!!caregiverName && caregiverName !== DEMO_CAREGIVER_NAME) || patients.some((p) => !p.isDemo);
+}
+
 export type DemoEntry = {
   formulationSlug: string;
   formulationId: string | null;
