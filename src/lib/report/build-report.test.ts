@@ -185,6 +185,20 @@ describe("buildReport", () => {
     expect(f.evidence[1].source).toBe("Label in the MedCheck catalog");
   });
 
+  it("marks evidence the user typed instead of presenting it as the document's", () => {
+    const strength = entryDischarge.fields.ingredients[0].strength;
+    const typed: MedicationEntry = {
+      ...entryDischarge,
+      fields: {
+        ...entryDischarge.fields,
+        ingredients: [{ ...entryDischarge.fields.ingredients[0], strength: { ...strength, aiValue: null, state: "edited" } }],
+      },
+    };
+    const r = buildReport({ caregiverName: null, patient, entries: [entryA, typed], runs, generatedAt });
+    expect(r.findings[0].evidence[0].source).toBe("Discharge list · Oct 16, 2026 · Entered by you");
+    expect(r.findings[0].evidence[1].source).toBe("Label in the MedCheck catalog");
+  });
+
   it("lists every check run with its status and reasons, unresolved ones included", () => {
     expect(report.checks.map((c) => c.check)).toEqual(runs.map((r) => r.check));
     const conc = report.checks.find((c) => c.check === "concentration")!;
@@ -193,7 +207,15 @@ describe("buildReport", () => {
     expect(conc.reasons).toEqual(["Strength unreadable on Prescription label"]);
     const overlap = report.checks.find((c) => c.check === "ingredient_overlap")!;
     expect(overlap.statusLabel).toBe("Nothing found in confirmed fields");
-    expect(report.checksSummary).toBe("6 checks run, 1 found something, 1 couldn't be completed");
+    expect(report.checksSummary).toBe(
+      "2 of 6 checks compared confirmed values, 1 found something, 1 couldn't be completed, 3 had nothing to compare",
+    );
+  });
+
+  it("never says checks ran when none had anything to compare", () => {
+    const empty = runs.map((r) => ({ ...r, status: "not_applicable" as const, findings: [] }));
+    const r = buildReport({ caregiverName: null, patient, entries: [entryA], runs: empty, generatedAt });
+    expect(r.checksSummary).toBe("None of the 6 checks could compare confirmed values yet, 6 had nothing to compare");
   });
 
   it("lists confirmed medicines with their source, and counts drafts separately", () => {

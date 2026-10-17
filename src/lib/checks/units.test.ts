@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   calmoraA,
+  described,
   discharge,
   input,
   nyquilBarcode,
@@ -9,6 +10,7 @@ import {
   prescriptionMgDose,
   prescriptionMlDose,
   prescriptionStrengthUnknown,
+  prescriptionTyped,
   prescriptionUnclearUnit,
 } from "./__fixtures__/entries";
 import { checkUnits } from "./units";
@@ -25,6 +27,37 @@ describe("units", () => {
     expect(f.evidence[0].documentDate).toBe("2026-10-16");
     // never converts teaspoons to mL
     expect(JSON.stringify(f)).not.toMatch(/10 mL|= ?\d/);
+  });
+
+  it("attributes label values to the label", () => {
+    const f = checkUnits(input(prescription)).findings[0];
+    expect(f.detail).toBe(
+      "Prescription label: The dose is written as 2 tsp, but the strength is printed as 160 mg per 5 mL. These units don't line up.",
+    );
+    expect(f.pharmacistQuestion).toBe(
+      "The prescription label says to give 2 tsp, but the strength is listed as 160 mg per 5 mL. How should I measure this, and with what?",
+    );
+  });
+
+  it("says when the user typed the dose and strength", () => {
+    const f = checkUnits(input(prescriptionTyped)).findings[0];
+    expect(f.detail).toBe(
+      "Prescription label: You entered the dose as 2 tsp, but you entered the strength as 160 mg per 5 mL. These units don't line up.",
+    );
+    expect(f.pharmacistQuestion).toBe(
+      "I entered the dose for the prescription label as 2 tsp, but I entered the strength as 160 mg per 5 mL. How should I measure this, and with what?",
+    );
+  });
+
+  it("never calls a description printed", () => {
+    const f = checkUnits(input(described)).findings[0];
+    expect(f.detail).toBe(
+      "Your description: The dose is given as 2 tsp, but the strength is given as 200 mg per 5 mL. These units don't line up.",
+    );
+    expect(f.pharmacistQuestion).toBe(
+      "My description says to give 2 tsp, but the strength is listed as 200 mg per 5 mL. How should I measure this, and with what?",
+    );
+    expect(`${f.detail} ${f.pharmacistQuestion}`).not.toMatch(/label|printed|bottle/i);
   });
 
   it("finds an mg dose for a liquid", () => {

@@ -93,7 +93,7 @@ export default async function PatientRecordPage({ params }: PageProps<"/patients
 
       <div className="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,25rem)]">
         <div className="lg:sticky lg:top-20 lg:order-2">
-          <ChecksPanel runs={runs} />
+          <ChecksPanel runs={runs} patientId={patientId} entries={confirmed} formulations={formulations} />
         </div>
 
         <Tabs defaultValue="medicines" className="lg:order-1">

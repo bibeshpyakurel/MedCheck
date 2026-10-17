@@ -8,26 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { emptyField, formatDose, formatStrength, isFullyReviewed } from "@/lib/domain/fields";
 import type { DocumentDetails } from "@/lib/ai/extract-label";
-import type { EntryFields, Evidence, Field, IngredientFields } from "@/lib/domain/schema";
+import type { EntryFields, Evidence, IngredientFields } from "@/lib/domain/schema";
 import { DoseEditor, StrengthEditor, TextEditor } from "./editors";
 import { FieldRow } from "./field-row";
+import { reviewStatusMessage } from "./review-status";
 
 type SubmitInput = { patientId: string; entryId: string; fields: EntryFields; document: DocumentDetails | null };
 type SubmitAction = (input: SubmitInput) => Promise<{ error: string } | void>;
 
 const text = (v: string) => v;
-
-function countPending(fields: EntryFields): number {
-  const all: Field<unknown>[] = [
-    fields.productName,
-    fields.dosageForm,
-    fields.instructions,
-    fields.doseAsWritten,
-    fields.max24h,
-    ...fields.ingredients.flatMap((i) => [i.name, i.strength] as Field<unknown>[]),
-  ];
-  return all.filter((f) => f.state === "pending").length;
-}
 
 export function ReviewForm({
   patientId,
@@ -76,7 +65,6 @@ export function ReviewForm({
   };
 
   const ready = isFullyReviewed(fields);
-  const remaining = countPending(fields);
 
   function submit(action: SubmitAction) {
     setError(null);
@@ -223,9 +211,7 @@ export function ReviewForm({
       <div className="fixed inset-x-0 bottom-0 z-10 border-t bg-background/95 backdrop-blur">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center">
           <p className="text-sm text-muted-foreground sm:flex-1" aria-live="polite">
-            {ready
-              ? "Everything has been checked. Values you couldn't tell stay unresolved in the checks."
-              : `${remaining} ${remaining === 1 ? "value needs" : "values need"} Matches, Edit or Can't tell.`}
+            {reviewStatusMessage(fields)}
           </p>
           <div className="flex gap-2">
             <Button

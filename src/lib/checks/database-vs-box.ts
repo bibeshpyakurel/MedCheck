@@ -10,6 +10,8 @@ import {
   evidenceItem,
   labelOf,
   makeFinding,
+  type Provenance,
+  provenanceOf,
   strengthsMatch,
   unusableReason,
 } from "./shared";
@@ -17,7 +19,7 @@ import { normalizeIngredient } from "@/lib/domain/ingredients";
 
 const fromPhoto = (e: Evidence) => e.kind === "crop" || e.kind === "photo";
 
-type Diff = { line: string; catalog: string; photo: string; evidence: FindingEvidence[] };
+type Diff = { line: string; catalog: string; photo: string; photoFrom?: Provenance; evidence: FindingEvidence[] };
 
 function hasPhotoEvidence(entry: MedicationEntry): boolean {
   const f = entry.fields;
@@ -80,10 +82,15 @@ export function checkDatabaseVsBox({ entries, formulations }: CheckInput): Check
       const photoText = strengthUsable ? `${name} ${formatStrength(ing.strength.value!)}` : name;
       if (ci < 0) {
         compared = true;
+        const from = provenanceOf(entry, ing.name);
         diffs.push({
-          line: `The Drug Facts photo shows ${photoText}, which the database label doesn't list`,
+          line:
+            from === "entered"
+              ? `For the Drug Facts photo, you entered ${photoText}, which the database label doesn't list`
+              : `The Drug Facts photo shows ${photoText}, which the database label doesn't list`,
           catalog: `no ${name}`,
           photo: photoText,
+          photoFrom: from,
           evidence: [evidenceItem(entry, `ingredients[${index}].name`, photoText, ing.name.evidence)],
         });
         continue;
@@ -93,10 +100,15 @@ export function checkDatabaseVsBox({ entries, formulations }: CheckInput): Check
       compared = true;
       const c = formulation.activeIngredients[ci];
       if (strengthsMatch(c.strength, ing.strength.value!)) continue;
+      const from = provenanceOf(entry, ing.strength);
       diffs.push({
-        line: `The database label lists ${catalogText(ci)}; the Drug Facts photo you confirmed shows ${photoText}`,
+        line:
+          from === "entered"
+            ? `The database label lists ${catalogText(ci)}; you entered ${photoText} for the Drug Facts photo`
+            : `The database label lists ${catalogText(ci)}; the Drug Facts photo you confirmed shows ${photoText}`,
         catalog: catalogText(ci),
         photo: photoText,
+        photoFrom: from,
         evidence: [
           db(catalogText(ci), `catalog.activeIngredients[${ci}].strength`),
           evidenceItem(entry, `ingredients[${index}].strength`, photoText, ing.strength.evidence),

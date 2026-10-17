@@ -11,6 +11,8 @@ import type {
   SourceDocument,
   SourceDocumentKind,
 } from "@/lib/domain/schema";
+import { evidenceProvenance } from "@/lib/checks/evidence-source";
+import { checksSummaryParts } from "@/lib/checks/summary";
 import { entryLabel, formatDose, formatStrength, isUsable } from "@/lib/domain/fields";
 import type { Patient } from "@/lib/records";
 
@@ -120,6 +122,7 @@ export function buildReport(input: {
   const { patient, runs } = input;
   const timeZone = validTimeZone(input.timeZone);
   const confirmed = input.entries.filter((e) => e.status === "confirmed");
+  const byId = new Map(input.entries.map((e) => [e.id, e]));
 
   const findings: ReportFinding[] = runs.flatMap((run) =>
     run.findings.map((f) => ({
@@ -128,7 +131,7 @@ export function buildReport(input: {
       checkName: CHECK_NAMES[f.check],
       title: f.title,
       detail: f.detail,
-      evidence: f.evidence.map(toReportEvidence),
+      evidence: f.evidence.map((e) => toReportEvidence(e, byId.get(e.entryId))),
       labelWarningQuote: f.labelWarningQuote,
       pharmacistQuestion: f.pharmacistQuestion,
     })),
@@ -151,7 +154,6 @@ export function buildReport(input: {
     });
   }
 
-  const count = (s: CheckStatus) => runs.filter((r) => r.status === s).length;
   const isSelf = patient.relationship?.trim().toLowerCase() === "self";
   const caregiverName = input.caregiverName?.trim() || null;
   // A "self" profile may be labelled "Me"; the report names the person themselves.
@@ -183,7 +185,7 @@ export function buildReport(input: {
     }).format(input.generatedAt),
     questions,
     findings,
-    checksSummary: `${runs.length} checks run, ${count("finding")} found something, ${count("unresolved")} couldn't be completed`,
+    checksSummary: checksSummaryParts(runs).join(", "),
     checks: runs.map((r) => ({
       check: r.check,
       name: CHECK_NAMES[r.check],
@@ -262,17 +264,19 @@ function documentSource(kind: SourceDocumentKind | null, date: string | null): s
   return [DOCUMENT_KIND_LABELS[kind], date ? formatDocumentDate(date) : null].filter(Boolean).join(" · ");
 }
 
-function toReportEvidence(e: FindingEvidence): ReportEvidence {
+function toReportEvidence(e: FindingEvidence, entry: MedicationEntry | undefined): ReportEvidence {
   const fallback =
     e.evidence.kind === "database"
       ? "Label in the MedCheck catalog"
       : e.evidence.kind === "quote"
         ? DESCRIPTION_SOURCE
         : "Not linked to a document";
+  const source = documentSource(e.documentKind, e.documentDate) ?? fallback;
   return {
     product: e.entryLabel,
     field: fieldLabel(e.field),
-    source: documentSource(e.documentKind, e.documentDate) ?? fallback,
+    // A value the user typed or corrected isn't the document's own text.
+    source: evidenceProvenance(e, entry) === "entered" ? `${source} · Entered by you` : source,
     value: e.text,
   };
 }
