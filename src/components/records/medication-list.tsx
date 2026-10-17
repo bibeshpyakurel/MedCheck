@@ -78,7 +78,7 @@ function SourceHeader({ document }: { document: SourceDocument | null }) {
       <FileTextIcon aria-hidden className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
       <div className="min-w-0 text-sm">
         <p className="font-medium">
-          {document ? DOCUMENT_KIND_LABELS[document.kind] : "No source document"}
+          {document ? DOCUMENT_KIND_LABELS[document.kind] : "Label in the MedCheck catalog"}
           {date ? <span className="font-normal text-muted-foreground"> · {date}</span> : null}
         </p>
         {details.length > 0 ? <p className="mt-0.5 text-muted-foreground">{details.join(" · ")}</p> : null}

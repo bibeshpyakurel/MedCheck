@@ -24,7 +24,7 @@ const KIND_LABEL: Record<SourceDocumentKind, string> = {
 const NOTICES: Record<string, { title: string; body: string }> = {
   "ai-unavailable": {
     title: "Automatic reading isn't set up",
-    body: "Your photo is saved. Type each value from the label using Edit — every field starts as unknown.",
+    body: "Your photo or words are saved. Type each value using Edit — every field starts as unknown.",
   },
   "ai-failed": {
     title: "We couldn't read this automatically",
