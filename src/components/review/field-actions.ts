@@ -18,9 +18,12 @@ export function markMatches<T>(field: Field<T>): Field<T> {
   return { ...field, state: deepEqual(field.value, field.aiValue) ? "confirmed" : "edited" };
 }
 
-/** "Edit": the user typed the value. Empty → unknown; same as the suggestion → confirmed. */
-export function applyEdit<T>(field: Field<T>, value: T | null): Field<T> {
-  if (value === null) return { ...field, value: null, state: "unknown" };
+/**
+ * "Edit": the user typed the value. Same as the suggestion → confirmed. An edit always has a value —
+ * the editor keeps invalid or empty input open with an error; only "Can't tell" makes a field unknown.
+ */
+export function applyEdit<T>(field: Field<T>, value: NoInfer<T>): Field<T> {
+  if (value === null || value === undefined) throw new Error("applyEdit needs a value; use markUnknown");
   return { ...field, value, state: deepEqual(value, field.aiValue) ? "confirmed" : "edited" };
 }
 
