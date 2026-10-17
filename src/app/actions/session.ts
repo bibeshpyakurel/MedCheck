@@ -1,133 +1,154 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { getCurrentUser, requireUser } from "@/lib/auth";
-import { listFormulations } from "@/lib/catalog";
-import { buildDemoHousehold, DEMO_CAREGIVER_NAME, hasOwnRecords } from "@/lib/demo/household";
 import {
-  confirmEntry,
-  createDraftEntry,
-  createPatient,
-  createSourceDocument,
-  deletePatient,
-  getCaregiver,
-  listPatients,
-  upsertCaregiver,
-} from "@/lib/records";
-import { isSelf } from "@/lib/record-format";
+  authErrorCode,
+  fullName,
+  isEmail,
+  nameFromMetadata,
+  normalizeOtp,
+  requestOrigin,
+} from "@/lib/account";
+import { completeSignIn, getCurrentUser, homePath } from "@/lib/auth";
+import { deletePatient, listPatients } from "@/lib/records";
 import { createClient } from "@/lib/supabase/server";
 
-/** Signs in anonymously when there is no session. The session cookie is set on this response. */
-async function ensureSession(): Promise<void> {
-  if (await getCurrentUser()) return;
+const field = (formData: FormData, key: string, max = 320) => String(formData.get(key) ?? "").trim().slice(0, max);
+
+/**
+ * Ends a guest session: deletes the guest's records (they can't be retrieved later anyway) and signs out.
+ * Does nothing for signed-out visitors or account holders.
+ */
+async function endGuestSession(): Promise<void> {
+  const user = await getCurrentUser();
+  if (!user?.isAnonymous) return;
+  for (const p of await listPatients()) await deletePatient(p.id);
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInAnonymously();
-  if (error) throw new Error(`Could not start a session: ${error.message}`);
+  await supabase.auth.signOut();
 }
 
-/** Creates the demo household for the current user and returns the first demo profile's id. */
-async function createDemoHousehold(): Promise<string> {
-  const caregiver = (await getCaregiver()) ?? (await upsertCaregiver());
-  // Someone who already set themselves up keeps their own name and "Me" profile; the demo then
-  // adds only Sam. Otherwise the user becomes Alex, with "Me (Alex)" as well.
-  const ownName = caregiver.displayName && caregiver.displayName !== DEMO_CAREGIVER_NAME;
-  const ownSelf = (await listPatients()).some((p) => isSelf(p) && !p.isDemo);
-  const household = buildDemoHousehold(await listFormulations(), { includeSelf: !ownName && !ownSelf });
-  if (!caregiver.displayName) await upsertCaregiver(household.caregiverName);
-
-  let firstPatientId: string | null = null;
-  for (const p of household.patients) {
-    const patient = await createPatient({
-      displayName: p.displayName,
-      relationship: p.relationship,
-      notes: p.notes,
-      isDemo: true,
+/** Whether the Google provider is switched on in Supabase Auth (signInWithOAuth builds a URL either way). */
+async function googleEnabled(): Promise<boolean> {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/settings`, {
+      headers: { apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY! },
+      cache: "no-store",
     });
-    firstPatientId ??= patient.id;
-    for (const e of p.entries) {
-      const doc = e.documentKind ? await createSourceDocument({ patientId: patient.id, kind: e.documentKind }) : null;
-      const draft = await createDraftEntry({
-        patientId: patient.id,
-        sourceDocumentId: doc?.id ?? null,
-        formulationId: e.formulationId,
-        inputMethod: e.inputMethod,
-        fields: e.fields,
-      });
-      await confirmEntry(draft.id, e.fields);
-    }
+    if (!res.ok) return false;
+    const settings = (await res.json()) as { external?: { google?: boolean } };
+    return settings.external?.google === true;
+  } catch {
+    return false;
   }
-  if (!firstPatientId) throw new Error("Demo household has no patients");
-  return firstPatientId;
 }
 
-/** "Try the demo household": session → Alex's household (Me + Sam) → the first demo record. Reuses an existing one. */
-export async function startDemo(): Promise<void> {
-  await ensureSession();
-  const existing = (await listPatients()).find((p) => p.isDemo);
-  const patientId = existing?.id ?? (await createDemoHousehold());
-  revalidatePath("/", "layout");
-  redirect(`/patients/${patientId}`);
-}
-
-/** "Start my own": session → caregiver name. */
-export async function startOwn(): Promise<void> {
-  await ensureSession();
-  const caregiver = (await getCaregiver()) ?? (await upsertCaregiver());
-  revalidatePath("/", "layout");
-  redirect(caregiver.displayName ? "/patients" : "/welcome");
-}
-
-/** Deletes every demo patient (their documents, entries and history cascade) and recreates the household. */
-export async function resetDemo(): Promise<void> {
-  await requireUser();
-  for (const p of await listPatients()) {
-    if (p.isDemo) await deletePatient(p.id);
-  }
-  const patientId = await createDemoHousehold();
-  revalidatePath("/", "layout");
-  redirect(`/patients/${patientId}`);
-}
-
-/**
- * "Exit demo": deletes the demo profiles (never the user's own). Someone with their own records stays
- * signed in and goes back to them; a demo-only session is signed out and lands on the start page,
- * where "Start my own" begins fresh.
- */
-export async function exitDemo(): Promise<void> {
-  await requireUser();
-  const [caregiver, patients] = await Promise.all([getCaregiver(), listPatients()]);
-  const keepSession = hasOwnRecords(caregiver?.displayName ?? null, patients);
-  for (const p of patients) {
-    if (p.isDemo) await deletePatient(p.id);
-  }
-  if (!keepSession) {
+/** "Continue as a guest": an anonymous session with one record named "Guest", then the capture page. */
+export async function startGuest(): Promise<void> {
+  if (!(await getCurrentUser())) {
     const supabase = await createClient();
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signInAnonymously();
+    if (error) redirect("/?error=guest");
   }
-  revalidatePath("/", "layout");
-  redirect(keepSession ? "/patients" : "/");
-}
-
-/**
- * Saves the user's name (shown on the pharmacist report) and who they check medicines for.
- * "self" or "both" creates a profile for the user themselves (relationship "self") if there isn't one.
- */
-export async function saveCaregiverName(formData: FormData): Promise<void> {
-  await requireUser();
-  const name = String(formData.get("displayName") ?? "").trim().slice(0, 120);
-  if (!name) redirect("/welcome?error=name");
-  const checkingFor = String(formData.get("checkingFor") ?? "");
-  await upsertCaregiver(name);
-
-  const patients = await listPatients();
-  let destination = patients.length === 0 ? "/patients/new" : "/patients";
-  if (checkingFor === "self" || checkingFor === "both") {
-    const me = patients.find(isSelf) ?? (await createPatient({ displayName: name, relationship: "self" }));
-    destination = checkingFor === "self" ? `/patients/${me.id}` : "/patients/new";
-  } else if (checkingFor === "others") {
-    destination = "/patients/new";
-  }
+  const destination = await homePath();
   revalidatePath("/", "layout");
   redirect(destination);
+}
+
+/**
+ * "Continue with Google": sends the browser to Google; /auth/callback finishes signing in.
+ * A guest is signed out first (their records don't carry over). If Google sign-in is off, the page the
+ * button was on (`from`: "/" or "/sign-in") shows a message instead.
+ */
+export async function startGoogle(formData: FormData): Promise<void> {
+  const from = field(formData, "from") === "/sign-in" ? "/sign-in" : "/";
+  if (!(await googleEnabled())) redirect(`${from}?error=google`);
+
+  const origin = requestOrigin(await headers());
+  await endGuestSession();
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: `${origin}/auth/callback` },
+  });
+  if (error || !data.url) redirect(`${from}?error=google`);
+  redirect(data.url);
+}
+
+/**
+ * "Continue with email", step 1: emails a sign-in code (and a sign-in link) to the address, creating the
+ * account if needed. The optional first and last name are kept on the account and carried to step 2.
+ * `resend` (from the code page) sends errors back there instead of to the email form.
+ */
+export async function sendEmailCode(formData: FormData): Promise<void> {
+  const email = field(formData, "email").toLowerCase();
+  const firstName = field(formData, "first_name", 60);
+  const lastName = field(formData, "last_name", 60);
+  const resend = formData.get("resend") === "1";
+
+  const params = new URLSearchParams({ email });
+  if (firstName) params.set("first_name", firstName);
+  if (lastName) params.set("last_name", lastName);
+  const back: (error: string) => never = (error) => {
+    params.set("error", error);
+    redirect(`${resend ? "/sign-in/verify" : "/sign-in"}?${params}`);
+  };
+  if (!isEmail(email)) back("email");
+
+  // Signing out also clears the PKCE verifier the emailed link needs, so a guest leaves before the email goes out.
+  await endGuestSession();
+  const origin = requestOrigin(await headers());
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: true,
+      emailRedirectTo: `${origin}/auth/callback`,
+      data: { first_name: firstName || null, last_name: lastName || null },
+    },
+  });
+  if (error) back(authErrorCode(error, "send"));
+
+  revalidatePath("/", "layout");
+  if (resend) params.set("sent", "1");
+  redirect(`/sign-in/verify?${params}`);
+}
+
+/** "Continue with email", step 2: checks the emailed code, saves the name, and opens the capture page. */
+export async function verifyEmailCode(formData: FormData): Promise<void> {
+  const email = field(formData, "email").toLowerCase();
+  const firstName = field(formData, "first_name", 60);
+  const lastName = field(formData, "last_name", 60);
+  if (!isEmail(email)) redirect("/sign-in?error=email");
+
+  const params = new URLSearchParams({ email });
+  if (firstName) params.set("first_name", firstName);
+  if (lastName) params.set("last_name", lastName);
+  const back: (error: string) => never = (error) => {
+    params.set("error", error);
+    redirect(`/sign-in/verify?${params}`);
+  };
+
+  const token = normalizeOtp(field(formData, "token", 40));
+  if (!token) back("format");
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
+  if (error) back(authErrorCode(error, "verify"));
+  if (!data.user) back("verify");
+
+  const name = fullName(firstName, lastName) ?? nameFromMetadata(data.user.user_metadata);
+  const destination = await completeSignIn(name);
+  revalidatePath("/", "layout");
+  redirect(destination);
+}
+
+/** Signs out and returns to the landing page. A guest's records are deleted first: they can't be retrieved later. */
+export async function signOut(): Promise<void> {
+  await endGuestSession();
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  revalidatePath("/", "layout");
+  redirect("/");
 }

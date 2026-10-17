@@ -10,6 +10,7 @@ import {
   type SourceDocument,
   type SourceDocumentKind,
 } from "@/lib/domain/schema";
+import { isSelf } from "@/lib/record-format";
 import type { Database, Json } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 
@@ -95,6 +96,16 @@ export async function createPatient(input: {
     .single();
   if (error) throw error;
   return rowToPatient(data);
+}
+
+/**
+ * The account's own record: one person per account. Returns the "self" patient (or, for older
+ * accounts, the first patient), creating a "self" patient named `displayName` when there is none.
+ */
+export async function ensureSelfPatient(displayName: string): Promise<Patient> {
+  const patients = await listPatients();
+  const existing = patients.find(isSelf) ?? patients[0];
+  return existing ?? (await createPatient({ displayName, relationship: "self" }));
 }
 
 export async function deletePatient(id: string): Promise<void> {

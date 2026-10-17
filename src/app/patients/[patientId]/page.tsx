@@ -1,4 +1,4 @@
-import { ChevronDownIcon, ChevronRightIcon, FileTextIcon, FlaskConicalIcon, HistoryIcon, PillIcon, PlusIcon, RotateCcwIcon } from "lucide-react";
+import { ChevronDownIcon, ChevronRightIcon, FileTextIcon, FlaskConicalIcon, HistoryIcon, PillIcon, PlusIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -8,7 +8,6 @@ import { AttentionSummary } from "@/components/checks/attention-summary";
 import { HistoryList } from "@/components/records/history-list";
 import { MedicationList } from "@/components/records/medication-list";
 import { RecordHeader } from "@/components/records/record-header";
-import { ResetDemoButton } from "@/components/records/reset-demo-button";
 import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth";
 import { getFormulationsByIds } from "@/lib/catalog";
@@ -94,9 +93,6 @@ export default async function PatientRecordPage({ params }: PageProps<"/patients
                   <Button variant="ghost" className="h-11 px-4" nativeButton={false} render={<Link href="/demo-kit" />}>
                     Printable demo kit
                   </Button>
-                  <ResetDemoButton variant="outline" className="h-11 px-4">
-                    <RotateCcwIcon aria-hidden /> Reset demo
-                  </ResetDemoButton>
                 </div>
               </div>
             </Disclosure>
