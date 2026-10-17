@@ -2,7 +2,7 @@
 import { generateText, Output, type UserContent } from "ai";
 import { z } from "zod";
 import type { EntryFields, Evidence } from "@/lib/domain/schema";
-import { GEMINI_CALL, geminiModel } from "./model";
+import { withGemini } from "./model";
 import { buildEntryFields, unknownEntryFields } from "./raw-fields";
 
 const quote = z
@@ -130,13 +130,14 @@ export async function describeMedicine(input: {
     throw new Error("Nothing to describe");
   }
 
-  const { output } = await generateText({
-    model: geminiModel(),
-    ...GEMINI_CALL,
-    instructions: INSTRUCTIONS,
-    output: Output.object({ schema: geminiDescriptionSchema }),
-    messages: [{ role: "user", content }],
-  });
+  const { output } = await withGemini((settings) =>
+    generateText({
+      ...settings,
+      instructions: INSTRUCTIONS,
+      output: Output.object({ schema: geminiDescriptionSchema }),
+      messages: [{ role: "user", content }],
+    }),
+  );
 
   // Typed text is already the user's exact words; only audio needs the model's transcript.
   const transcript = (input.audio ? output.transcript : typed ?? "").trim();
