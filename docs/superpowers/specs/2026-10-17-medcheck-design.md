@@ -2,9 +2,12 @@
 
 Date: 2026-10-17 · Status: awaiting approval · Source idea: `MedCheck_Project_Summary.md` (team handoff doc)
 
-MedCheck helps caregivers see when two medicines share an active ingredient, and when a prescription, discharge list and bottle disagree on strength or units. It turns each finding into a question for a pharmacist. **Evidence, not advice:** it never calculates a dose, never says a combination is safe, and never resolves a conflict.
+MedCheck helps anyone managing medicines — their own or someone else's — see when two medicines share an active ingredient, and when a prescription, discharge list and bottle disagree on strength or units. It turns each finding into a question for a pharmacist. **Evidence, not advice:** it never calculates a dose, never says a combination is safe, and never resolves a conflict.
 
 ## 1. Scope
+
+Audience: anyone managing medicines, for themselves or for someone else. Caregivers are presented as the highest-need group, not the only one. A profile with relationship `self` is the user's own ("Me"); reports for it read in the first person.
+
 
 In: acetaminophen only; the two core features (ingredient overlap; strength and unit clarity); the 8-step demo from the summary; all six checks; per-patient records with change history; PDF export with download, share and email.
 
@@ -72,7 +75,7 @@ Each finding carries a fixed-template pharmacist question, e.g. *"The discharge 
 ## 7. Screens and flows
 
 - **Landing** — what MedCheck does, "Evidence, not advice", **Try the demo household** (anonymous sign-in + seeded records) or **Start my own**.
-- **First use** — caregiver name (used on the PDF and in the email).
+- **First use** — your name (used on the PDF and in the email) and who you're checking for: Myself / Someone I care for / Both ("Myself" creates a `self` profile shown as "Me").
 - **Patients** — list and add profiles.
 - **Patient record** — medicines (with source, date, prescriber/facility/pharmacy), **Checks run** panel ("6 checks run, 1 couldn't be completed: strength unreadable"), findings with evidence, history tab, search. Persistent **"I already gave both"** button.
 - **Add a medicine** — four ways:
@@ -93,7 +96,7 @@ Each finding carries a fixed-template pharmacist question, e.g. *"The discharge 
 
 ## 9. Demo materials (`demo-assets/`)
 
-Printable fictional materials, each with a seeded expected-values JSON for extraction-accuracy scoring (`scripts/score-extraction.ts`): Bottle A and Bottle B labels with barcodes, a prescription label, a discharge list that disagrees with a bottle on strength, and a fallback NyQuil barcode sheet. Demo household: caregiver "Alex Rivera", patient "Sam" (13), an acetaminophen product already on file. All synthetic; the UI shows a "Demo data — synthetic" badge on demo households.
+Printable fictional materials, each with a seeded expected-values JSON for extraction-accuracy scoring (`scripts/score-extraction.ts`): Bottle A and Bottle B labels with barcodes, a prescription label, a discharge list that disagrees with a bottle on strength, and a fallback NyQuil barcode sheet. Demo household (signed-in person "Alex Rivera"), two profiles: **Me (Alex)** (relationship `self`) with Tylenol Extra Strength (acetaminophen 500 mg per caplet, slug `tylenol-extra-strength-500mg-caplet`) on file — Act 1, the NyQuil + Tylenol overlap; and **Sam** (13, son) with Calmora Bottle A on file — Act 2, discharge list, prescription, Bottle B and document mismatch. All synthetic; the UI shows a "Demo data — synthetic" badge on demo households.
 
 ## 10. Milestones
 
