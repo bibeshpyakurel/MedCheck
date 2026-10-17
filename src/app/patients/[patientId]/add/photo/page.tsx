@@ -10,16 +10,18 @@ import { getPatient } from "@/lib/records";
 import { uploadPhotoAction } from "./actions";
 import { PhotoForm, type PhotoKind } from "./photo-form";
 
-export const metadata: Metadata = { title: "Take or choose a photo" };
+export const metadata: Metadata = { title: "Photo of the label" };
 
 // Extraction runs inside the upload Server Action; give Gemini time on slow networks.
 export const maxDuration = 60;
 
 const kindSchema = z.enum(["prescription_label", "discharge_list", "otc_package", "drug_facts_photo"]);
+const sourceSchema = z.enum(["camera", "library"]);
 
 /**
- * Query: `kind` (default prescription_label), optional `formulationId` (barcode path: keeps the
- * catalog link, `inputMethod: "barcode"`), optional `method` (`photo` | `barcode`).
+ * Query: `source` (`camera` | `library`: which button comes first; the capture page sends a photo
+ * already picked), `kind` (default prescription_label), optional `formulationId` (barcode path:
+ * keeps the catalog link, `inputMethod: "barcode"`), optional `method` (`photo` | `barcode`).
  */
 export default async function PhotoPage({ params, searchParams }: PageProps<"/patients/[patientId]/add/photo">) {
   await requireUser();
@@ -30,6 +32,7 @@ export default async function PhotoPage({ params, searchParams }: PageProps<"/pa
   if (!patient) notFound();
 
   const kindParam = kindSchema.safeParse(query.kind);
+  const sourceParam = sourceSchema.safeParse(query.source);
   const formulationParam = z.guid().safeParse(query.formulationId);
   const formulation = formulationParam.success ? await getFormulation(formulationParam.data) : null;
   const kind: PhotoKind = formulation ? "drug_facts_photo" : kindParam.success ? kindParam.data : "prescription_label";
@@ -39,8 +42,8 @@ export default async function PhotoPage({ params, searchParams }: PageProps<"/pa
       <RecordHeader patient={patient} current="medicines" />
       <div className="mx-auto max-w-xl space-y-8">
         <PageHeader
-          back={{ href: `/patients/${patientId}/add`, label: "Other ways to add" }}
-          title={formulation ? "Photograph the Drug Facts panel" : "Take or choose a photo"}
+          back={{ href: `/patients/${patientId}/add`, label: "Back" }}
+          title={formulation ? "Photograph the Drug Facts panel" : "Photo of the label"}
           description={
             formulation ? (
               <>
@@ -49,7 +52,7 @@ export default async function PhotoPage({ params, searchParams }: PageProps<"/pa
                 printed with the {formulation.isFictional ? "fictional demo label" : "FDA label"} on file.
               </>
             ) : (
-              <>MedCheck reads the details; you check each one before anything is used.</>
+              <>Say what the photo shows, then MedCheck reads it. You check each detail before anything is used.</>
             )
           }
         />
@@ -59,6 +62,7 @@ export default async function PhotoPage({ params, searchParams }: PageProps<"/pa
           formulationId={formulation?.id ?? null}
           action={uploadPhotoAction}
           otherWaysHref={`/patients/${patientId}/add`}
+          source={sourceParam.success ? sourceParam.data : undefined}
         />
       </div>
     </AppShell>

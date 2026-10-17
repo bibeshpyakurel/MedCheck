@@ -1,15 +1,12 @@
 // Which Gemini models to try, in order. Larger Flash models slow to 45–60 s (or answer "high demand")
 // when Google is busy, and free-tier keys are throttled first; Flash-Lite answers in about a second.
 // So: a fast primary with a short timeout, then one stronger fallback, together inside the route's 60 s.
-// Pure — no SDK imports — so it can be unit-tested (and imported by client components for timing).
+// Pure — no SDK imports — so it can be unit-tested.
 
 export type ModelAttempt = { modelId: string; timeoutMs: number };
 
 const PRIMARY_DEFAULT = "gemini-3.5-flash-lite";
 const FALLBACK_DEFAULT = "gemini-3.5-flash";
-
-/** Total time a typed or spoken description may spend on Gemini, across both models, before we give up. */
-export const DESCRIBE_BUDGET_MS = 20_000;
 
 /** Below this, another attempt can't realistically answer, so we stop instead. */
 const MIN_ATTEMPT_MS = 1_000;
