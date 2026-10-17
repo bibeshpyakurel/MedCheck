@@ -9,7 +9,7 @@ import { parseDoseInput, parseStrengthInput, parseTextInput } from "./validation
 
 // Inputs for typing a value exactly as printed. Each keeps its own text and reports the parsed
 // value (or null while it isn't valid) — numbers are never adjusted. Problems are explained inline
-// once the user tries to save; nothing invalid is ever turned into "Can't tell".
+// once the user tries to save; nothing invalid is ever turned into unknown.
 
 const inputClass = "h-11 text-base";
 

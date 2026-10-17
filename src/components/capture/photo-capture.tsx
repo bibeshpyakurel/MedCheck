@@ -1,6 +1,7 @@
 "use client";
 
-import { CameraIcon, ImageIcon, ImageUpIcon, LoaderCircleIcon } from "lucide-react";
+import { ArrowLeftIcon, CameraIcon, ImageIcon, ImageUpIcon, LoaderCircleIcon } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -30,20 +31,25 @@ export type PhotoAction = (formData: FormData) => Promise<{ error: string } | vo
 
 /**
  * Take or choose a photo, preview it, and submit it (downscaled) with the surrounding form's
- * fields to a Server Action. The photo is sent as `photo`.
+ * fields to a Server Action. The photo is sent as `photo`. When reading fails the photo stays, the
+ * button becomes "Try again", and `otherWaysHref` offers another way to add the medicine.
  */
 export function PhotoCapture({
   action,
   children,
   submitLabel = "Read this photo",
+  otherWaysHref,
 }: {
   action: PhotoAction;
   children?: ReactNode;
   submitLabel?: string;
+  otherWaysHref: string;
 }) {
   const [photo, setPhoto] = useState<Blob | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // The action failed with this photo: offer the same photo again rather than a fresh start.
+  const [failed, setFailed] = useState(false);
   const [preparing, setPreparing] = useState(false);
   const [pending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
@@ -55,6 +61,7 @@ export function PhotoCapture({
   async function onFile(file: File | undefined) {
     if (!file) return;
     setError(null);
+    setFailed(false);
     setPreparing(true);
     try {
       let blob: Blob;
@@ -86,7 +93,10 @@ export function PhotoCapture({
     setError(null);
     startTransition(async () => {
       const result = await action(formData);
-      if (result?.error) setError(result.error);
+      if (result?.error) {
+        setError(result.error);
+        setFailed(true);
+      }
     });
   }
 
@@ -156,10 +166,17 @@ export function PhotoCapture({
           </>
         ) : preparing ? (
           "Preparing photo…"
+        ) : failed ? (
+          "Try again"
         ) : (
           submitLabel
         )}
       </Button>
+      {failed && !busy && (
+        <Button variant="outline" size="lg" className="h-12 w-full text-base" nativeButton={false} render={<Link href={otherWaysHref} />}>
+          <ArrowLeftIcon aria-hidden /> Choose another way
+        </Button>
+      )}
     </form>
   );
 }

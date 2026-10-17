@@ -4,6 +4,7 @@ import { Loader2Icon, MailIcon } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,32 +12,44 @@ import { useTimeZone } from "./local-time";
 
 type Status = { kind: "idle" } | { kind: "sending" } | { kind: "sent"; to: string } | { kind: "error"; message: string };
 
+type EmailProps = { patientId: string; defaultSubject: string; defaultBody: string };
+
+/** Why there is no Email button: said plainly, so it never looks like a delivery option that doesn't work. */
+export function EmailUnavailable() {
+  return (
+    <p className="text-sm text-muted-foreground">
+      Email isn&apos;t set up on this MedCheck. Use <strong className="text-foreground">Share</strong> to send the PDF from
+      your own email or messages app, or <strong className="text-foreground">Download PDF</strong> to attach it yourself.
+    </p>
+  );
+}
+
+/** "Email" button that opens the email form. Only rendered when email sending is configured. */
+export function EmailDialog(props: EmailProps & { className?: string }) {
+  const { className, ...form } = props;
+  return (
+    <Dialog>
+      <DialogTrigger render={<Button variant="outline" className={className} />}>
+        <MailIcon aria-hidden /> Email
+      </DialogTrigger>
+      <DialogContent className="max-h-[90dvh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Email the report</DialogTitle>
+          <DialogDescription>Send the PDF to a pharmacist or doctor.</DialogDescription>
+        </DialogHeader>
+        <EmailForm {...form} />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 /** Email the report PDF to a doctor or pharmacist. Subject and message are prefilled and editable. */
-export function EmailForm({
-  patientId,
-  defaultSubject,
-  defaultBody,
-  configured,
-}: {
-  patientId: string;
-  defaultSubject: string;
-  defaultBody: string;
-  configured: boolean;
-}) {
+function EmailForm({ patientId, defaultSubject, defaultBody }: EmailProps) {
   const timeZone = useTimeZone();
   const [to, setTo] = useState("");
   const [subject, setSubject] = useState(defaultSubject);
   const [body, setBody] = useState(defaultBody);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
-
-  if (!configured) {
-    return (
-      <p className="rounded-lg bg-muted p-4 text-sm text-muted-foreground">
-        Email isn&apos;t set up on this MedCheck. Use <strong className="text-foreground">Share</strong> to send the PDF from
-        your own email or messages app, or <strong className="text-foreground">Download PDF</strong> to attach it yourself.
-      </p>
-    );
-  }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

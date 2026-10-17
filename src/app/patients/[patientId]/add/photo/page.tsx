@@ -3,13 +3,14 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
+import { RecordHeader } from "@/components/records/record-header";
 import { requireUser } from "@/lib/auth";
 import { getFormulation } from "@/lib/catalog";
 import { getPatient } from "@/lib/records";
 import { uploadPhotoAction } from "./actions";
 import { PhotoForm, type PhotoKind } from "./photo-form";
 
-export const metadata: Metadata = { title: "Photo of a label" };
+export const metadata: Metadata = { title: "Take or choose a photo" };
 
 // Extraction runs inside the upload Server Action; give Gemini time on slow networks.
 export const maxDuration = 60;
@@ -35,20 +36,20 @@ export default async function PhotoPage({ params, searchParams }: PageProps<"/pa
 
   return (
     <AppShell>
+      <RecordHeader patient={patient} current="medicines" />
       <div className="mx-auto max-w-xl space-y-8">
         <PageHeader
-          back={{ href: `/patients/${patientId}/add`, label: "Add a medicine" }}
-          eyebrow={`For ${patient.displayName}`}
-          title={formulation ? "Photograph the Drug Facts panel" : "Photo of a label or document"}
+          back={{ href: `/patients/${patientId}/add`, label: "Other ways to add" }}
+          title={formulation ? "Photograph the Drug Facts panel" : "Take or choose a photo"}
           description={
             formulation ? (
               <>
-                Scanned: <strong className="text-foreground">{formulation.brandName}</strong>. A photo of the box lets
-                MedCheck compare what&apos;s printed with the {formulation.isFictional ? "fictional demo label" : "FDA label"} on
-                file.
+                Scanned: <strong className="text-foreground">{formulation.brandName}</strong>. The Drug Facts panel is the
+                box on the back listing ingredients, uses and directions. A photo of it lets MedCheck compare what&apos;s
+                printed with the {formulation.isFictional ? "fictional demo label" : "FDA label"} on file.
               </>
             ) : (
-              <>MedCheck reads the values; you check each one before anything is saved.</>
+              <>MedCheck reads the details; you check each one before anything is used.</>
             )
           }
         />
@@ -57,6 +58,7 @@ export default async function PhotoPage({ params, searchParams }: PageProps<"/pa
           initialKind={kind}
           formulationId={formulation?.id ?? null}
           action={uploadPhotoAction}
+          otherWaysHref={`/patients/${patientId}/add`}
         />
       </div>
     </AppShell>

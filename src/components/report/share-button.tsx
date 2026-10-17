@@ -38,9 +38,9 @@ export function DownloadButton({ patientId, className }: { patientId: string; cl
       nativeButton={false}
       render={<a href={reportPdfUrl(patientId, timeZone)} download />}
       variant="outline"
-      className={cn("h-11 px-2 text-sm sm:text-base", className)}
+      className={cn("h-11 px-2 text-base", className)}
     >
-      <DownloadIcon aria-hidden /> Download<span className="-ml-1 hidden sm:inline">PDF</span>
+      <DownloadIcon aria-hidden /> Download PDF
     </Button>
   );
 }
@@ -102,7 +102,7 @@ export function ShareButton({
 
   return (
     <div className={cn("flex flex-col", className)}>
-      <Button onClick={onClick} disabled={state.kind === "preparing"} className="h-11 w-full px-2 text-sm sm:text-base">
+      <Button onClick={onClick} disabled={state.kind === "preparing"} className="h-11 w-full px-2 text-base">
         {state.kind === "preparing" ? <Loader2Icon aria-hidden className="animate-spin" /> : <Share2Icon aria-hidden />}
         {state.kind === "ready" ? "Tap to share PDF" : state.kind === "preparing" ? "Preparing…" : "Share"}
       </Button>

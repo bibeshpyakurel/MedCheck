@@ -13,9 +13,16 @@ const statusStyles: Record<CheckStatus, string> = {
   not_applicable: "bg-muted text-muted-foreground",
 };
 
+const SECTIONS = [
+  { id: "r-questions", label: "Questions" },
+  { id: "r-findings", label: "What the checks found" },
+  { id: "r-checks", label: "Checks run" },
+  { id: "r-medicines", label: "Medicines on file" },
+];
+
 function SectionTitle({ id, children }: { id: string; children: ReactNode }) {
   return (
-    <h2 id={id} className="border-b pb-2.5 text-base font-semibold tracking-tight text-primary">
+    <h2 id={id} className="scroll-mt-24 border-b pb-2.5 text-base font-semibold tracking-tight text-primary">
       {children}
     </h2>
   );
@@ -42,12 +49,25 @@ export function ReportPreview({ report }: { report: Report }) {
         {report.subheading && <p className="mt-1 text-muted-foreground">{report.subheading}</p>}
         {report.isDemo && (
           <span className="mt-2 inline-block rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-            Demo data — synthetic
+            Demo — made-up information
           </span>
         )}
       </div>
 
-      <section aria-labelledby="r-questions" className="mt-8 space-y-3">
+      <nav aria-label="Jump to" className="mt-5 flex flex-wrap items-center gap-x-4 text-sm">
+        <span aria-hidden className="text-muted-foreground">Jump to:</span>
+        <ul className="flex flex-wrap gap-x-4">
+          {SECTIONS.map((s) => (
+            <li key={s.id}>
+              <a href={`#${s.id}`} className="inline-flex min-h-11 items-center font-medium underline-offset-4 hover:underline">
+                {s.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <section aria-labelledby="r-questions" className="mt-4 space-y-3">
         <SectionTitle id="r-questions">Questions to ask</SectionTitle>
         <div className="rounded-xl bg-accent/60 p-4 ring-1 ring-primary/10 sm:p-5">
           {report.questions.length === 0 ? (

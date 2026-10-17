@@ -8,9 +8,18 @@ export function fieldRow(page: Page, label: string): Locator {
   return page.locator("div[data-state]").filter({ has: page.getByRole("heading", { name: label, exact: true }) });
 }
 
-export async function typeText(page: Page, label: string, value: string) {
+/** Review groups fold away; open the one holding this value (its content stays in the page while closed). */
+export async function reviewRow(page: Page, label: string): Promise<Locator> {
   const row = fieldRow(page, label);
-  await row.getByRole("button", { name: "Edit" }).click();
+  const toggle = page.locator("section").filter({ has: row }).locator("h2 > button[aria-expanded]");
+  if ((await toggle.getAttribute("aria-expanded")) === "false") await toggle.click();
+  await expect(row).toBeVisible();
+  return row;
+}
+
+export async function typeText(page: Page, label: string, value: string) {
+  const row = await reviewRow(page, label);
+  await row.getByRole("button", { name: "Change it" }).click();
   await row.locator("input, textarea").first().fill(value);
   await row.getByRole("button", { name: "Save" }).click();
   await expect(row).toHaveAttribute("data-state", "edited");
@@ -21,8 +30,8 @@ export async function typeStrength(
   label: string,
   s: { amount: number; perAmount?: number; perUnit: string },
 ) {
-  const row = fieldRow(page, label);
-  await row.getByRole("button", { name: "Edit" }).click();
+  const row = await reviewRow(page, label);
+  await row.getByRole("button", { name: "Change it" }).click();
   await row.getByLabel("Amount", { exact: true }).fill(String(s.amount));
   await row.getByLabel("Unit", { exact: true }).selectOption("mg");
   await row.getByLabel("Per amount (leave empty for 'each')").fill(s.perAmount ? String(s.perAmount) : "");
@@ -32,21 +41,23 @@ export async function typeStrength(
 }
 
 export async function typeDose(page: Page, label: string, d: { amount: number; unit: string }) {
-  const row = fieldRow(page, label);
-  await row.getByRole("button", { name: "Edit" }).click();
+  const row = await reviewRow(page, label);
+  await row.getByRole("button", { name: "Change it" }).click();
   await row.getByLabel("Amount", { exact: true }).fill(String(d.amount));
   await row.getByLabel("Unit", { exact: true }).fill(d.unit);
   await row.getByRole("button", { name: "Save" }).click();
   await expect(row).toHaveAttribute("data-state", "edited");
 }
 
-/** Taps Matches on every value still waiting for review. */
+/** Taps "Matches the label" (or "Matches what I said") on every value still waiting, one by one — never in bulk. */
 export async function matchAllPending(page: Page) {
   // The URL changes while the loading skeleton is still up; count rows only once the form is there.
   await page.getByRole("button", { name: "Confirm medicine" }).waitFor();
+  const closed = page.locator("section h2 > button[aria-expanded=false]");
+  while ((await closed.count()) > 0) await closed.first().click();
   const pending = page.locator("div[data-state=pending]");
   while ((await pending.count()) > 0) {
-    await pending.first().getByRole("button", { name: "Matches" }).click();
+    await pending.first().getByRole("button", { name: /^Matches/ }).click();
   }
 }
 

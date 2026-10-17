@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { FormulationSummary } from "@/components/catalog/formulation-summary";
 import { PageHeader, SectionHeading } from "@/components/page-header";
+import { RecordHeader } from "@/components/records/record-header";
 import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth";
 import { listFormulations } from "@/lib/catalog";
@@ -11,7 +12,7 @@ import { getPatient } from "@/lib/records";
 import { isUuid } from "@/lib/uuid";
 import { addFromCatalog } from "../catalog-actions";
 
-export const metadata: Metadata = { title: "Pick from the list" };
+export const metadata: Metadata = { title: "Choose from the medicine list" };
 
 export default async function PickPage({ params }: PageProps<"/patients/[patientId]/add/pick">) {
   await requireUser();
@@ -37,12 +38,12 @@ export default async function PickPage({ params }: PageProps<"/patients/[patient
 
   return (
     <AppShell>
+      <RecordHeader patient={patient} current="medicines" />
       <div className="mx-auto max-w-3xl space-y-10">
         <PageHeader
           back={{ href: `/patients/${patient.id}/add`, label: "Other ways to add" }}
-          eyebrow={`For ${patient.displayName}`}
-          title="Pick from the supported list"
-          description={<>You&apos;ll check every value against your box on the next screen.</>}
+          title="Choose from the medicine list"
+          description={<>These are the products MedCheck already knows. You&apos;ll check every detail against your box on the next screen.</>}
         />
 
         {groups.map(
@@ -80,7 +81,7 @@ export default async function PickPage({ params }: PageProps<"/patients/[patient
             ),
         )}
 
-        {formulations.length === 0 && <p className="text-muted-foreground">The supported list is empty right now.</p>}
+        {formulations.length === 0 && <p className="text-muted-foreground">The medicine list is empty right now.</p>}
       </div>
     </AppShell>
   );

@@ -2,17 +2,19 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { BackLink } from "@/components/page-header";
+import { RecordHeader } from "@/components/records/record-header";
 import { ReviewForm } from "@/components/review/review-form";
+import { DECISION_LABELS } from "@/components/review/review-status";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { requireUser } from "@/lib/auth";
 import { getFormulation } from "@/lib/catalog";
 import type { Evidence, SourceDocumentKind } from "@/lib/domain/schema";
-import { catalogMatchLabel } from "@/lib/record-format";
+import { catalogMatchLabel, recordTitle } from "@/lib/record-format";
 import { getEntry, getPatient, listEntries, signedPhotoUrl } from "@/lib/records";
 import { confirmReviewAction, saveDraftAction } from "./actions";
 
-export const metadata: Metadata = { title: "Check what we read" };
+export const metadata: Metadata = { title: "Check the details" };
 
 const KIND_LABEL: Record<SourceDocumentKind, string> = {
   prescription_label: "Prescription label",
@@ -25,15 +27,15 @@ const KIND_LABEL: Record<SourceDocumentKind, string> = {
 const NOTICES: Record<string, { title: string; body: string }> = {
   "ai-unavailable": {
     title: "Automatic reading isn't set up",
-    body: "Your photo or words are saved. Type each value using Edit — every field starts as unknown.",
+    body: "Your photo or words are saved. Type each detail using Change it — every detail starts as unknown.",
   },
   "ai-failed": {
     title: "We couldn't read this automatically",
-    body: "Your photo or words are saved. Type each value using Edit — every field starts as unknown.",
+    body: "Your photo or words are saved. Type each detail using Change it — every detail starts as unknown.",
   },
   "nothing-found": {
     title: "No medicine found in this photo",
-    body: "Your photo is saved. Type the values using Edit, or go back and take a closer photo.",
+    body: "Your photo is saved. Type the details using Change it, or go back and take a closer photo.",
   },
   "several-found": {
     title: "Several medicines found",
@@ -57,6 +59,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps<"/p
   const othersWaiting = drafts.filter((d) => d.id !== entry.id).length;
   const isDescription = doc?.kind === "description" || entry.inputMethod === "voice" || entry.inputMethod === "typed";
   const message = typeof notice === "string" ? NOTICES[notice] : undefined;
+  const choices = DECISION_LABELS[isDescription ? "description" : "label"];
   const newRowEvidence: Evidence = doc?.photoPath
     ? { kind: "photo", sourceDocumentId: doc.id }
     : isDescription && doc?.transcriptText
@@ -65,14 +68,28 @@ export default async function ReviewPage({ params, searchParams }: PageProps<"/p
 
   return (
     <AppShell>
+      <RecordHeader patient={patient} current="medicines" />
       <div className="mx-auto max-w-3xl space-y-6">
         <div className="space-y-3">
-          <BackLink href={`/patients/${patientId}`}>{patient.displayName}</BackLink>
-          <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">Check what we read</h1>
+          <BackLink href={`/patients/${patientId}`}>{recordTitle(patient)}</BackLink>
+          <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">Check the details</h1>
           <p className="max-w-2xl leading-relaxed text-muted-foreground">
-            For each value, compare it with {isDescription ? "what you said" : "the label"} and choose <strong>Matches</strong>,{" "}
-            <strong>Edit</strong> or <strong>Can&apos;t tell</strong>. Nothing counts until you do.
+            Look at each detail MedCheck read and compare it with {isDescription ? "what you said" : "the label"}. Pick one:
           </p>
+          <ul className="max-w-2xl space-y-1 text-sm leading-relaxed text-muted-foreground">
+            <li>
+              <strong className="text-foreground">{choices.matches}</strong> — it&apos;s right.
+            </li>
+            <li>
+              <strong className="text-foreground">{choices.change}</strong> — type it the way it&apos;s{" "}
+              {isDescription ? "said" : "printed"}.
+            </li>
+            <li>
+              <strong className="text-foreground">{choices.unknown}</strong> — MedCheck will leave this detail unknown, and
+              checks that need it won&apos;t run.
+            </li>
+          </ul>
+          <p className="text-sm text-muted-foreground">Nothing is used in a check until you choose.</p>
           <div className="flex flex-wrap gap-2">
             {doc && <Badge variant="secondary">{KIND_LABEL[doc.kind]}</Badge>}
             {isDescription && <Badge variant="outline">From your description, not a label</Badge>}
@@ -111,6 +128,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps<"/p
               : null
           }
           photoUrl={photoUrl}
+          source={isDescription ? "description" : "label"}
           newRowEvidence={newRowEvidence}
           confirmAction={confirmReviewAction}
           saveAction={saveDraftAction}

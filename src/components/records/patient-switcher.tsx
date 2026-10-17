@@ -15,27 +15,27 @@ import {
 
 type Option = { id: string; label: string; isDemo: boolean };
 
-/** Header control for moving between people. Falls back to a plain "People" link for one person. */
+/**
+ * "Change person", always labelled the same: the current person's name sits beside it in the record
+ * header. One person: a link to the People screen (where people are added); more: a menu.
+ */
 export function PatientSwitcher({ patients, currentId }: { patients: Option[]; currentId: string }) {
   if (patients.length < 2) {
     return (
-      <Button variant="outline" className="h-11 px-3.5" nativeButton={false} render={<Link href="/patients" />}>
-        <UsersRoundIcon aria-hidden /> People
+      <Button variant="outline" className="h-11 shrink-0 px-3.5" nativeButton={false} render={<Link href="/patients" />}>
+        <UsersRoundIcon aria-hidden /> Change person
       </Button>
     );
   }
-  const current = patients.find((p) => p.id === currentId);
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        render={<Button variant="outline" className="h-11 max-w-56 gap-2 pr-2.5 pl-3" aria-label="Switch person" />}
-      >
-        <span className="truncate">{current?.label ?? "Switch person"}</span>
+      <DropdownMenuTrigger render={<Button variant="outline" className="h-11 shrink-0 gap-2 pr-2.5 pl-3.5" />}>
+        <UsersRoundIcon aria-hidden /> Change person
         <ChevronsUpDownIcon aria-hidden className="text-muted-foreground" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-60">
         <DropdownMenuGroup>
-          <DropdownMenuLabel>Switch person</DropdownMenuLabel>
+          <DropdownMenuLabel>Whose medicines?</DropdownMenuLabel>
           {patients.map((p) => (
             <DropdownMenuItem key={p.id} className="min-h-11 px-2" render={<Link href={`/patients/${p.id}`} />}>
               <span className="flex-1 truncate">{p.label}</span>
@@ -46,7 +46,7 @@ export function PatientSwitcher({ patients, currentId }: { patients: Option[]; c
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="min-h-11 px-2" render={<Link href="/patients" />}>
-          <UsersRoundIcon aria-hidden /> All people
+          <UsersRoundIcon aria-hidden /> Everyone, or add a person
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

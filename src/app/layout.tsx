@@ -35,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <FlaskConicalIcon aria-hidden className="size-3" />
             Demo
           </span>
-          Please use synthetic information only
+          Use made-up information only
         </p>
         {children}
         <Toaster position="top-center" />

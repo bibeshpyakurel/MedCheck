@@ -18,7 +18,7 @@ describe("repeated record", () => {
     const f = run.findings[0];
     expect(f.check).toBe("repeated_record");
     expect(f.id).toBe("repeated_record:e-calmora-a,e-calmora-a-2:product");
-    expect(f.title).toBe("Calmora Fever Relief (Bottle A) is recorded 2 times");
+    expect(f.title).toBe("Calmora Fever Relief (Bottle A) is listed twice");
     expect(f.evidence).toHaveLength(2);
     expect(f.pharmacistQuestion).toContain("Calmora Fever Relief (Bottle A)");
   });

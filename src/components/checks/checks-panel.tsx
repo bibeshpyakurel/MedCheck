@@ -1,57 +1,38 @@
-// The "Checks run" panel. Never green: a clean result must not read as "safe".
+// The checks screen: findings first, then all six checks grouped by what happened.
+// Never green: a clean result must not read as "safe", and a check that didn't run is not a clean result.
 import { cn } from "cn";
 import { CHECK_TITLES } from "@/lib/checks";
 import { checksSummaryParts } from "@/lib/checks/summary";
 import type { CheckRun, CheckStatus, Formulation, MedicationEntry } from "@/lib/domain/schema";
 import { FindingCard } from "./finding-card";
 
-const STATUS: Record<CheckStatus, { label: string; className: string; dot: string; bar: string }> = {
-  finding: {
-    label: "Found something",
-    className: "bg-finding-surface text-finding-foreground ring-finding/35",
-    dot: "bg-finding",
-    bar: "bg-finding",
-  },
-  unresolved: {
-    label: "Couldn't be completed",
-    className: "bg-unresolved-surface text-unresolved-foreground ring-unresolved/35",
-    dot: "bg-unresolved",
-    bar: "bg-unresolved",
-  },
-  no_finding: {
-    label: "Nothing found",
-    className: "bg-muted text-muted-foreground ring-border",
-    dot: "bg-muted-foreground/60",
-    bar: "bg-muted-foreground/35",
-  },
-  not_applicable: {
-    label: "Not applicable",
-    className: "bg-transparent text-muted-foreground ring-border",
-    dot: "border border-muted-foreground/50",
-    bar: "bg-border",
-  },
+/** Status dots for the group headings. Always beside text, never color alone. */
+const DOT: Record<CheckStatus, string> = {
+  finding: "bg-finding",
+  unresolved: "bg-unresolved",
+  no_finding: "bg-muted-foreground/60",
+  not_applicable: "border border-muted-foreground/50",
 };
 
-export function checksSummaryLine(runs: CheckRun[]): string {
-  return checksSummaryParts(runs).join(" · ");
-}
-
-/** Small status pill shared by the panel and other summaries. */
-export function CheckStatusBadge({ status, className }: { status: CheckStatus; className?: string }) {
-  const s = STATUS[status];
-  return (
-    <span
-      className={cn(
-        "inline-flex h-6 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium whitespace-nowrap ring-1 ring-inset",
-        s.className,
-        className,
-      )}
-    >
-      <span aria-hidden className={cn("size-1.5 rounded-full", s.dot)} />
-      {s.label}
-    </span>
-  );
-}
+/** The four states, kept apart, in the order they matter. */
+const GROUPS: { status: CheckStatus; title: string; description: string }[] = [
+  { status: "finding", title: "Found something", description: "The questions above came from these checks." },
+  {
+    status: "unresolved",
+    title: "Needs more details",
+    description: "These couldn't finish because a detail is missing or not confirmed yet. That is not a clean result.",
+  },
+  {
+    status: "no_finding",
+    title: "Ran — no findings in confirmed fields",
+    description: "These compared the details you confirmed and found nothing to point out. Unknown details weren't compared.",
+  },
+  {
+    status: "not_applicable",
+    title: "Didn't apply",
+    description: "There was nothing for these to compare yet.",
+  },
+];
 
 export function ChecksPanel({
   runs,
@@ -66,76 +47,87 @@ export function ChecksPanel({
   formulations: Record<string, Formulation>;
 }) {
   const byId = new Map(entries.map((e) => [e.id, e]));
+  const findings = runs.flatMap((r) => r.findings);
   return (
-    <section
-      aria-labelledby="checks-heading"
-      className="overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-sm"
-    >
-      <div className="border-b bg-surface/60 p-5">
-        <div className="flex items-center justify-between gap-3">
-          <h2 id="checks-heading" className="text-lg font-semibold tracking-tight">
-            Checks run
+    <div className="space-y-10">
+      <section aria-labelledby="questions-heading" className="space-y-4">
+        <h2 id="questions-heading" className="text-lg font-semibold">
+          {findings.length === 0
+            ? "Things to ask a pharmacist"
+            : `${findings.length} ${findings.length === 1 ? "thing" : "things"} to ask a pharmacist`}
+        </h2>
+        {findings.length === 0 ? (
+          <p className="rounded-2xl border border-dashed p-5 text-muted-foreground">
+            No questions came up from the details you confirmed. This doesn&apos;t cover details that are unknown or
+            still waiting for review.
+          </p>
+        ) : (
+          findings.map((finding) => (
+            <FindingCard key={finding.id} finding={finding} patientId={patientId} entries={byId} formulations={formulations} />
+          ))
+        )}
+      </section>
+
+      <section aria-labelledby="all-checks-heading" className="space-y-4">
+        <div>
+          <h2 id="all-checks-heading" className="text-lg font-semibold">
+            All {runs.length} checks
           </h2>
-          <span className="rounded-md bg-muted px-2 py-0.5 font-mono text-xs text-muted-foreground ring-1 ring-border">
-            {runs.length} rules
-          </span>
+          <p className="mt-1 text-sm text-muted-foreground nums">{checksSummaryParts(runs).join(" · ")}</p>
         </div>
-        <p className="mt-1 text-sm text-muted-foreground nums">{checksSummaryLine(runs)}</p>
-        {/* One segment per check, in panel order. */}
-        <div aria-hidden className="mt-4 flex gap-1">
-          {runs.map((run) => (
-            <span key={run.check} className={cn("h-1.5 flex-1 rounded-full", STATUS[run.status].bar)} />
-          ))}
+        <div className="divide-y overflow-hidden rounded-2xl border bg-card">
+          {GROUPS.map((group) => {
+            const inGroup = runs.filter((r) => r.status === group.status);
+            if (inGroup.length === 0) return null;
+            const headingId = `checks-${group.status}`;
+            return (
+              <section key={group.status} aria-labelledby={headingId} className="p-4 sm:p-5">
+                <h3 id={headingId} className="flex items-center gap-2 font-semibold">
+                  <span aria-hidden className={cn("size-2 shrink-0 rounded-full", DOT[group.status])} />
+                  {group.title} ({inGroup.length})
+                </h3>
+                <p className="mt-0.5 text-sm text-muted-foreground">{group.description}</p>
+                <ul className="mt-3 space-y-3">
+                  {inGroup.map((run) => (
+                    <CheckRow key={run.check} run={run} />
+                  ))}
+                </ul>
+              </section>
+            );
+          })}
         </div>
-        <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-          Only values you confirmed are checked. MedCheck shows evidence; it doesn&apos;t give medical advice.
-        </p>
-      </div>
+      </section>
+    </div>
+  );
+}
 
-      <ol className="divide-y">
-        {runs.map((run) => (
-          <li key={run.check} className={cn("p-5", run.status === "not_applicable" && "bg-surface/40")}>
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 className="font-semibold">{CHECK_TITLES[run.check]}</h3>
-              <CheckStatusBadge status={run.status} />
-            </div>
-            <p className={cn("mt-1.5 text-sm", run.status === "not_applicable" && "text-muted-foreground")}>
-              {run.summary}
+/**
+ * One check: its name, then what happened. Unresolved and not-applicable runs say it with their specific
+ * reasons (their summary only repeats the first one); a run with findings still lists entries it skipped.
+ */
+function CheckRow({ run }: { run: CheckRun }) {
+  const reasonsOnly = run.status === "not_applicable" || run.status === "unresolved";
+  return (
+    <li className="rounded-xl bg-surface/60 px-3.5 py-3">
+      <p className="font-medium">{CHECK_TITLES[run.check]}</p>
+      {reasonsOnly ? null : <p className="mt-0.5 text-sm text-muted-foreground">{run.summary}</p>}
+      {run.reasons.length > 0 && (
+        <div className="mt-1 text-sm">
+          {run.status !== "not_applicable" ? (
+            <p className="font-medium text-unresolved-foreground">
+              {run.status === "finding" ? "Some medicines couldn't be compared:" : "This check needs:"}
             </p>
-
-            {run.reasons.length > 0 && (
-              <ul
-                aria-label="Reasons"
-                className={cn(
-                  "mt-2 space-y-1 text-sm",
-                  run.status === "not_applicable" ? "text-muted-foreground" : "text-unresolved-foreground",
-                )}
-              >
-                {run.reasons.map((reason) => (
-                  <li key={reason} className="flex gap-2">
-                    <span aria-hidden className="mt-2 size-1 shrink-0 rounded-full bg-current opacity-70" />
-                    {reason}
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            {run.findings.length > 0 && (
-              <div className="mt-4 space-y-3">
-                {run.findings.map((finding) => (
-                  <FindingCard
-                    key={finding.id}
-                    finding={finding}
-                    patientId={patientId}
-                    entries={byId}
-                    formulations={formulations}
-                  />
-                ))}
-              </div>
-            )}
-          </li>
-        ))}
-      </ol>
-    </section>
+          ) : null}
+          <ul
+            aria-label={run.status === "not_applicable" ? "Reason" : "Missing details"}
+            className={cn("space-y-0.5", run.status === "not_applicable" ? "text-muted-foreground" : "text-unresolved-foreground")}
+          >
+            {run.reasons.map((reason) => (
+              <li key={reason}>{reason}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </li>
   );
 }

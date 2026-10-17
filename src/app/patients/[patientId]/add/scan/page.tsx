@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
+import { RecordHeader } from "@/components/records/record-header";
 import { requireUser } from "@/lib/auth";
 import { getPatient } from "@/lib/records";
 import { isUuid } from "@/lib/uuid";
@@ -17,12 +18,12 @@ export default async function ScanPage({ params }: PageProps<"/patients/[patient
 
   return (
     <AppShell>
+      <RecordHeader patient={patient} current="medicines" />
       <div className="mx-auto max-w-lg space-y-8">
         <PageHeader
           back={{ href: `/patients/${patient.id}/add`, label: "Other ways to add" }}
-          eyebrow={`For ${patient.displayName}`}
-          title="Scan the barcode"
-          description="Scan the barcode on an over-the-counter box or bottle to find its FDA label."
+          title="Scan a barcode"
+          description="Point the camera at the barcode on an over-the-counter box or bottle. MedCheck looks up the label the FDA has on file for it."
         />
         <ScanFlow patientId={patient.id} />
       </div>

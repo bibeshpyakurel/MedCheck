@@ -1,13 +1,13 @@
 "use client";
 
-import { ChevronRightIcon, DatabaseIcon, FileTextIcon, PillIcon, SearchIcon, XIcon } from "lucide-react";
+import { ChevronRightIcon, DatabaseIcon, FileTextIcon, SearchIcon, XIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { entryLabel, formatStrength } from "@/lib/domain/fields";
 import type { MedicationEntry, SourceDocument } from "@/lib/domain/schema";
 import { groupBySource, matchesQuery } from "@/lib/medication-search";
-import { DOCUMENT_KIND_LABELS, formatDocDate, INPUT_METHOD_LABELS } from "@/lib/record-format";
+import { DOCUMENT_KIND_LABELS, formatDocDate } from "@/lib/record-format";
 
 /** Confirmed medicines grouped by the document they came from, with a client-side search. */
 export function MedicationList({ patientId, entries }: { patientId: string; entries: MedicationEntry[] }) {
@@ -24,7 +24,7 @@ export function MedicationList({ patientId, entries }: { patientId: string; entr
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search medicines, ingredients, pharmacy…"
+            placeholder="Search by medicine or ingredient"
             aria-label="Search medicines"
             className="h-11 pr-10 pl-10 text-base"
           />
@@ -52,62 +52,53 @@ export function MedicationList({ patientId, entries }: { patientId: string; entr
         </p>
       ) : null}
 
-      {groups.map((g) => (
-        <section key={g.key} className="overflow-hidden rounded-2xl border bg-card shadow-xs">
-          <SourceHeader document={g.document} />
-          <ul className="divide-y">
-            {g.entries.map((e) => (
-              <li key={e.id}>
-                <MedicineRow patientId={patientId} entry={e} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
+      {groups.length > 0 ? (
+        <div className="overflow-hidden rounded-2xl border bg-card shadow-xs">
+          {groups.map((g) => (
+            <section key={g.key} className="border-t first:border-t-0">
+              <SourceHeader document={g.document} />
+              <ul className="divide-y">
+                {g.entries.map((e) => (
+                  <li key={e.id}>
+                    <MedicineRow patientId={patientId} entry={e} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
 
+/** Which document a group of medicines came from. Facility, pharmacy and prescriber are in each medicine's record. */
 function SourceHeader({ document }: { document: SourceDocument | null }) {
-  const details = document
-    ? [document.facility, document.pharmacy, document.prescriber && `Prescriber: ${document.prescriber}`].filter(Boolean)
-    : [];
   const date = formatDocDate(document?.documentDate ?? null);
   return (
-    <header className="flex items-start gap-3 border-b bg-surface px-4 py-3">
-      <span className="grid size-7 shrink-0 place-items-center rounded-md bg-card text-muted-foreground ring-1 ring-border">
-        {document ? <FileTextIcon aria-hidden className="size-3.5" /> : <DatabaseIcon aria-hidden className="size-3.5" />}
-      </span>
-      <div className="min-w-0 self-center text-sm">
-        <p className="font-medium">
-          {document ? DOCUMENT_KIND_LABELS[document.kind] : "Label in the MedCheck catalog"}
-          {date ? <span className="font-normal text-muted-foreground"> · {date}</span> : null}
-        </p>
-        {details.length > 0 ? <p className="mt-0.5 text-muted-foreground">{details.join(" · ")}</p> : null}
-      </div>
-    </header>
+    <h3 className="flex items-center gap-2 border-b bg-surface px-4 py-2 text-sm font-medium text-muted-foreground">
+      {document ? <FileTextIcon aria-hidden className="size-3.5" /> : <DatabaseIcon aria-hidden className="size-3.5" />}
+      {document ? DOCUMENT_KIND_LABELS[document.kind] : "Label in the MedCheck catalog"}
+      {date ? <span className="font-normal"> · {date}</span> : null}
+    </h3>
   );
 }
 
 function MedicineRow({ patientId, entry }: { patientId: string; entry: MedicationEntry }) {
   const f = entry.fields;
-  const form = f.dosageForm.value;
   const fromDescription = entry.sourceDocument?.kind === "description" || entry.inputMethod === "voice" || entry.inputMethod === "typed";
   return (
     <Link
       href={`/patients/${patientId}/entries/${entry.id}`}
       className="group flex items-center gap-4 px-4 py-4 transition-colors hover:bg-muted/50 focus-visible:bg-muted/60 focus-visible:outline-none"
     >
-      <span className="hidden size-10 shrink-0 place-items-center self-start rounded-xl bg-accent text-accent-foreground ring-1 ring-primary/10 sm:grid">
-        <PillIcon aria-hidden className="size-5" />
-      </span>
       <div className="min-w-0 flex-1">
         <p className="font-semibold text-pretty">{entryLabel(f)}</p>
         {f.ingredients.length > 0 ? (
-          <ul className="mt-1.5 flex flex-wrap gap-1.5 text-sm">
+          <ul className="mt-1 space-y-0.5 text-sm">
             {f.ingredients.map((i, idx) => (
-              <li key={idx} className="inline-flex items-center gap-1.5 rounded-md bg-muted px-2 py-0.5 ring-1 ring-border/70">
-                <span className="font-medium">{i.name.value ?? "Ingredient unknown"}</span>{" "}
+              <li key={idx}>
+                {i.name.value ?? <span className="text-muted-foreground">Ingredient unknown</span>}{" "}
                 <span className="text-muted-foreground nums">
                   {i.strength.value ? formatStrength(i.strength.value) : "· strength unknown"}
                 </span>
@@ -117,19 +108,9 @@ function MedicineRow({ patientId, entry }: { patientId: string; entry: Medicatio
         ) : (
           <p className="mt-1 text-sm text-muted-foreground">Ingredients unknown</p>
         )}
-        <p className="mt-2 flex flex-wrap gap-x-2 text-xs text-muted-foreground">
-          {form ? <span className="capitalize">{form}</span> : null}
-          {form ? <span aria-hidden>·</span> : null}
-          <span>{INPUT_METHOD_LABELS[entry.inputMethod]}</span>
-          {fromDescription ? (
-            <>
-              <span aria-hidden>·</span>
-              <span>From your description, not a label</span>
-            </>
-          ) : null}
-        </p>
+        {fromDescription ? <p className="mt-1 text-sm text-muted-foreground">From your description, not a label</p> : null}
+        <p className="mt-2 text-sm font-medium text-primary">Details and label</p>
       </div>
-      <span className="hidden text-sm font-medium text-primary sm:inline">View label</span>
       <ChevronRightIcon aria-hidden className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
     </Link>
   );
