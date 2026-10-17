@@ -30,7 +30,7 @@ Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` before changing beha
 - `supabase/migrations/` — schema; add new files with `npx supabase migration new <name>`; every table has RLS.
 - `src/components/ui/` — shadcn components (`npx shadcn@latest add <name>`). Style `base-nova` = **Base UI, not Radix**: compose with the `render` prop (`<Button render={<Link href="/x" />} nativeButton={false}>`), there is no `asChild`.
 - `src/lib/records.ts` — all patient/document/entry/history/photo data access (runs as the user). Use these; don't query tables directly from features. `ensureSelfPatient()` returns the account's one person (relationship `self`), creating it on first use.
-- `src/lib/catalog.ts` — catalog reads (`listFormulations`, `getFormulation(s)ByIds`, `findFormulationByNdc11`).
+- `src/lib/catalog.ts` — catalog reads (`listFormulations`, `getFormulation(s)ByIds`).
 - `src/lib/domain/fields.ts` — build/read `EntryFields` (`suggestedField`, `fieldsFromFormulation`, `isUsable`, `isFullyReviewed`, `formatStrength`, `entryLabel`).
 - `src/data/fictional-formulations.ts` — fictional formulations (Calmora) with their NDCs.
 - `src/components/already-gave-both.tsx` — the fixed "I already gave both" message; reuse it, never re-word it.

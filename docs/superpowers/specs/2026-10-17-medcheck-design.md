@@ -82,7 +82,7 @@ The engine runs behind the scenes. Only `finding` results reach the UI and the r
 ## 8. Product data
 
 - `scripts/seed-catalog.ts`: one-time pull of acetaminophen oral OTC labels from `api.fda.gov/drug/label.json`; drops homeopathic and non-oral; groups store brands by ingredient + strength + form; hand-checked list of ~6–10 formulations including the NyQuil Cold & Flu formulations and a children's 160 mg/5 mL liquid.
-- NDC parsing (`src/lib/ndc.ts`) and the catalog's NDC index (`findFormulationByNdc11`) remain as internal library code; no screen looks up a scanned or typed code.
+- The catalog seed still records each product's NDCs (`ndc11FromHyphenated` in `src/lib/ndc.ts`); no screen looks up a scanned or typed code.
 
 ## 9. Milestones
 
