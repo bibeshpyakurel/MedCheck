@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { FormulationSummary } from "@/components/catalog/formulation-summary";
+import { PageHeader, SectionHeading } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth";
 import { listFormulations } from "@/lib/catalog";
@@ -37,39 +37,39 @@ export default async function PickPage({ params }: PageProps<"/patients/[patient
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-2xl space-y-8">
-        <div>
-          <Link
-            href={`/patients/${patient.id}/add`}
-            className="inline-flex min-h-11 items-center text-sm text-muted-foreground underline-offset-4 hover:underline"
-          >
-            ← Other ways to add
-          </Link>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">Pick from the supported list</h1>
-          <p className="mt-1 text-muted-foreground">
-            For {patient.displayName}. You&apos;ll check every value against your box on the next screen.
-          </p>
-        </div>
+      <div className="mx-auto max-w-3xl space-y-10">
+        <PageHeader
+          back={{ href: `/patients/${patient.id}/add`, label: "Other ways to add" }}
+          eyebrow={`For ${patient.displayName}`}
+          title="Pick from the supported list"
+          description={<>You&apos;ll check every value against your box on the next screen.</>}
+        />
 
         {groups.map(
           (group, index) =>
             group.items.length > 0 && (
-              <section key={group.title} className="space-y-3" aria-labelledby={`group-${index}`}>
-                <div>
-                  <h2 id={`group-${index}`} className="text-lg font-semibold">
-                    {group.title}
-                  </h2>
-                  <p className="text-sm text-muted-foreground">{group.note}</p>
-                </div>
-                <ul className="space-y-3">
+              <section key={group.title} className="space-y-4" aria-labelledby={`group-${index}`}>
+                <SectionHeading
+                  id={`group-${index}`}
+                  title={
+                    <>
+                      {group.title}{" "}
+                      <span className="ml-1 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground ring-1 ring-border nums">
+                        {group.items.length}
+                      </span>
+                    </>
+                  }
+                  description={group.note}
+                />
+                <ul className="overflow-hidden rounded-2xl border bg-card shadow-xs divide-y">
                   {group.items.map((f) => (
-                    <li key={f.id} className="flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-start sm:justify-between">
+                    <li key={f.id} className="flex flex-col gap-4 p-5 transition-colors hover:bg-muted/30 sm:flex-row sm:items-start sm:justify-between">
                       <FormulationSummary formulation={f} headingLevel="h3" />
                       <form action={addFromCatalog} className="shrink-0">
                         <input type="hidden" name="patientId" value={patient.id} />
                         <input type="hidden" name="formulationId" value={f.id} />
                         <input type="hidden" name="method" value="picker" />
-                        <Button type="submit" className="h-11 w-full px-4 text-base sm:w-auto">
+                        <Button type="submit" variant="outline" className="h-11 w-full px-4 sm:w-auto">
                           Add this medicine
                         </Button>
                       </form>
