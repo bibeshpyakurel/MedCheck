@@ -1,16 +1,9 @@
-import { ChevronDownIcon, ExternalLinkIcon } from "lucide-react";
+import { ChevronDownIcon, ExternalLinkIcon, TriangleAlertIcon } from "lucide-react";
 import Link from "next/link";
 import { entrySourceHref, evidenceProvenance, officialLabelUrl } from "@/lib/checks/evidence-source";
 import { DOCUMENT_KIND_LABEL, type Provenance } from "@/lib/checks/shared";
 import type { Finding, FindingEvidence, Formulation, MedicationEntry } from "@/lib/domain/schema";
-import { CopyQuestionButton } from "./copy-question-button";
-
-/** "Oct 16, 2026" from an ISO date, without shifting the day across time zones. */
-export function formatDocumentDate(iso: string): string {
-  const d = new Date(`${iso.slice(0, 10)}T00:00:00Z`);
-  if (Number.isNaN(d.getTime())) return iso;
-  return new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: "UTC" }).format(d);
-}
+import { formatDocDate } from "@/lib/record-format";
 
 function sourceOf(e: FindingEvidence, from: Provenance): string {
   if (from === "described") return "Your description";
@@ -26,10 +19,10 @@ function sourceOf(e: FindingEvidence, from: Provenance): string {
 const LINK = "inline-flex min-h-11 items-center gap-1 text-sm font-medium underline underline-offset-4";
 
 /**
- * One finding, each part with its own job: what it means (title + detail), the label's own warning,
- * the question to ask, and — one tap away — the exact evidence with its sources.
+ * One warning in plain English: what was found (title + detail), the label's own warning when there
+ * is one, and — one tap away — the exact label evidence with its sources.
  */
-export function FindingCard({
+export function WarningCard({
   finding,
   patientId,
   entries,
@@ -37,21 +30,25 @@ export function FindingCard({
 }: {
   finding: Finding;
   patientId: string;
+  /** The confirmed entries the checks ran on, by id. */
   entries: Map<string, MedicationEntry>;
   formulations: Record<string, Formulation>;
 }) {
-  const headingId = `finding-${finding.id.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+  const headingId = `warning-${finding.id.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
   return (
     <article
       aria-labelledby={headingId}
       className="overflow-hidden rounded-2xl border border-l-4 border-finding/35 border-l-finding bg-card text-card-foreground"
     >
-      <div className="space-y-4 p-4 sm:p-5">
-        <div>
-          <h3 id={headingId} className="text-lg leading-snug font-semibold text-balance">
-            {finding.title}
-          </h3>
-          <p className="mt-1 leading-relaxed text-pretty">{finding.detail}</p>
+      <div className="space-y-3 p-4 sm:p-5">
+        <div className="flex items-start gap-3">
+          <TriangleAlertIcon aria-hidden className="mt-0.5 size-5 shrink-0 text-finding" />
+          <div className="min-w-0">
+            <h3 id={headingId} className="text-base leading-snug font-semibold text-balance sm:text-lg">
+              {finding.title}
+            </h3>
+            <p className="mt-1 leading-relaxed text-pretty text-muted-foreground">{finding.detail}</p>
+          </div>
         </div>
 
         {finding.labelWarningQuote && (
@@ -60,14 +57,6 @@ export function FindingCard({
             <blockquote className="mt-1 leading-relaxed">“{finding.labelWarningQuote}”</blockquote>
           </figure>
         )}
-
-        <div>
-          <p className="text-sm font-semibold text-muted-foreground">Ask a pharmacist</p>
-          <p className="mt-1 text-base leading-snug font-medium">{finding.pharmacistQuestion}</p>
-          <div className="mt-3">
-            <CopyQuestionButton text={finding.pharmacistQuestion} />
-          </div>
-        </div>
       </div>
 
       {finding.evidence.length > 0 && (
@@ -80,12 +69,13 @@ export function FindingCard({
             {finding.evidence.map((e, i) => {
               const entry = entries.get(e.entryId);
               const official = officialLabelUrl(entry?.formulationId ? formulations[entry.formulationId] : undefined);
+              const date = formatDocDate(e.documentDate);
               return (
                 <li key={`${e.entryId}-${e.field}-${i}`} className="px-4 pt-3 text-sm sm:px-5">
                   <span className="font-medium nums">{e.text}</span>
                   <span className="mt-0.5 block text-muted-foreground">
                     {e.entryLabel} · {sourceOf(e, evidenceProvenance(e, entry))}
-                    {e.documentDate ? ` · ${formatDocumentDate(e.documentDate)}` : ""}
+                    {date ? ` · ${date}` : ""}
                   </span>
                   <span className="flex flex-wrap gap-x-4">
                     <Link href={entrySourceHref(patientId, e.entryId)} aria-label={`View source: ${e.entryLabel}`} className={LINK}>
