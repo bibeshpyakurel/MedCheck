@@ -25,18 +25,21 @@ function labelText(ing: UsableIngredient): string {
   return ing.strength ? `${name} ${formatStrength(ing.strength)}` : name;
 }
 
-/** The first catalog warning, across the products, that mentions the ingredient. */
+/**
+ * The label's own warning about this ingredient, across the products: preferably the direct
+ * "do not use with other drugs containing …" line (it states the overlap itself), else the first
+ * warning that mentions the ingredient.
+ */
 export function warningQuote(
   entries: MedicationEntry[],
   formulations: Record<string, Formulation>,
   ingredient: string,
 ): string | null {
-  for (const e of entries) {
+  const mentions = entries.flatMap((e) => {
     const f = e.formulationId ? formulations[e.formulationId] : undefined;
-    const quote = f?.warningsQuotes.find((w) => w.toLowerCase().includes(ingredient.toLowerCase()));
-    if (quote) return quote;
-  }
-  return null;
+    return f?.warningsQuotes.filter((w) => w.toLowerCase().includes(ingredient.toLowerCase())) ?? [];
+  });
+  return mentions.find((w) => /do not use[^.]*other drugs? containing/i.test(w)) ?? mentions[0] ?? null;
 }
 
 export function checkIngredientOverlap({ entries, formulations }: CheckInput): CheckRun {
