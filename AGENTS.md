@@ -42,6 +42,9 @@ Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` before changing beha
 - Before pushing: `npm run lint && npm run typecheck && npm test && npm run build`.
 
 ## Git
-- `main` is the default branch and production; `dev` is the working branch. Branch `feat/<name>` off `dev`; PR into `dev` (pass `--base dev` — the default base is `main`). Never push to or open feature PRs into `main`; only the coordinator opens `dev → main` PRs and only the user merges them.
+- `dev` is the working branch **and** Vercel's production branch. Branch `feat/<name>` off `dev`; PR into `dev` (pass `--base dev` — GitHub's default base is `main`). Merging requires the `verify` and `e2e` checks and an up-to-date branch; once green, merge it.
+- `main` is a mirror of what is live: `.github/workflows/promote-main.yml` fast-forwards it to each `dev` commit Vercel deploys successfully. Never push to, open PRs into, or merge into `main`. Vercel doesn't build `main` (`vercel.json`) and CI doesn't run on it.
+- A failed Vercel build of `dev` leaves the previous production deploy live and `main` untouched; fix forward with a new PR.
+- Apply a feature's Supabase migration to the project before merging its PR — merged code goes live immediately.
 - Ingredient synonyms live in `normalizeIngredient()`; don't add RxNorm or other external normalization services.
 - Commit messages: conventional (`feat:`, `fix:`, `docs:`, `test:`, `chore:`).

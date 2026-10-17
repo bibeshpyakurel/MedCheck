@@ -1,0 +1,29 @@
+name: Promote main
+
+# `dev` is Vercel's production branch. When Vercel reports a successful deploy of a commit at the head
+# of `dev`, fast-forward `main` to that exact commit so `main` always records what is live. Vercel
+# skips `main` (vercel.json) and CI doesn't run on it, so nothing is built twice.
+# `status` workflows run from the default branch (`main`), which carries this file after the first promotion.
+on: status
+
+permissions:
+  contents: write
+
+jobs:
+  fast-forward:
+    if: >-
+      github.event.context == 'Vercel' && github.event.state == 'success' &&
+      contains(github.event.branches.*.name, 'dev')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SHA: ${{ github.event.sha }}
+    steps:
+      - run: |
+          status=$(gh api "repos/$GITHUB_REPOSITORY/compare/main...$SHA" --jq .status)
+          case "$status" in
+            ahead) gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/heads/main" -f sha="$SHA" -F force=false ;;
+            identical|behind) echo "main already contains $SHA" ;;
+            *) echo "::error::main has diverged from dev ($status); fast-forward impossible"; exit 1 ;;
+          esac
