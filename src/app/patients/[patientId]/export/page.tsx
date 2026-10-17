@@ -1,14 +1,15 @@
-import { MailIcon, SendIcon } from "lucide-react";
+import { SendIcon } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
-import { EmailForm } from "@/components/report/email-form";
+import { RecordHeader } from "@/components/records/record-header";
+import { EmailDialog, EmailUnavailable } from "@/components/report/email-form";
 import { ReportPreview } from "@/components/report/report-preview";
 import { DownloadButton, ShareButton } from "@/components/report/share-button";
-import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth";
+import { getPatient } from "@/lib/records";
 import { emailDraft } from "@/lib/report/build-report";
 import { isEmailConfigured } from "@/lib/report/email-config";
 import { loadReport } from "@/lib/report/load-report";
@@ -19,63 +20,53 @@ export default async function ExportPage({ params }: PageProps<"/patients/[patie
   const { patientId } = await params;
   await requireUser();
   if (!z.uuid().safeParse(patientId).success) notFound();
-  const loaded = await loadReport(patientId);
-  if (!loaded) notFound();
+  const [patient, loaded] = await Promise.all([getPatient(patientId), loadReport(patientId)]);
+  if (!patient || !loaded) notFound();
   const { report } = loaded;
   const draft = emailDraft(report);
   const configured = isEmailConfigured();
 
-  const share = (
-    <ShareButton patientId={patientId} title={report.title} subject={draft.subject} body={draft.body} className="w-full" />
-  );
-
   return (
-    <AppShell mobileActionBar>
-      <div>
+    <AppShell>
+      <RecordHeader patient={patient} current="report" />
+      <div className="mx-auto max-w-4xl space-y-6">
         <PageHeader
-          back={{ href: `/patients/${patientId}`, label: <>Back to {report.isSelf ? "my medicines" : report.patientName}</> }}
           title="Pharmacist report"
           description="Bring this to a pharmacist or doctor, or send it ahead. It shows what the labels and documents say and the questions to ask."
         />
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
-          <ReportPreview report={report} />
-
-          <aside className="space-y-5 lg:sticky lg:top-24">
-            {/* Phones: a sticky bar at the bottom. Wider screens: a regular panel beside the preview. */}
-            <div className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur sm:static sm:rounded-2xl sm:border sm:bg-card sm:p-5 sm:shadow-xs">
-              <p className="mb-1 hidden items-center gap-2 font-semibold sm:flex">
-                <SendIcon aria-hidden className="size-4 text-primary" /> Send or save
-              </p>
-              <p className="mb-4 hidden text-sm text-muted-foreground sm:block">A PDF with the same content as this preview.</p>
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-1">
-                {share}
-                <DownloadButton patientId={patientId} className="w-full" />
-                <Button
-                  nativeButton={false}
-                  render={<a href="#email" />}
-                  variant="outline"
-                  className="h-11 w-full px-2 text-sm sm:hidden"
-                >
-                  <MailIcon aria-hidden /> Email
-                </Button>
-              </div>
-            </div>
-
-            <section id="email" aria-labelledby="email-heading" className="scroll-mt-24 rounded-2xl border bg-card p-5 shadow-xs">
-              <h2 id="email-heading" className="mb-4 flex items-center gap-2 font-semibold">
-                <MailIcon aria-hidden className="size-4 text-primary" />
-                Email the report
-              </h2>
-              <EmailForm
+        {/* The one place to share or save, in the page flow (never fixed over the footer or a focused field). */}
+        <section aria-labelledby="share-heading" className="rounded-2xl border bg-card p-4 sm:p-5">
+          <h2 id="share-heading" className="flex items-center gap-2 font-semibold">
+            <SendIcon aria-hidden className="size-4 text-primary" /> Share or save
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">A PDF with everything in the report below.</p>
+          <div className="mt-4 grid gap-2 sm:flex sm:flex-wrap">
+            <ShareButton
+              patientId={patientId}
+              title={report.title}
+              subject={draft.subject}
+              body={draft.body}
+              className="sm:w-40"
+            />
+            <DownloadButton patientId={patientId} className="w-full sm:w-auto sm:px-4" />
+            {configured ? (
+              <EmailDialog
                 patientId={patientId}
                 defaultSubject={draft.subject}
                 defaultBody={draft.body}
-                configured={configured}
+                className="h-11 w-full text-base sm:w-auto sm:px-4"
               />
-            </section>
-          </aside>
-        </div>
+            ) : null}
+          </div>
+          {configured ? null : (
+            <div className="mt-3">
+              <EmailUnavailable />
+            </div>
+          )}
+        </section>
+
+        <ReportPreview report={report} />
       </div>
     </AppShell>
   );

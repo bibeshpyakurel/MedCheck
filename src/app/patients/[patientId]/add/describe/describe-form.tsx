@@ -1,6 +1,6 @@
 "use client";
 
-import { LoaderCircleIcon, MicIcon, RotateCwIcon, SquareIcon } from "lucide-react";
+import { ArrowLeftIcon, LoaderCircleIcon, MicIcon, RotateCwIcon, SquareIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -222,6 +222,11 @@ export function DescribeForm({ patientId }: { patientId: string }) {
         <Alert variant="destructive">
           <AlertDescription>{error.message}</AlertDescription>
         </Alert>
+      )}
+      {error && !busy && (
+        <Button variant="ghost" className="h-11 w-full text-base" nativeButton={false} render={<Link href={`/patients/${patientId}/add`} />}>
+          <ArrowLeftIcon aria-hidden /> Choose another way
+        </Button>
       )}
 
       {error?.retry && !busy ? (

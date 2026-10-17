@@ -7,9 +7,17 @@ import { cn } from "@/lib/utils";
 export type PhotoKind = "prescription_label" | "discharge_list" | "otc_package" | "drug_facts_photo";
 
 const KINDS: { value: PhotoKind; title: string; detail: string }[] = [
-  { value: "prescription_label", title: "Prescription label", detail: "The pharmacy sticker on a bottle" },
-  { value: "discharge_list", title: "Discharge list", detail: "Hospital or clinic medicine list — can include several" },
-  { value: "otc_package", title: "Medicine box or bottle", detail: "Over-the-counter package or its Drug Facts panel" },
+  { value: "prescription_label", title: "Prescription label", detail: "The sticker the pharmacy puts on a bottle." },
+  {
+    value: "discharge_list",
+    title: "Discharge list",
+    detail: "The medicine list a hospital or clinic gives you when you leave. It can include several medicines.",
+  },
+  {
+    value: "otc_package",
+    title: "Medicine box or bottle",
+    detail: "A store-bought package, or its Drug Facts panel — the box listing ingredients and directions.",
+  },
 ];
 
 export function PhotoForm({
@@ -17,12 +25,14 @@ export function PhotoForm({
   initialKind,
   formulationId,
   action,
+  otherWaysHref,
 }: {
   patientId: string;
   initialKind: PhotoKind;
   /** Set on the barcode path: the photo is the Drug Facts panel of this catalog product. */
   formulationId: string | null;
   action: PhotoAction;
+  otherWaysHref: string;
 }) {
   const [kind, setKind] = useState<PhotoKind>(initialKind);
   // Both package kinds share one option; keep a Drug Facts kind passed in the URL.
@@ -31,7 +41,7 @@ export function PhotoForm({
   );
 
   return (
-    <PhotoCapture action={action} submitLabel="Read this photo">
+    <PhotoCapture action={action} submitLabel="Read this photo" otherWaysHref={otherWaysHref}>
       <input type="hidden" name="patientId" value={patientId} />
       {formulationId && <input type="hidden" name="formulationId" value={formulationId} />}
       {formulationId ? (

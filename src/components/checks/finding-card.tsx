@@ -1,4 +1,4 @@
-import { ExternalLinkIcon } from "lucide-react";
+import { ChevronDownIcon, ExternalLinkIcon } from "lucide-react";
 import Link from "next/link";
 import { entrySourceHref, evidenceProvenance, officialLabelUrl } from "@/lib/checks/evidence-source";
 import { DOCUMENT_KIND_LABEL, type Provenance } from "@/lib/checks/shared";
@@ -17,7 +17,7 @@ function sourceOf(e: FindingEvidence, from: Provenance): string {
   const source = e.documentKind
     ? DOCUMENT_KIND_LABEL[e.documentKind]
     : e.evidence.kind === "database"
-      ? "Database label"
+      ? "Medicine listing"
       : "Medicine record";
   // A value the user typed or corrected is theirs, not the label's.
   return from === "entered" ? `${source} · You entered this` : source;
@@ -25,6 +25,10 @@ function sourceOf(e: FindingEvidence, from: Provenance): string {
 
 const LINK = "inline-flex min-h-11 items-center gap-1 text-sm font-medium underline underline-offset-4";
 
+/**
+ * One finding, each part with its own job: what it means (title + detail), the label's own warning,
+ * the question to ask, and — one tap away — the exact evidence with its sources.
+ */
 export function FindingCard({
   finding,
   patientId,
@@ -40,69 +44,67 @@ export function FindingCard({
   return (
     <article
       aria-labelledby={headingId}
-      className="relative overflow-hidden rounded-xl border border-finding/35 bg-card text-card-foreground shadow-xs"
+      className="overflow-hidden rounded-2xl border border-l-4 border-finding/35 border-l-finding bg-card text-card-foreground"
     >
-      <span aria-hidden className="absolute inset-y-0 left-0 w-1 bg-finding" />
-      <div className="space-y-4 p-4 pl-5">
+      <div className="space-y-4 p-4 sm:p-5">
         <div>
-          <h4 id={headingId} className="text-base leading-snug font-semibold text-balance">
+          <h3 id={headingId} className="text-lg leading-snug font-semibold text-balance">
             {finding.title}
-          </h4>
-          <p className="mt-1.5 text-sm leading-relaxed">{finding.detail}</p>
+          </h3>
+          <p className="mt-1 leading-relaxed text-pretty">{finding.detail}</p>
         </div>
 
-        {finding.evidence.length > 0 && (
-          <div>
-            <p className="text-[0.6875rem] font-semibold tracking-wider text-muted-foreground uppercase">Evidence</p>
-            <ul className="mt-2 divide-y overflow-hidden rounded-lg border">
-              {finding.evidence.map((e, i) => {
-                const entry = entries.get(e.entryId);
-                const official = officialLabelUrl(entry?.formulationId ? formulations[entry.formulationId] : undefined);
-                return (
-                  <li key={`${e.entryId}-${e.field}-${i}`} className="bg-surface/50 px-3 pt-2.5 text-sm">
-                    <span className="font-medium nums">{e.text}</span>
-                    <span className="mt-0.5 block text-xs text-muted-foreground">
-                      {e.entryLabel} · {sourceOf(e, evidenceProvenance(e, entry))}
-                      {e.documentDate ? ` · ${formatDocumentDate(e.documentDate)}` : ""}
-                    </span>
-                    <span className="flex flex-wrap gap-x-4">
-                      <Link href={entrySourceHref(patientId, e.entryId)} aria-label={`View source: ${e.entryLabel}`} className={LINK}>
-                        View source
-                      </Link>
-                      {official && (
-                        <a href={official} target="_blank" rel="noopener noreferrer" className={LINK}>
-                          Official FDA label (DailyMed)
-                          <ExternalLinkIcon aria-hidden className="size-3.5" />
-                          <span className="sr-only"> (opens in a new tab)</span>
-                        </a>
-                      )}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        )}
-
         {finding.labelWarningQuote && (
-          <figure>
-            <figcaption className="text-[0.6875rem] font-semibold tracking-wider text-muted-foreground uppercase">
-              The label&apos;s own warning
-            </figcaption>
-            <blockquote className="mt-2 border-l-2 border-finding pl-3 text-sm leading-relaxed italic">
-              “{finding.labelWarningQuote}”
-            </blockquote>
+          <figure className="rounded-xl bg-finding-surface p-3.5 ring-1 ring-finding/25">
+            <figcaption className="text-sm font-semibold text-finding-foreground">The label&apos;s own warning</figcaption>
+            <blockquote className="mt-1 leading-relaxed">“{finding.labelWarningQuote}”</blockquote>
           </figure>
         )}
 
-        <div className="rounded-lg bg-finding-surface p-3.5 ring-1 ring-finding/25">
-          <p className="text-[0.6875rem] font-semibold tracking-wider text-finding-foreground uppercase">Ask a pharmacist</p>
-          <p className="mt-1.5 text-base leading-snug font-medium">{finding.pharmacistQuestion}</p>
+        <div>
+          <p className="text-sm font-semibold text-muted-foreground">Ask a pharmacist</p>
+          <p className="mt-1 text-base leading-snug font-medium">{finding.pharmacistQuestion}</p>
           <div className="mt-3">
             <CopyQuestionButton text={finding.pharmacistQuestion} />
           </div>
         </div>
       </div>
+
+      {finding.evidence.length > 0 && (
+        <details className="group border-t">
+          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 px-4 text-sm font-medium focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:px-5 [&::-webkit-details-marker]:hidden">
+            See the label evidence
+            <ChevronDownIcon aria-hidden className="size-4 text-muted-foreground transition-transform group-open:rotate-180" />
+          </summary>
+          <ul className="divide-y border-t bg-surface/50">
+            {finding.evidence.map((e, i) => {
+              const entry = entries.get(e.entryId);
+              const official = officialLabelUrl(entry?.formulationId ? formulations[entry.formulationId] : undefined);
+              return (
+                <li key={`${e.entryId}-${e.field}-${i}`} className="px-4 pt-3 text-sm sm:px-5">
+                  <span className="font-medium nums">{e.text}</span>
+                  <span className="mt-0.5 block text-muted-foreground">
+                    {e.entryLabel} · {sourceOf(e, evidenceProvenance(e, entry))}
+                    {e.documentDate ? ` · ${formatDocumentDate(e.documentDate)}` : ""}
+                  </span>
+                  <span className="flex flex-wrap gap-x-4">
+                    <Link href={entrySourceHref(patientId, e.entryId)} aria-label={`View source: ${e.entryLabel}`} className={LINK}>
+                      View source
+                    </Link>
+                    {official && (
+                      <a href={official} target="_blank" rel="noopener noreferrer" className={LINK}>
+                        Official FDA label (DailyMed)
+                        <ExternalLinkIcon aria-hidden className="size-3.5" />
+                        <span className="sr-only"> (opens in a new tab)</span>
+                      </a>
+                    )}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </details>
+      )}
     </article>
   );
 }

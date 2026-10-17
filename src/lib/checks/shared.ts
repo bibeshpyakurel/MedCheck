@@ -26,10 +26,10 @@ export const DOCUMENT_KIND_LABEL: Record<SourceDocumentKind, string> = {
   description: "Your description",
 };
 
-/** Where an entry's values came from, capitalized: "Prescription label", "Database label", … */
+/** Where an entry's values came from, capitalized: "Prescription label", "Medicine listing", … */
 export function sourceLabel(entry: MedicationEntry): string {
   if (entry.sourceDocument) return DOCUMENT_KIND_LABEL[entry.sourceDocument.kind];
-  if (entry.inputMethod === "barcode" || entry.inputMethod === "picker") return "Database label";
+  if (entry.inputMethod === "barcode" || entry.inputMethod === "picker") return "Medicine listing";
   if (entry.inputMethod === "voice" || entry.inputMethod === "typed") return "Your description";
   return "Medicine record";
 }
@@ -291,7 +291,7 @@ export function buildRun(
     return {
       check,
       status: "unresolved",
-      summary: `Couldn't be completed: ${lowerFirst(reasons[0])}${more}`,
+      summary: `Needs more details: ${lowerFirst(reasons[0])}${more}`,
       reasons,
       findings: [],
     };
@@ -303,3 +303,8 @@ export function buildRun(
 const lowerFirst = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 
 export const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
+const COUNT_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
+
+/** "two" for 2, for headlines read at a glance; numerals past ten. */
+export const countWord = (n: number) => COUNT_WORDS[n] ?? String(n);

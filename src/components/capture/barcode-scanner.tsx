@@ -22,11 +22,11 @@ function createReader() {
  * Reads a drug barcode with the rear camera (UPC-A, GS1 DataMatrix). Falls back to a photo of the
  * barcode or a typed NDC when the camera is blocked or missing. Stops the camera on unmount.
  */
-export function BarcodeScanner({ onDetected }: { onDetected: (text: string) => void }) {
+export function BarcodeScanner({ onDetected, initialCode = "" }: { onDetected: (text: string) => void; initialCode?: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const onDetectedRef = useRef(onDetected);
   const [camera, setCamera] = useState<CameraState>("starting");
-  const [manual, setManual] = useState("");
+  const [manual, setManual] = useState(initialCode);
   const [manualError, setManualError] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const inputId = useId();
@@ -173,8 +173,9 @@ export function BarcodeScanner({ onDetected }: { onDetected: (text: string) => v
           </Button>
         </div>
         <p id={`${inputId}-ndc-hint`} className="text-sm text-muted-foreground">
-          For example, NDC <span className="font-mono text-foreground">37000-523-02</span> or barcode{" "}
-          <span className="font-mono text-foreground">3 37000 52302 5</span>.
+          The NDC (National Drug Code) is the product number printed on the box, like{" "}
+          <span className="font-mono text-foreground">37000-523-02</span>. The barcode number is the row of digits under
+          the bars, like <span className="font-mono text-foreground">3 37000 52302 5</span>.
         </p>
         {manualError && (
           <p id={`${inputId}-ndc-error`} className="text-sm text-destructive">

@@ -20,14 +20,17 @@ const CHECKS: Record<CheckId, (input: CheckInput) => CheckRun> = {
   database_vs_box: checkDatabaseVsBox,
 };
 
-/** Display names for the checks panel and report. */
+/**
+ * Display names for the checks screen and landing page. Plain topics that read the same whatever the
+ * check's status ("Same ingredient in two medicines — no findings"), so a name never implies a result.
+ */
 export const CHECK_TITLES: Record<CheckId, string> = {
-  ingredient_overlap: "Shared active ingredients",
-  repeated_record: "Repeated records",
-  concentration: "Liquid strengths",
-  units: "Dose units",
-  document_vs_bottle: "Documents vs bottle",
-  database_vs_box: "Database label vs box",
+  ingredient_overlap: "Same ingredient in two medicines",
+  repeated_record: "Same medicine listed twice",
+  concentration: "Different liquid strengths",
+  units: "Units in the amount and strength",
+  document_vs_bottle: "Document and bottle",
+  database_vs_box: "Medicine listing and package",
 };
 
 /** Always six runs, in CHECK_IDS order. Only confirmed entries are considered. */

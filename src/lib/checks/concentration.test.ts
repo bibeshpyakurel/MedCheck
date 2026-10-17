@@ -24,6 +24,7 @@ describe("concentration", () => {
     expect(text).toContain("100 mg per 5 mL");
     expect(text).toContain("200 mg per 5 mL");
     expect(f.detail).toContain("same volume");
+    expect(f.title).toBe("These liquids have different strengths of Acetaminophen");
     expect(f.evidence.map((e) => e.text)).toEqual(["100 mg per 5 mL", "200 mg per 5 mL"]);
   });
 
@@ -45,6 +46,14 @@ describe("concentration", () => {
     const run = checkConcentration(input(calmoraA, prescriptionStrengthUnknown));
     expect(run.status).toBe("unresolved");
     expect(run.reasons).toEqual(["Strength unreadable on Prescription label (Acetaminophen oral suspension)"]);
+    // Says what the check needs, not just that it stopped.
+    expect(run.summary).toBe("Needs more details: strength unreadable on Prescription label (Acetaminophen oral suspension)");
+  });
+
+  it("gives the specific reason when there is nothing to compare", () => {
+    const run = checkConcentration(input(calmoraA));
+    expect(run.status).toBe("not_applicable");
+    expect(run.reasons).toEqual(["No two liquids with the same ingredient to compare"]);
   });
 
   it("is unresolved when a liquid's strength is still pending", () => {

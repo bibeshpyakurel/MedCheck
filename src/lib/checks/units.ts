@@ -54,17 +54,17 @@ function describe(
   switch (problem) {
     case "volume_units":
       return {
-        title: "Dose and strength use different units",
+        title: "The amount and strength use different units",
         detail: `${d}, but ${s}. These units don't line up.`,
       };
     case "mass_dose":
       return {
-        title: "Dose written in mg for a liquid",
+        title: "The amount is written in mg for a liquid",
         detail: `${d} for a liquid, but ${s}. That doesn't say what amount of liquid to measure.`,
       };
     case "unclear_unit":
       return {
-        title: "Dose has no clear measuring unit",
+        title: "The amount has no clear measuring unit",
         detail: `${d}, but ${s}. The dose isn't in a measuring unit that matches the strength.`,
       };
   }
@@ -124,7 +124,7 @@ export function checkUnits({ entries }: CheckInput): CheckRun {
     compared,
     found: (n) => `Found ${plural(n, "unit mismatch", "unit mismatches")}`,
     noFinding: "No unit mismatches found in confirmed fields",
-    notApplicable: "No medicine on file has a written dose to compare",
+    notApplicable: "No medicine has a written amount to compare",
   });
 }
 
