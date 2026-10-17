@@ -4,36 +4,35 @@ import type { ReactNode } from "react";
 import { GetHelp } from "@/components/already-gave-both";
 import { BrandLogo } from "@/components/brand";
 import { DemoBar } from "@/components/records/demo-bar";
+import { SiteMenu } from "@/components/site-menu";
 import { cn } from "@/lib/utils";
 
 /**
  * Page chrome shared by every screen: brand, demo strip, content column, and the boundary statement.
  * `bleed` hands the full width to the page (the landing page draws its own sections).
- * "Get help" (the fixed "I already gave both" message) is in the header on every screen.
+ * "Get help" (the fixed "I already gave both" message) is in the header on every screen; the ☰ menu holds the explainer pages.
  */
 export function AppShell({
   children,
-  actions,
   bleed = false,
 }: {
   children: ReactNode;
-  actions?: ReactNode;
   bleed?: boolean;
 }) {
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-30 border-b border-border/70 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
-          <Link
-            href="/"
-            className="-m-1.5 rounded-lg p-1.5 transition-opacity hover:opacity-85 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-          >
-            <BrandLogo />
-          </Link>
-          <div className="flex items-center gap-1 sm:gap-2">
-            {actions}
-            <GetHelp />
+          <div className="flex items-center gap-1">
+            <SiteMenu />
+            <Link
+              href="/"
+              className="rounded-lg p-1.5 transition-opacity hover:opacity-85 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+            >
+              <BrandLogo />
+            </Link>
           </div>
+          <GetHelp />
         </div>
       </header>
       <DemoBar />
