@@ -2,8 +2,9 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* Dark mode follows the system setting (night use is a core scenario). */
-@custom-variant dark (@media (prefers-color-scheme: dark));
+/* Dark mode is a `.dark` class on <html>, set by next-themes: System (the default — night use is a core
+   scenario), Light or Dark, chosen in the ☰ menu. */
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   /* Layered, low-contrast elevation: reads as "product", not "template". */
@@ -130,56 +131,54 @@
   --unresolved-surface: oklch(0.972 0.02 290);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: oklch(0.155 0.012 255);
-    --foreground: oklch(0.965 0.004 247);
-    --surface: oklch(0.18 0.013 255);
-    --card: oklch(0.195 0.014 255);
-    --card-foreground: oklch(0.965 0.004 247);
-    --popover: oklch(0.215 0.015 255);
-    --popover-foreground: oklch(0.965 0.004 247);
+.dark {
+  --background: oklch(0.155 0.012 255);
+  --foreground: oklch(0.965 0.004 247);
+  --surface: oklch(0.18 0.013 255);
+  --card: oklch(0.195 0.014 255);
+  --card-foreground: oklch(0.965 0.004 247);
+  --popover: oklch(0.215 0.015 255);
+  --popover-foreground: oklch(0.965 0.004 247);
 
-    --primary: oklch(0.79 0.11 190);
-    --primary-foreground: oklch(0.2 0.04 205);
-    --brand: oklch(0.72 0.115 191);
-    --brand-foreground: oklch(0.18 0.04 205);
-    --ink: oklch(0.235 0.016 255);
-    --ink-foreground: oklch(0.965 0.004 247);
+  --primary: oklch(0.79 0.11 190);
+  --primary-foreground: oklch(0.2 0.04 205);
+  --brand: oklch(0.72 0.115 191);
+  --brand-foreground: oklch(0.18 0.04 205);
+  --ink: oklch(0.235 0.016 255);
+  --ink-foreground: oklch(0.965 0.004 247);
 
-    --secondary: oklch(0.25 0.015 255);
-    --secondary-foreground: oklch(0.94 0.006 247);
-    --muted: oklch(0.23 0.014 255);
-    --muted-foreground: oklch(0.71 0.016 252);
-    --accent: oklch(0.27 0.035 200);
-    --accent-foreground: oklch(0.88 0.075 190);
-    --destructive: oklch(0.7 0.18 22);
-    --border: oklch(1 0 0 / 9%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.72 0.1 192);
+  --secondary: oklch(0.25 0.015 255);
+  --secondary-foreground: oklch(0.94 0.006 247);
+  --muted: oklch(0.23 0.014 255);
+  --muted-foreground: oklch(0.71 0.016 252);
+  --accent: oklch(0.27 0.035 200);
+  --accent-foreground: oklch(0.88 0.075 190);
+  --destructive: oklch(0.7 0.18 22);
+  --border: oklch(1 0 0 / 9%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.72 0.1 192);
 
-    --chart-1: oklch(0.72 0.115 191);
-    --chart-2: oklch(0.79 0.11 190);
-    --chart-3: oklch(0.8 0.13 75);
-    --chart-4: oklch(0.75 0.11 286);
-    --chart-5: oklch(0.71 0.016 252);
+  --chart-1: oklch(0.72 0.115 191);
+  --chart-2: oklch(0.79 0.11 190);
+  --chart-3: oklch(0.8 0.13 75);
+  --chart-4: oklch(0.75 0.11 286);
+  --chart-5: oklch(0.71 0.016 252);
 
-    --sidebar: oklch(0.18 0.013 255);
-    --sidebar-foreground: oklch(0.965 0.004 247);
-    --sidebar-primary: oklch(0.79 0.11 190);
-    --sidebar-primary-foreground: oklch(0.2 0.04 205);
-    --sidebar-accent: oklch(0.27 0.035 200);
-    --sidebar-accent-foreground: oklch(0.88 0.075 190);
-    --sidebar-border: oklch(1 0 0 / 9%);
-    --sidebar-ring: oklch(0.72 0.1 192);
+  --sidebar: oklch(0.18 0.013 255);
+  --sidebar-foreground: oklch(0.965 0.004 247);
+  --sidebar-primary: oklch(0.79 0.11 190);
+  --sidebar-primary-foreground: oklch(0.2 0.04 205);
+  --sidebar-accent: oklch(0.27 0.035 200);
+  --sidebar-accent-foreground: oklch(0.88 0.075 190);
+  --sidebar-border: oklch(1 0 0 / 9%);
+  --sidebar-ring: oklch(0.72 0.1 192);
 
-    --finding: oklch(0.8 0.135 74);
-    --finding-foreground: oklch(0.88 0.09 80);
-    --finding-surface: oklch(0.27 0.045 65);
-    --unresolved: oklch(0.76 0.11 286);
-    --unresolved-foreground: oklch(0.87 0.065 286);
-    --unresolved-surface: oklch(0.26 0.045 286);
-  }
+  --finding: oklch(0.8 0.135 74);
+  --finding-foreground: oklch(0.88 0.09 80);
+  --finding-surface: oklch(0.27 0.045 65);
+  --unresolved: oklch(0.76 0.11 286);
+  --unresolved-foreground: oklch(0.87 0.065 286);
+  --unresolved-surface: oklch(0.26 0.045 286);
 }
 
 @layer base {

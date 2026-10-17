@@ -1,7 +1,8 @@
 "use client";
 
-import { ChevronRightIcon, MenuIcon } from "lucide-react";
+import { ChevronRightIcon, MenuIcon, MonitorIcon, MoonIcon, SunIcon } from "lucide-react";
 import Link from "next/link";
+import { useTheme } from "next-themes";
 import { useState } from "react";
 import { BrandLogo } from "@/components/brand";
 import { Button } from "@/components/ui/button";
@@ -13,8 +14,13 @@ const ABOUT_LINKS = [
   { href: "/why", label: "Why it matters" },
 ];
 const DEMO_LINKS = [{ href: "/demo-kit", label: "Printable demo kit" }];
+const THEMES = [
+  { value: "system", label: "System", icon: MonitorIcon },
+  { value: "light", label: "Light", icon: SunIcon },
+  { value: "dark", label: "Dark", icon: MoonIcon },
+];
 
-/** The header's ☰ menu: the explainer pages, kept off the home page so it stays short. */
+/** The header's ☰ menu: the explainer pages, kept off the home page so it stays short, and the appearance setting. */
 export function SiteMenu() {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
@@ -38,6 +44,7 @@ export function SiteMenu() {
             <MenuGroup links={DEMO_LINKS} onNavigate={close} />
           </div>
         </nav>
+        <ThemeChoice />
       </SheetContent>
     </Sheet>
   );
@@ -60,5 +67,39 @@ function MenuGroup({ links, onNavigate }: { links: { href: string; label: string
         </li>
       ))}
     </ul>
+  );
+}
+
+// Native radios, so arrow keys move between choices. The drawer only renders once opened (after
+// hydration), so the saved theme is already known and there is no server/client mismatch.
+function ThemeChoice() {
+  const { theme, setTheme } = useTheme();
+
+  return (
+    <fieldset className="mt-auto border-t p-4">
+      <legend className="sr-only">Appearance</legend>
+      <p aria-hidden className="mb-2 text-sm font-medium text-muted-foreground">
+        Appearance
+      </p>
+      <div className="grid grid-cols-3 gap-1 rounded-xl bg-muted p-1">
+        {THEMES.map((t) => (
+          <label
+            key={t.value}
+            className="flex min-h-11 cursor-pointer items-center justify-center gap-1.5 rounded-lg text-sm font-medium text-muted-foreground transition-colors hover:text-foreground has-checked:bg-card has-checked:text-foreground has-checked:shadow-xs has-focus-visible:ring-3 has-focus-visible:ring-ring/50"
+          >
+            <input
+              type="radio"
+              name="theme"
+              value={t.value}
+              checked={theme === t.value}
+              onChange={() => setTheme(t.value)}
+              className="sr-only"
+            />
+            <t.icon aria-hidden className="size-4" />
+            {t.label}
+          </label>
+        ))}
+      </div>
+    </fieldset>
   );
 }
