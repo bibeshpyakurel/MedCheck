@@ -57,7 +57,7 @@ export type Report = {
   isSelf: boolean; // patient relationship is "self": the report and email read in first person
   heading: string; // "Sam", or "Medicines for Jordan" when isSelf
   subheading: string | null; // "son · Prepared by Alex Rivera"; null when isSelf
-  patientName: string;
+  patientName: string; // who the report is about; for a self profile, the person's own name
   patientRelationship: string | null;
   caregiverName: string | null;
   isDemo: boolean;
@@ -154,15 +154,17 @@ export function buildReport(input: {
   const count = (s: CheckStatus) => runs.filter((r) => r.status === s).length;
   const isSelf = patient.relationship?.trim().toLowerCase() === "self";
   const caregiverName = input.caregiverName?.trim() || null;
+  // A "self" profile may be labelled "Me"; the report names the person themselves.
+  const patientName = isSelf ? (caregiverName ?? patient.displayName) : patient.displayName;
 
   return {
     title: isSelf ? "My MedCheck report" : `MedCheck report for ${patient.displayName}`,
     isSelf,
-    heading: isSelf ? `Medicines for ${patient.displayName}` : patient.displayName,
+    heading: isSelf ? `Medicines for ${patientName}` : patientName,
     subheading: isSelf
       ? null
       : [patient.relationship, caregiverName ? `Prepared by ${caregiverName}` : null].filter(Boolean).join(" · ") || null,
-    patientName: patient.displayName,
+    patientName,
     patientRelationship: patient.relationship,
     caregiverName,
     isDemo: patient.isDemo,
@@ -202,7 +204,7 @@ export function emailDraft(report: Report): { subject: string; body: string } {
   const opening = report.isSelf
     ? "Hi, here is my MedCheck report with questions about my medicines."
     : `Hi, here is my MedCheck report for ${report.patientName}.`;
-  const signer = report.isSelf ? (report.caregiverName ?? report.patientName) : report.caregiverName;
+  const signer = report.isSelf ? report.patientName : report.caregiverName;
   const lines = [
     `${opening} It lists the medicines on file, what their labels and documents say, and the checks MedCheck ran.`,
     "",

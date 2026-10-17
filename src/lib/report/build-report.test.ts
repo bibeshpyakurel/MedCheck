@@ -298,6 +298,19 @@ describe("first-person reports (relationship is self)", () => {
     expect(emailDraft(anon).body).toContain("— Jordan");
   });
 
+  it('uses the person\'s own name when the profile is labelled "Me"', () => {
+    const me = buildReport({
+      caregiverName: "Alex Rivera",
+      patient: { ...patient, displayName: "Me", relationship: "self" },
+      entries: [],
+      runs: [],
+      generatedAt,
+    });
+    expect(me.heading).toBe("Medicines for Alex Rivera");
+    expect(emailDraft(me).body).toContain("— Alex Rivera");
+    expect(reportFilename(me)).toBe("MedCheck-report-Alex-Rivera-2026-10-17.pdf");
+  });
+
   it("keeps the caregiver wording for anyone else", () => {
     expect(report.isSelf).toBe(false);
     expect(report.title).toBe("MedCheck report for Sam");
