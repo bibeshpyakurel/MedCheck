@@ -14,12 +14,17 @@ export type GeminiCallSettings = { model: LanguageModel; maxRetries: number; tim
 /**
  * Runs a Gemini call against the primary model, then the fallback if it fails or times out.
  * No SDK retries: the fallback model is the retry. Configure with GEMINI_MODEL / GEMINI_FALLBACK_MODEL.
+ * `budgetMs` caps the total time across both models.
  */
-export function withGemini<T>(run: (settings: GeminiCallSettings) => Promise<T>): Promise<T> {
+export function withGemini<T>(
+  run: (settings: GeminiCallSettings) => Promise<T>,
+  opts: { budgetMs?: number } = {},
+): Promise<T> {
   return tryModels(
     geminiAttempts({ GEMINI_MODEL: process.env.GEMINI_MODEL, GEMINI_FALLBACK_MODEL: process.env.GEMINI_FALLBACK_MODEL }),
     (attempt) => run({ model: google(attempt.modelId), maxRetries: 0, timeout: attempt.timeoutMs }),
     (attempt, error) =>
       console.warn(`Gemini ${attempt.modelId} failed; trying the next model`, error instanceof Error ? error.message : error),
+    opts,
   );
 }
