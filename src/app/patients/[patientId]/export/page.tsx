@@ -60,15 +60,15 @@ export default async function ExportPage({ params }: PageProps<"/patients/[patie
         {report.pendingNote ? (
           <div className="flex gap-3 rounded-xl bg-unresolved-surface p-4 text-sm text-unresolved-foreground">
             <ClockIcon aria-hidden className="mt-0.5 size-4 shrink-0" />
-            <p>
-              {report.pendingNote}{" "}
+            <div>
+              <p>{report.pendingNote}</p>
               <Link
                 href={`/patients/${patientId}`}
-                className="inline-flex min-h-11 items-center gap-1 font-medium underline underline-offset-4 sm:min-h-0"
+                className="-ml-1 mt-1 inline-flex min-h-11 items-center gap-1 rounded-md px-1 font-medium underline underline-offset-4 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
               >
                 Check {report.pendingCount === 1 ? "it" : "them"} now <ArrowRightIcon aria-hidden className="size-3.5" />
               </Link>
-            </p>
+            </div>
           </div>
         ) : null}
 
