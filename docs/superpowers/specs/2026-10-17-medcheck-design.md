@@ -8,11 +8,11 @@ MedCheck helps caregivers see when two medicines share an active ingredient, and
 
 In: acetaminophen only; the two core features (ingredient overlap; strength and unit clarity); the 8-step demo from the summary; all six checks; per-patient records with change history; PDF export with download, share and email.
 
-Out (later phases): other ingredients, weekly openFDA pipeline, dose log, Beers flags, installable PWA / offline, open-ended chat, any dose calculation or age/weight row highlighting.
+Out (later phases): other ingredients, weekly openFDA pipeline, RxNorm (dropped: fixed synonym table instead), dose log, Beers flags, installable PWA / offline, open-ended chat, any dose calculation or age/weight row highlighting.
 
 ## 2. Delivery and git workflow
 
-- Repo: `github.com/bibeshpyakurel/MedCheck` (public). `dev` = default/working branch. `main` = production, deployed by Vercel, PR-only (protected, admins included).
+- Repo: `github.com/bibeshpyakurel/MedCheck` (public). `main` = default branch and production, deployed by Vercel, PR-only (protected, admins included). `dev` = working branch, always the latest.
 - Every feature: branch `feat/<name>` off `dev` → PR into `dev` → Claude merges after CI passes and review → Claude opens a `dev → main` PR → **the user merges to `main`**. Claude never merges to `main`.
 - Milestones: **M0** foundation → **M1** full demo flow → **M2** hardening and polish. Submission is tonight (2026-10-17); live demo 2026-10-18 ~5 pm.
 
@@ -60,7 +60,7 @@ Anonymous sign-in is enabled. M2 adds "Save my records with email": link an emai
 
 Input: all confirmed entries for a patient plus catalog formulations. Output: `CheckRun[]`. A check whose required field is `unknown` on any relevant entry returns `unresolved` with the reason (e.g. "strength unreadable on Prescription label").
 
-1. **Ingredient overlap** — two distinct products share a normalized active ingredient (synonyms: acetaminophen, paracetamol, APAP, "acetaminophen (as …)"). Names both products, the ingredient, label text, and quotes the label's own warning when present. Never claims the dose doubled.
+1. **Ingredient overlap** — two distinct products share a normalized active ingredient (synonyms: acetaminophen, paracetamol, APAP, "acetaminophen (as …)"). Normalization is a fixed, reviewed synonym table in `src/lib/domain/ingredients.ts` (`normalizeIngredient()`); **no RxNorm lookup** — the supported ingredient set is small, and a hard-coded table is deterministic, testable and works offline. Names both products, the ingredient, label text, and quotes the label's own warning when present. Never claims the dose doubled.
 2. **Repeated record** — same product identity (formulation id, or name + strength + form) entered twice → reported as a repeat, *not* an overlap.
 3. **Concentration** — two liquids with the same ingredient and different mg-per-mL → "same volume holds different amounts", both stated as on the label (100 mg per 5 mL vs 200 mg per 5 mL). Never suggests a volume.
 4. **Units** — instructions and strength use units that don't line up (mL vs tsp/teaspoon, mg instruction for a liquid, missing unit) → finding.

@@ -8,8 +8,8 @@ Hackathon MVP · Healthcare and Wellness track · acetaminophen first.
 Next.js 16 · Tailwind + shadcn/ui · Supabase (Postgres, anonymous auth, storage) · Gemini via AI SDK · ZXing barcode scanning · Vercel.
 
 ## Branches
-- `dev` — default branch; all feature PRs land here (Vercel preview).
-- `main` — production (Vercel production). Updated only by `dev → main` PRs.
+- `main` — default branch and production (Vercel production). Updated only by `dev → main` PRs, merged by the project owner.
+- `dev` — working branch, always the latest; every feature PR lands here first (Vercel preview).
 
 ## Local setup
 ```bash
