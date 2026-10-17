@@ -1,9 +1,7 @@
-// The pharmacist report: a pure, display-ready view of a patient's record and check runs.
-// The on-screen preview, the PDF and the email draft all render this one shape.
+// The medicine report: a pure, display-ready view of a person's medicines and any warnings.
+// The PDF (preview, download, share) and the email draft all render this one shape.
 import type {
-  CheckId,
   CheckRun,
-  CheckStatus,
   Field,
   FindingEvidence,
   InputMethod,
@@ -12,35 +10,21 @@ import type {
   SourceDocumentKind,
 } from "@/lib/domain/schema";
 import { evidenceProvenance } from "@/lib/checks/evidence-source";
-import { checksSummaryParts } from "@/lib/checks/summary";
 import { entryLabel, formatDose, formatStrength, isUsable } from "@/lib/domain/fields";
 import type { Patient } from "@/lib/records";
 
-export const BOUNDARY_STATEMENT =
-  "MedCheck shows what labels and documents say. It does not give medical advice, calculate doses, or say a combination is safe.";
+export const BOUNDARY_STATEMENT = "Evidence, not advice — this report shows what labels say; it doesn't recommend a dose.";
 
-export type ReportQuestion = { text: string; context: string };
+export const NO_WARNINGS = "No warnings found in confirmed fields.";
 
 export type ReportEvidence = { product: string; field: string; source: string; value: string };
 
-export type ReportFinding = {
+export type ReportWarning = {
   id: string;
-  check: CheckId;
-  checkName: string;
   title: string;
   detail: string;
   evidence: ReportEvidence[];
   labelWarningQuote: string | null;
-  pharmacistQuestion: string;
-};
-
-export type ReportCheck = {
-  check: CheckId;
-  name: string;
-  status: CheckStatus;
-  statusLabel: string;
-  summary: string;
-  reasons: string[];
 };
 
 export type ReportMedicine = {
@@ -55,44 +39,23 @@ export type ReportMedicine = {
 };
 
 export type Report = {
-  title: string; // "MedCheck report for Sam", or "My MedCheck report" when the person is checking their own medicines
-  isSelf: boolean; // patient relationship is "self": the report and email read in first person
-  heading: string; // "Sam", or "Medicines for Jordan" when isSelf
-  subheading: string | null; // "son · Prepared by Alex Rivera"; null when isSelf
-  patientName: string; // who the report is about; for a self profile, the person's own name
-  patientRelationship: string | null;
+  title: string; // "Medicine report for Sam", or "Medicine report" when there is no real name (a guest)
+  personName: string | null;
+  isSelf: boolean; // the person's own medicines: the email reads in the first person
   caregiverName: string | null;
-  isDemo: boolean;
   generatedAt: string; // ISO instant
   generatedDate: string; // YYYY-MM-DD in the report's time zone
   generatedAtLabel: string; // "Oct 17, 2026, 2:05 PM CDT"
-  questions: ReportQuestion[];
-  findings: ReportFinding[];
-  checksSummary: string;
-  checks: ReportCheck[];
-  medicines: ReportMedicine[];
-  unreviewedCount: number;
-  unreviewedNote: string | null; // "1 more medicine still needs review and isn't included in the checks."
+  medicines: ReportMedicine[]; // confirmed only
+  warnings: ReportWarning[];
+  pendingCount: number; // added but not confirmed yet
+  pendingNote: string | null;
+  notCompared: string[]; // details the checks couldn't use ("Strength unreadable on …")
+  isEmpty: boolean; // nothing added at all
   boundary: string;
 };
 
-export const CHECK_NAMES: Record<CheckId, string> = {
-  ingredient_overlap: "Ingredient overlap",
-  repeated_record: "Repeated record",
-  concentration: "Concentration",
-  units: "Units",
-  document_vs_bottle: "Document vs bottle",
-  database_vs_box: "Database vs box",
-};
-
-export const STATUS_LABELS: Record<CheckStatus, string> = {
-  finding: "Found something",
-  no_finding: "Nothing found in confirmed fields",
-  unresolved: "Couldn't be completed",
-  not_applicable: "Nothing to compare",
-};
-
-export const DOCUMENT_KIND_LABELS: Record<SourceDocumentKind, string> = {
+const DOCUMENT_KIND_LABELS: Record<SourceDocumentKind, string> = {
   otc_package: "Package",
   drug_facts_photo: "Drug Facts panel",
   prescription_label: "Prescription label",
@@ -110,9 +73,12 @@ const INPUT_METHOD_SOURCES: Record<InputMethod, string> = {
   typed: DESCRIPTION_SOURCE,
 };
 
+/** Placeholder profile names that aren't a person's name. */
+const GENERIC_NAME = /^(guest|me|myself)$/i;
+
 export function buildReport(input: {
   caregiverName: string | null;
-  patient: Patient;
+  patient: Pick<Patient, "displayName" | "relationship">;
   entries: MedicationEntry[];
   runs: CheckRun[];
   generatedAt: Date;
@@ -123,53 +89,17 @@ export function buildReport(input: {
   const timeZone = validTimeZone(input.timeZone);
   const confirmed = input.entries.filter((e) => e.status === "confirmed");
   const byId = new Map(input.entries.map((e) => [e.id, e]));
-
-  const findings: ReportFinding[] = runs.flatMap((run) =>
-    run.findings.map((f) => ({
-      id: f.id,
-      check: f.check,
-      checkName: CHECK_NAMES[f.check],
-      title: f.title,
-      detail: f.detail,
-      evidence: f.evidence.map((e) => toReportEvidence(e, byId.get(e.entryId))),
-      labelWarningQuote: f.labelWarningQuote,
-      pharmacistQuestion: f.pharmacistQuestion,
-    })),
-  );
-
-  const questions: ReportQuestion[] = [];
-  const seen = new Set<string>();
-  const ask = (q: ReportQuestion) => {
-    if (seen.has(q.text)) return;
-    seen.add(q.text);
-    questions.push(q);
-  };
-  for (const f of findings) ask({ text: f.pharmacistQuestion, context: f.title });
-  for (const run of runs.filter((r) => r.status === "unresolved")) {
-    const name = CHECK_NAMES[run.check];
-    const why = run.reasons.map((r) => r.trim().replace(/\.$/, "")).filter(Boolean).join("; ");
-    ask({
-      text: `MedCheck couldn't finish the ${name.toLowerCase()} check${why ? `: ${why}` : ""}. Can you look at this with me?`,
-      context: `${name} check couldn't be completed`,
-    });
-  }
-
   const isSelf = patient.relationship?.trim().toLowerCase() === "self";
-  const caregiverName = input.caregiverName?.trim() || null;
+  const caregiverName = realName(input.caregiverName);
   // A "self" profile may be labelled "Me"; the report names the person themselves.
-  const patientName = isSelf ? (caregiverName ?? patient.displayName) : patient.displayName;
+  const personName = realName(patient.displayName) ?? (isSelf ? caregiverName : null);
+  const pendingCount = input.entries.length - confirmed.length;
 
   return {
-    title: isSelf ? "My MedCheck report" : `MedCheck report for ${patient.displayName}`,
+    title: personName ? `Medicine report for ${personName}` : "Medicine report",
+    personName,
     isSelf,
-    heading: isSelf ? `Medicines for ${patientName}` : patientName,
-    subheading: isSelf
-      ? null
-      : [patient.relationship, caregiverName ? `Prepared by ${caregiverName}` : null].filter(Boolean).join(" · ") || null,
-    patientName,
-    patientRelationship: patient.relationship,
     caregiverName,
-    isDemo: patient.isDemo,
     generatedAt: input.generatedAt.toISOString(),
     generatedDate: new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(
       input.generatedAt,
@@ -183,56 +113,71 @@ export function buildReport(input: {
       minute: "2-digit",
       timeZoneName: "short",
     }).format(input.generatedAt),
-    questions,
-    findings,
-    checksSummary: checksSummaryParts(runs).join(", "),
-    checks: runs.map((r) => ({
-      check: r.check,
-      name: CHECK_NAMES[r.check],
-      status: r.status,
-      statusLabel: STATUS_LABELS[r.status],
-      summary: r.summary,
-      reasons: r.reasons,
-    })),
     medicines: confirmed.map(toReportMedicine),
-    unreviewedCount: input.entries.length - confirmed.length,
-    unreviewedNote: unreviewedNote(input.entries.length - confirmed.length),
+    warnings: runs.flatMap((run) =>
+      run.findings.map((f) => ({
+        id: f.id,
+        title: f.title,
+        detail: f.detail,
+        evidence: f.evidence.map((e) => toReportEvidence(e, byId.get(e.entryId))),
+        labelWarningQuote: f.labelWarningQuote,
+      })),
+    ),
+    pendingCount,
+    pendingNote: pendingNote(pendingCount),
+    notCompared: [
+      ...new Set(
+        runs
+          .filter((r) => r.status === "unresolved" || r.status === "finding")
+          .flatMap((r) => r.reasons.map((reason) => reason.trim().replace(/\.$/, "")))
+          .filter(Boolean),
+      ),
+    ],
+    isEmpty: input.entries.length === 0,
     boundary: BOUNDARY_STATEMENT,
   };
 }
 
+/** "2 medicines are waiting for you to check their details. They'll appear in the report once you confirm them." */
+export function pendingNote(n: number): string | null {
+  if (n <= 0) return null;
+  return n === 1
+    ? "1 medicine is waiting for you to check its details. It'll appear in the report once you confirm it."
+    : `${n} medicines are waiting for you to check their details. They'll appear in the report once you confirm them.`;
+}
+
 /** Prefilled email (and share/mailto text) for the report. The user can edit both. */
 export function emailDraft(report: Report): { subject: string; body: string } {
-  const opening = report.isSelf
-    ? "Hi, here is my MedCheck report with questions about my medicines."
-    : `Hi, here is my MedCheck report for ${report.patientName}.`;
-  const signer = report.isSelf ? report.patientName : report.caregiverName;
-  const lines = [
-    `${opening} It lists the medicines on file, what their labels and documents say, and the checks MedCheck ran.`,
-    "",
-  ];
-  if (report.questions.length > 0) {
-    lines.push("Questions I'd like to ask:");
-    report.questions.forEach((q, i) => lines.push(`${i + 1}. ${q.text}`));
+  const whose = report.isSelf || !report.personName ? "my medicine report" : `the medicine report for ${report.personName}`;
+  const signer = report.isSelf ? report.personName : report.caregiverName;
+  const lines = ["Hi,", "", `Here is ${whose}. It lists the medicines and any warnings from their labels.`, ""];
+  if (report.medicines.length === 0) {
+    lines.push("There are no confirmed medicines in it yet.");
+  } else if (report.warnings.length === 0) {
+    lines.push(NO_WARNINGS);
   } else {
-    lines.push("No findings came up in the checks run on confirmed fields, but I'd like you to look over the medicines on file.");
+    lines.push("Warnings:", ...[...new Set(report.warnings.map((w) => w.title))].map((t) => `- ${t}`));
   }
-  lines.push("", "The PDF report is attached.", "", signer ? `Thanks — ${signer}` : "Thanks", "");
-  lines.push(`(${report.boundary})`);
+  lines.push("", "The PDF is attached.", "", signer ? `Thanks — ${signer}` : "Thanks", "", `(${report.boundary})`);
   return { subject: report.title, body: lines.join("\n") };
 }
 
-/** "MedCheck-report-Sam-2026-10-17.pdf" — ASCII only, safe in a Content-Disposition header. */
-export function reportFilename(report: Pick<Report, "patientName" | "generatedDate">): string {
-  const name = report.patientName
+/** "Medicine-report-Sam-2026-10-17.pdf" — ASCII only, safe in a Content-Disposition header. */
+export function reportFilename(report: Pick<Report, "personName" | "generatedDate">): string {
+  const name = (report.personName ?? "")
     .normalize("NFKD")
     .replace(/[^A-Za-z0-9 -]/g, "")
     .trim()
     .replace(/\s+/g, "-");
-  return `MedCheck-report-${name || "patient"}-${report.generatedDate}.pdf`;
+  return ["Medicine-report", name, report.generatedDate].filter(Boolean).join("-") + ".pdf";
 }
 
 // ---------------------------------------------------------------------------
+
+function realName(name: string | null | undefined): string | null {
+  const trimmed = name?.trim();
+  return trimmed && !GENERIC_NAME.test(trimmed) ? trimmed : null;
+}
 
 function validTimeZone(tz: string | undefined): string {
   if (!tz) return "UTC";
@@ -242,13 +187,6 @@ function validTimeZone(tz: string | undefined): string {
   } catch {
     return "UTC";
   }
-}
-
-function unreviewedNote(n: number): string | null {
-  if (n === 0) return null;
-  return n === 1
-    ? "1 more medicine still needs review and isn't included in the checks."
-    : `${n} more medicines still need review and aren't included in the checks.`;
 }
 
 /** ISO date ("2026-10-16") → "Oct 16, 2026", without shifting the day. */
@@ -296,7 +234,7 @@ function fieldLabel(path: string): string {
 
 function fieldText<T>(field: Field<T>, format: (v: T) => string): string {
   if (isUsable(field)) return format(field.value);
-  if (field.state === "pending") return "Not reviewed yet";
+  if (field.state === "pending") return "Not checked yet";
   if (field.aiValue === null && field.evidence.kind === "none") return "Not recorded";
   return "Couldn't tell";
 }

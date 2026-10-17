@@ -1,6 +1,6 @@
 import "server-only";
 
-// Loads everything the pharmacist report needs, as the signed-in user (RLS decides visibility).
+// Loads everything the medicine report needs, as the signed-in user (RLS decides visibility).
 import { getFormulationsByIds } from "@/lib/catalog";
 import { runChecks } from "@/lib/checks";
 import type { CheckRun } from "@/lib/domain/schema";
@@ -37,8 +37,8 @@ export async function saveExport(patientId: string, report: Report, runs: CheckR
   const supabase = await createClient();
   const snapshot = {
     generatedAt: report.generatedAt,
-    checksSummary: report.checksSummary,
-    questions: report.questions.map((q) => q.text),
+    medicines: report.medicines.map((m) => m.name),
+    warnings: report.warnings.map((w) => w.title),
     runs,
   };
   const { data, error } = await supabase
@@ -50,7 +50,7 @@ export async function saveExport(patientId: string, report: Report, runs: CheckR
   return data.id;
 }
 
-/** IANA zone sent by the browser (`?tz=` or body), so the PDF shows the caregiver's local time. */
+/** IANA zone sent by the browser (`?tz=` or body), so the PDF shows the user's local time. */
 export function timeZoneParam(value: string | null | undefined): string | undefined {
   return value && /^[A-Za-z0-9_+\-/]{1,64}$/.test(value) ? value : undefined;
 }
