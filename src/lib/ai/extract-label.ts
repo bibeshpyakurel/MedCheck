@@ -2,7 +2,7 @@
 import { generateText, Output } from "ai";
 import { z } from "zod";
 import type { BBox, EntryFields, Evidence, SourceDocument, SourceDocumentKind } from "@/lib/domain/schema";
-import { GEMINI_CALL, geminiModel } from "./model";
+import { withGemini } from "./model";
 import { buildEntryFields, cleanText } from "./raw-fields";
 
 // ---------------------------------------------------------------------------
@@ -127,21 +127,22 @@ export async function extractFromPhoto(
   kind: SourceDocumentKind,
   sourceDocumentId = "",
 ): Promise<ExtractionResult> {
-  const { output } = await generateText({
-    model: geminiModel(),
-    ...GEMINI_CALL,
-    instructions: INSTRUCTIONS,
-    output: Output.object({ schema: geminiLabelSchema }),
-    messages: [
-      {
-        role: "user",
-        content: [
-          { type: "text", text: `This photo is ${KIND_HINT[kind]}. Extract the values as printed.` },
-          { type: "file", mediaType, data: image },
-        ],
-      },
-    ],
-  });
+  const { output } = await withGemini((settings) =>
+    generateText({
+      ...settings,
+      instructions: INSTRUCTIONS,
+      output: Output.object({ schema: geminiLabelSchema }),
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: `This photo is ${KIND_HINT[kind]}. Extract the values as printed.` },
+            { type: "file", mediaType, data: image },
+          ],
+        },
+      ],
+    }),
+  );
   return {
     document: toDocumentDetails(output.document),
     medications: output.medications.map((m) => toEntryFields(m, sourceDocumentId)),
