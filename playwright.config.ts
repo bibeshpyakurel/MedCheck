@@ -8,7 +8,7 @@ const PORT = 3000;
 
 export default defineConfig({
   testDir: "./e2e",
-  // The demo flow talks to the real Supabase project; give each step room.
+  // The e2e flow talks to the real Supabase project; give each step room.
   timeout: 120_000,
   expect: { timeout: 15_000 },
   fullyParallel: false,
