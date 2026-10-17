@@ -13,10 +13,7 @@ export type ExtractionNotice = "ai-unavailable" | "ai-failed" | "nothing-found" 
 
 export type ExtractionOutcome = { entryIds: string[]; notice: ExtractionNotice | null };
 
-export async function extractIntoDrafts(
-  doc: SourceDocument,
-  opts: { formulationId: string | null },
-): Promise<ExtractionOutcome> {
+export async function extractIntoDrafts(doc: SourceDocument): Promise<ExtractionOutcome> {
   if (!doc.photoPath) throw new Error("Source document has no photo");
 
   let medications = [unknownEntryFields({ kind: "photo", sourceDocumentId: doc.id })];
@@ -42,14 +39,12 @@ export async function extractIntoDrafts(
   }
 
   const entryIds: string[] = [];
-  for (const [i, fields] of medications.entries()) {
-    // A barcode's catalog link belongs to the one product photographed (the first medication).
-    const formulationId = i === 0 ? opts.formulationId : null;
+  for (const fields of medications) {
     const entry = await createDraftEntry({
       patientId: doc.patientId,
       sourceDocumentId: doc.id,
-      formulationId,
-      inputMethod: formulationId ? "barcode" : "photo",
+      formulationId: null,
+      inputMethod: "photo",
       fields,
     });
     entryIds.push(entry.id);

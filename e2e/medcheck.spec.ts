@@ -1,7 +1,8 @@
 // The product end to end against the real app and Supabase: the three doors on the landing page, a
-// guest adding medicines (typed barcode and a photo), warnings, the report, Get help and leaving, and
-// an email sign-in. Gemini is off (see playwright.config.ts), so a photo's details all start unknown.
-import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+// guest adding medicines by photo (typing what the label says), warnings, the report, Get help and
+// leaving, and an email sign-in. Gemini is off (see playwright.config.ts), so a photo's details all
+// start unknown.
+import { expect, test, type Browser, type BrowserContext, type Page } from "@playwright/test";
 import { ALREADY_GAVE_BOTH_MESSAGE } from "../src/components/already-gave-both";
 import {
   adminClient,
@@ -9,9 +10,10 @@ import {
   deleteTestUsers,
   emailSignInCode,
   labelPhoto,
-  matchAllPending,
   publicClient,
   sessionUserId,
+  typeStrength,
+  typeText,
 } from "./support";
 
 const PHONE = { width: 375, height: 667 };
@@ -33,11 +35,29 @@ async function expectThreeDoors(page: Page) {
   await expect(page.getByRole("button", { name: "Continue as a guest" })).toBeVisible();
 }
 
+/** Two ways in, both photos; no barcode scanning. */
 async function expectCaptureOptions(page: Page) {
   await expect(page.getByRole("heading", { level: 1, name: "Add a medicine" })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Scan a barcode/ })).toBeVisible();
   await expect(page.locator("label", { hasText: "Take a photo" }).locator("input[type=file]")).toHaveCount(1);
   await expect(page.locator("label", { hasText: "Choose a photo" }).locator("input[type=file]")).toHaveCount(1);
+  await expect(page.getByRole("main").locator("label:has(input[type=file])")).toHaveCount(2);
+  await expect(page.locator("body")).not.toContainText(/barcode|\bscan\b/i);
+}
+
+/** Choose a photo → Medicine package → review; types the label's details (Gemini is off) and confirms. */
+async function addMedicineByPhoto(page: Page, browser: Browser, base: string, name: string) {
+  await page.goto(`${base}/add`);
+  await page.locator("label", { hasText: "Choose a photo" }).locator("input[type=file]").setInputFiles(await labelPhoto(browser));
+  await page.waitForURL(/\/add\/photo\?source=library$/);
+  await page.getByRole("radio", { name: /Medicine package/ }).check();
+  await page.getByRole("button", { name: "Read this photo" }).click();
+  await page.waitForURL(/\/entries\/[0-9a-f-]{36}\/review(\?|$)/, { timeout: 60_000 });
+  await typeText(page, "Product name", name);
+  await typeText(page, "Form (liquid, caplet, tablet…)", "caplet");
+  await typeText(page, "Ingredient 1", "Acetaminophen");
+  await typeStrength(page, "Ingredient 1 strength", { amount: 500, perUnit: "caplet" });
+  await confirmMedicine(page);
+  await expect(page).toHaveURL(new RegExp(`${base}$`));
 }
 
 /** Opens a record tab ("Medicines" or "Medicine report") from the record navigation. */
@@ -134,32 +154,17 @@ test.describe("guest", () => {
     await expect(page.getByRole("heading", { name: "You haven't added any medicines yet" })).toBeVisible();
   });
 
-  test("two medicines by typed barcode share acetaminophen → a warning on the Medicines tab", async () => {
-    for (const [code, name] of [
-      ["50090-0005-00", /Tylenol Extra Strength/],
-      ["337000523025", /NyQuil Severe Cold & Flu/],
-    ] as const) {
-      await page.goto(`${base}/add`);
-      await page.getByRole("link", { name: /Scan a barcode/ }).click();
-      await page.waitForURL(/\/add\/scan$/);
-      await page.getByLabel(/type the NDC or barcode/).fill(code);
-      await page.getByRole("button", { name: "Look up" }).click();
-      await expect(page.getByText("Found in the database")).toBeVisible();
-      await expect(page.getByText(name).first()).toBeVisible();
-      await page.getByRole("button", { name: /Skip photo/ }).click();
-      await page.waitForURL(/\/review$/);
-      await matchAllPending(page);
-      await confirmMedicine(page);
-      await expect(page).toHaveURL(new RegExp(`${base}$`));
-    }
+  test("two medicines by photo share acetaminophen → a warning on the Medicines tab", async ({ browser }) => {
+    await addMedicineByPhoto(page, browser, base, "Extra Strength Pain Reliever");
+    await addMedicineByPhoto(page, browser, base, "Severe Cold & Flu");
 
     await expect(page.getByText("2 medicines on file")).toBeVisible();
     const warnings = page.getByRole("region", { name: /^Warnings/ });
     await expect(warnings.getByRole("heading", { name: /^Warnings \(1\)$/ })).toBeVisible();
     const overlap = warnings.getByRole("heading", { name: /both contain Acetaminophen$/ });
     await expect(overlap).toBeVisible();
-    await expect(overlap).toContainText("Tylenol Extra Strength (caplets)");
-    await expect(overlap).toContainText("NyQuil Severe Cold & Flu");
+    await expect(overlap).toContainText("Extra Strength Pain Reliever");
+    await expect(overlap).toContainText("Severe Cold & Flu");
 
     // The old checks list is gone: no Checks tab, no check counts, no pharmacist questions, never "safe".
     const main = page.getByRole("main");

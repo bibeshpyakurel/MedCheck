@@ -4,7 +4,7 @@ import childrens from "./__fixtures__/openfda-childrens-tylenol-160mg-5ml.json";
 import kit from "./__fixtures__/openfda-dayquil-nyquil-kit.json";
 import homeopathic from "./__fixtures__/openfda-homeopathic.json";
 import nyquil from "./__fixtures__/openfda-nyquil-37000-523-02.json";
-import { labelToFormulation, ndcSearchQuery, sanitizeDosageTable, type OpenFdaLabel } from "./openfda";
+import { labelToFormulation, sanitizeDosageTable, type OpenFdaLabel } from "./openfda";
 
 const NYQUIL = nyquil as OpenFdaLabel;
 const CHILDRENS = childrens as OpenFdaLabel;
@@ -162,20 +162,5 @@ describe("sanitizeDosageTable", () => {
       "<table><tr><td><paragraph>take 2 caplets every 6 hours</paragraph><paragraph>do not take more than 6 caplets in 24 hours</paragraph></td></tr></table>",
     );
     expect(html).toContain("take 2 caplets every 6 hours<br>do not take more than 6 caplets in 24 hours");
-  });
-});
-
-describe("ndcSearchQuery", () => {
-  it("ORs every hyphenated candidate against openfda.package_ndc", () => {
-    expect(ndcSearchQuery(["3700-0523-02", "37000-523-02"])).toBe(
-      'openfda.package_ndc:"3700-0523-02" OR openfda.package_ndc:"37000-523-02"',
-    );
-  });
-
-  it("also searches openfda.upc for a scanned UPC", () => {
-    expect(ndcSearchQuery(["0045-0449-10"], "0300450449108")).toBe(
-      'openfda.package_ndc:"0045-0449-10" OR openfda.upc:"0300450449108"',
-    );
-    expect(ndcSearchQuery([], "0036000291452")).toBe('openfda.upc:"0036000291452"');
   });
 });

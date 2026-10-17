@@ -11,7 +11,7 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export const metadata: Metadata = {
   title: { default: "MedCheck", template: "%s · MedCheck" },
   description:
-    "Scan or photograph your medicines, see what their labels share, and share a simple report. Evidence, not advice.",
+    "Photograph your medicines, see what their labels share, and share a simple report. Evidence, not advice.",
 };
 
 export const viewport: Viewport = {

@@ -48,12 +48,3 @@ export async function getFormulationsByIds(ids: string[]): Promise<Record<string
   if (error) throw error;
   return Object.fromEntries(data.map((row) => [row.id, rowToFormulation(row)]));
 }
-
-/** Catalog lookup by any of the given 11-digit NDCs (no hyphens). */
-export async function findFormulationByNdc11(candidates: string[]): Promise<Formulation | null> {
-  if (candidates.length === 0) return null;
-  const supabase = await createClient();
-  const { data, error } = await supabase.from("formulations").select("*").overlaps("ndc_packages", candidates).limit(1);
-  if (error) throw error;
-  return data[0] ? rowToFormulation(data[0]) : null;
-}

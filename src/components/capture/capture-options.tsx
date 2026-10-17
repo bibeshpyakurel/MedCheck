@@ -1,7 +1,6 @@
 "use client";
 
-import { CameraIcon, ImageIcon, LoaderCircleIcon, ScanBarcodeIcon, type LucideIcon } from "lucide-react";
-import Link from "next/link";
+import { CameraIcon, ImageIcon, LoaderCircleIcon, type LucideIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useEffectEvent, useRef, useState, useTransition, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
@@ -10,13 +9,13 @@ import { setPendingPhoto } from "./pending-photo";
 export type PhotoSource = "camera" | "library";
 
 const tileClass =
-  "group flex h-full min-h-20 w-full cursor-pointer items-center gap-4 rounded-2xl border bg-card p-4 text-left shadow-xs transition-[border-color,box-shadow] hover:border-primary/40 hover:shadow-md sm:min-h-44 sm:flex-col sm:items-start sm:gap-5 sm:p-6";
+  "group flex h-full min-h-28 w-full cursor-pointer items-center gap-4 rounded-2xl border bg-card p-5 text-left shadow-xs transition-[border-color,box-shadow] hover:border-primary/40 hover:shadow-md sm:min-h-44 sm:flex-col sm:items-start sm:gap-5 sm:p-6";
 
 function TileBody({ icon: Icon, title, detail, busy }: { icon: LucideIcon; title: string; detail: string; busy?: boolean }) {
   return (
     <>
-      <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-accent text-accent-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground sm:size-14">
-        {busy ? <LoaderCircleIcon aria-hidden className="size-6 animate-spin" /> : <Icon aria-hidden className="size-6 sm:size-7" />}
+      <span className="grid size-14 shrink-0 place-items-center rounded-xl bg-accent text-accent-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+        {busy ? <LoaderCircleIcon aria-hidden className="size-7 animate-spin" /> : <Icon aria-hidden className="size-7" />}
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-lg font-semibold">{title}</span>
@@ -27,8 +26,8 @@ function TileBody({ icon: Icon, title, detail, busy }: { icon: LucideIcon; title
 }
 
 /**
- * The three ways in: scan a barcode, take a photo (opens the camera), choose a photo (opens the
- * library). A picked photo goes to `{base}/photo?source=camera|library`, already loaded.
+ * The two ways in: take a photo (opens the camera) or choose a photo (opens the library). A picked
+ * photo goes to `{base}/photo?source=camera|library`, already loaded.
  */
 export function CaptureOptions({ base }: { base: string }) {
   const router = useRouter();
@@ -74,12 +73,7 @@ export function CaptureOptions({ base }: { base: string }) {
 
   return (
     <>
-      <ul className="grid gap-3 sm:grid-cols-3 sm:gap-4">
-        <li>
-          <Link href={`${base}/scan`} className={cn(tileClass, "focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none")}>
-            <TileBody icon={ScanBarcodeIcon} title="Scan a barcode" detail="On the medicine package." />
-          </Link>
-        </li>
+      <ul className="grid gap-3 sm:grid-cols-2 sm:gap-4">
         <li>{photoTile("camera", CameraIcon, "Take a photo", "Opens your camera.")}</li>
         <li>{photoTile("library", ImageIcon, "Choose a photo", "From your photo library.")}</li>
       </ul>

@@ -17,16 +17,25 @@ export async function reviewRow(page: Page, label: string): Promise<Locator> {
   return row;
 }
 
-/** Taps "Matches the label" on every value still waiting, one by one — never in bulk. */
-export async function matchAllPending(page: Page) {
-  // The URL changes while the loading skeleton is still up; count rows only once the form is there.
-  await page.getByRole("button", { name: "Confirm medicine" }).waitFor();
-  const closed = page.locator("section h2 > button[aria-expanded=false]");
-  while ((await closed.count()) > 0) await closed.first().click();
-  const pending = page.locator("div[data-state=pending]");
-  while ((await pending.count()) > 0) {
-    await pending.first().getByRole("button", { name: /^Matches/ }).click();
-  }
+/** Types a value on the review screen with "Change it", as printed on the label. */
+export async function typeText(page: Page, label: string, value: string) {
+  const row = await reviewRow(page, label);
+  await row.getByRole("button", { name: "Change it" }).click();
+  await row.locator("input, textarea").first().fill(value);
+  await row.getByRole("button", { name: "Save" }).click();
+  await expect(row).toHaveAttribute("data-state", "edited");
+}
+
+/** Types a strength in mg ("500 mg per caplet": `{ amount: 500, perUnit: "caplet" }`). */
+export async function typeStrength(page: Page, label: string, s: { amount: number; perAmount?: number; perUnit: string }) {
+  const row = await reviewRow(page, label);
+  await row.getByRole("button", { name: "Change it" }).click();
+  await row.getByLabel("Amount", { exact: true }).fill(String(s.amount));
+  await row.getByLabel("Unit", { exact: true }).selectOption("mg");
+  await row.getByLabel("Per amount (leave empty for 'each')").fill(s.perAmount ? String(s.perAmount) : "");
+  await row.getByLabel("Per unit").fill(s.perUnit);
+  await row.getByRole("button", { name: "Save" }).click();
+  await expect(row).toHaveAttribute("data-state", "edited");
 }
 
 export async function confirmMedicine(page: Page) {

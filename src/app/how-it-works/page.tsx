@@ -1,4 +1,4 @@
-import { ClipboardCheckIcon, PillIcon, ScanLineIcon, Share2Icon } from "lucide-react";
+import { CameraIcon, ClipboardCheckIcon, PillIcon, Share2Icon } from "lucide-react";
 import type { Metadata } from "next";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
@@ -7,9 +7,9 @@ export const metadata: Metadata = { title: "How MedCheck works" };
 
 const STEPS = [
   {
-    icon: ScanLineIcon,
+    icon: CameraIcon,
     title: "Add a medicine",
-    body: "Scan its barcode, or take or choose a photo of the label.",
+    body: "Take or choose a photo of the label.",
   },
   {
     icon: ClipboardCheckIcon,
