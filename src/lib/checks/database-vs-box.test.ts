@@ -19,6 +19,7 @@ describe("database vs box", () => {
     expect(run.status).toBe("finding");
     const f = run.findings[0];
     expect(f.id).toBe("database_vs_box:e-nyquil-differs:photo");
+    expect(f.title).toMatch(/^The package doesn't match the medicine listing: /);
     expect(f.detail).toContain("325 mg per caplet");
     expect(f.detail).toContain("500 mg per caplet");
     expect(f.evidence.map((e) => e.evidence.kind)).toEqual(["database", "crop"]);
@@ -46,7 +47,7 @@ describe("database vs box", () => {
   it("is no_finding when the photo matches the catalog", () => {
     const run = checkDatabaseVsBox(input(nyquilBarcode));
     expect(run.status).toBe("no_finding");
-    expect(run.summary).toBe("No differences between the database label and the box found in confirmed fields");
+    expect(run.summary).toBe("No differences between the medicine listing and the package found in confirmed fields");
   });
 
   it("is unresolved when there is only database evidence", () => {

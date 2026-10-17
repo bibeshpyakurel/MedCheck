@@ -1,6 +1,6 @@
 "use client";
 
-import { CameraIcon, ListIcon, RotateCcwIcon } from "lucide-react";
+import { ArrowLeftIcon, CameraIcon, ListIcon, RotateCcwIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { BarcodeScanner } from "@/components/capture/barcode-scanner";
@@ -33,13 +33,30 @@ export function ScanFlow({ patientId }: { patientId: string }) {
     }
   }
 
+  // The last code tried stays in the typed-number box, so a mistyped number can be fixed rather than retyped.
+  const [lastCode, setLastCode] = useState("");
   const scanAgain = (
     <Button variant="ghost" className="h-11 w-full text-base" onClick={() => setState({ step: "scanning" })}>
-      <RotateCcwIcon aria-hidden /> Scan a different barcode
+      <RotateCcwIcon aria-hidden /> Scan or type a different number
+    </Button>
+  );
+  const otherWay = (
+    <Button variant="ghost" className="h-11 w-full text-base" nativeButton={false} render={<Link href={base} />}>
+      <ArrowLeftIcon aria-hidden /> Choose another way
     </Button>
   );
 
-  if (state.step === "scanning") return <BarcodeScanner onDetected={lookUp} />;
+  if (state.step === "scanning") {
+    return (
+      <BarcodeScanner
+        initialCode={lastCode}
+        onDetected={(code) => {
+          setLastCode(code);
+          void lookUp(code);
+        }}
+      />
+    );
+  }
 
   if (state.step === "looking-up") {
     return (
@@ -76,8 +93,8 @@ export function ScanFlow({ patientId }: { patientId: string }) {
 
         <div className="space-y-2.5">
           <p className="rounded-xl bg-surface p-3 text-sm text-muted-foreground ring-1 ring-border">
-            Database labels can differ from the box in your hand. Photograph the Drug Facts panel so MedCheck can
-            compare them.
+            The label on file can differ from the box in your hand. Photograph the Drug Facts panel — the box of
+            ingredients, uses and directions on the back — so MedCheck can compare them.
           </p>
           <Button
             className="h-11 w-full text-base"
@@ -91,7 +108,7 @@ export function ScanFlow({ patientId }: { patientId: string }) {
             <input type="hidden" name="formulationId" value={f.id} />
             <input type="hidden" name="method" value="barcode" />
             <Button type="submit" variant="outline" className="h-11 w-full text-base">
-              Skip photo — review the database label
+              Skip photo — check the medicine listing
             </Button>
           </form>
           {scanAgain}
@@ -104,7 +121,7 @@ export function ScanFlow({ patientId }: { patientId: string }) {
     <div className="space-y-4">
       <div role="status" className="rounded-2xl border bg-card p-5 shadow-xs">
         <p className="font-medium">
-          {state.step === "not-found" ? "Not in our supported list" : "Couldn't look that up right now"}
+          {state.step === "not-found" ? "Not in the MedCheck medicine list" : "Couldn't look that up right now"}
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
           {state.step === "not-found"
@@ -115,7 +132,7 @@ export function ScanFlow({ patientId }: { patientId: string }) {
       </div>
       {state.step === "error" && (
         <Button variant="outline" className="h-11 w-full text-base" onClick={() => lookUp(state.code)}>
-          <RotateCcwIcon aria-hidden /> Try the lookup again
+          <RotateCcwIcon aria-hidden /> Try again
         </Button>
       )}
       <Button
@@ -126,9 +143,10 @@ export function ScanFlow({ patientId }: { patientId: string }) {
         <CameraIcon aria-hidden /> Photograph the label
       </Button>
       <Button variant="outline" className="h-11 w-full text-base" nativeButton={false} render={<Link href={`${base}/pick`} />}>
-        <ListIcon aria-hidden /> Pick from the supported list
+        <ListIcon aria-hidden /> Choose from the medicine list
       </Button>
       {scanAgain}
+      {otherWay}
     </div>
   );
 }

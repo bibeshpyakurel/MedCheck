@@ -38,7 +38,7 @@ export function checkDatabaseVsBox({ entries, formulations }: CheckInput): Check
     const label = labelOf(entry);
     const formulation = entry.formulationId ? formulations[entry.formulationId] : undefined;
     if (!formulation) {
-      reasons.push(`Database label not available for ${label}`);
+      reasons.push(`Medicine listing not available for ${label}`);
       continue;
     }
     if (!hasPhotoEvidence(entry)) {
@@ -86,8 +86,8 @@ export function checkDatabaseVsBox({ entries, formulations }: CheckInput): Check
         diffs.push({
           line:
             from === "entered"
-              ? `For the Drug Facts photo, you entered ${photoText}, which the database label doesn't list`
-              : `The Drug Facts photo shows ${photoText}, which the database label doesn't list`,
+              ? `For the Drug Facts photo, you entered ${photoText}, which the medicine listing doesn't list`
+              : `The Drug Facts photo shows ${photoText}, which the medicine listing doesn't list`,
           catalog: `no ${name}`,
           photo: photoText,
           photoFrom: from,
@@ -104,8 +104,8 @@ export function checkDatabaseVsBox({ entries, formulations }: CheckInput): Check
       diffs.push({
         line:
           from === "entered"
-            ? `The database label lists ${catalogText(ci)}; you entered ${photoText} for the Drug Facts photo`
-            : `The database label lists ${catalogText(ci)}; the Drug Facts photo you confirmed shows ${photoText}`,
+            ? `The medicine listing lists ${catalogText(ci)}; you entered ${photoText} for the Drug Facts photo`
+            : `The medicine listing lists ${catalogText(ci)}; the Drug Facts photo you confirmed shows ${photoText}`,
         catalog: catalogText(ci),
         photo: photoText,
         photoFrom: from,
@@ -122,7 +122,7 @@ export function checkDatabaseVsBox({ entries, formulations }: CheckInput): Check
         if (matched.has(ci)) return;
         const name = displayIngredientName(c.name);
         diffs.push({
-          line: `The database label lists ${catalogText(ci)}, which isn't among the values you confirmed from the photo`,
+          line: `The medicine listing lists ${catalogText(ci)}, which isn't among the values you confirmed from the photo`,
           catalog: catalogText(ci),
           photo: `no ${name}`,
           evidence: [db(catalogText(ci), `catalog.activeIngredients[${ci}]`)],
@@ -136,7 +136,7 @@ export function checkDatabaseVsBox({ entries, formulations }: CheckInput): Check
         check: "database_vs_box",
         discriminator: "photo",
         entryIds: [entry.id],
-        title: `The box doesn't match the database label: ${label}`,
+        title: `The package doesn't match the medicine listing: ${label}`,
         detail: `The barcode matched "${formulation.brandName}" in the database. ${diffs.map((d) => d.line).join(". ")}. MedCheck doesn't decide which is right.`,
         evidence: diffs.flatMap((d) => d.evidence),
         labelWarningQuote: null,
@@ -149,8 +149,8 @@ export function checkDatabaseVsBox({ entries, formulations }: CheckInput): Check
     findings,
     reasons,
     compared,
-    found: (n) => `Found ${n === 1 ? "1 box that differs" : `${n} boxes that differ`} from the database label`,
-    noFinding: "No differences between the database label and the box found in confirmed fields",
-    notApplicable: "No barcode-scanned medicines on file",
+    found: (n) => `Found ${n === 1 ? "1 package that differs" : `${n} packages that differ`} from the medicine listing`,
+    noFinding: "No differences between the medicine listing and the package found in confirmed fields",
+    notApplicable: "No scanned medicine to compare with its listing",
   });
 }

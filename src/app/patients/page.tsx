@@ -28,7 +28,7 @@ export default async function PatientsPage() {
         <PageHeader
           eyebrow={caregiver?.displayName ? `Signed in as ${caregiver.displayName}` : undefined}
           title="Whose medicines?"
-          description="Each person has their own record: medicines, the checks MedCheck runs on them, and a pharmacist report."
+          description="Each person has a separate medicine list."
           actions={
             <Button size="lg" className="h-11 px-4" nativeButton={false} render={<Link href="/patients/new" />}>
               <PlusIcon aria-hidden /> Add a person
@@ -61,7 +61,7 @@ export default async function PatientsPage() {
                       {p.isDemo ? <DemoBadge /> : null}
                     </span>
                     <span className="mt-0.5 block truncate text-sm text-muted-foreground">
-                      {personDetails(p) || "Medicines, checks and report"}
+                      {personDetails(p) || "Medicines, checks and pharmacist report"}
                     </span>
                   </span>
                   <ArrowRightIcon
@@ -74,16 +74,20 @@ export default async function PatientsPage() {
           </ul>
         )}
 
-        <div className="mt-10 flex flex-col gap-4 rounded-2xl border bg-surface p-5 sm:flex-row sm:items-center sm:justify-between">
+        {/* Demo utilities sit apart from routine navigation; reset asks before replacing anything. */}
+        <section aria-labelledby="demo-tools" className="mt-12 flex flex-col gap-4 border-t pt-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-card text-muted-foreground ring-1 ring-border">
-              <FlaskConicalIcon aria-hidden className="size-4" />
-            </span>
-            <p className="text-sm text-muted-foreground">
-              {hasDemo
-                ? "Changed the demo household? Put it back the way it started."
-                : "Want to look around first? Add a synthetic demo household."}
-            </p>
+            <FlaskConicalIcon aria-hidden className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+            <div>
+              <h2 id="demo-tools" className="text-sm font-semibold">
+                Demo tools
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {hasDemo
+                  ? "Changed the demo household? Put it back the way it started."
+                  : "Want to look around first? Add a demo household with made-up information."}
+              </p>
+            </div>
           </div>
           {hasDemo ? (
             <ResetDemoButton variant="outline" className="h-11 w-full px-4 sm:w-auto">
@@ -96,7 +100,7 @@ export default async function PatientsPage() {
               </SubmitButton>
             </form>
           )}
-        </div>
+        </section>
       </div>
     </AppShell>
   );

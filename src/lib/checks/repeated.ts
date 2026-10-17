@@ -32,7 +32,7 @@ export function checkRepeatedRecord({ entries }: CheckInput): CheckRun {
         check: "repeated_record",
         discriminator: "product",
         entryIds: group.map((e) => e.id),
-        title: `${name} is recorded ${group.length} times`,
+        title: `${name} is listed ${group.length === 2 ? "twice" : `${group.length} times`}`,
         detail: `These ${group.length} records have ${how}, so they look like one product entered more than once. It is counted once when checking for shared ingredients.`,
         evidence: group.map((e) =>
           evidenceItem(e, "productName", `${labelOf(e)}, from ${sourceLabel(e)}`, e.fields.productName.evidence),
@@ -48,6 +48,6 @@ export function checkRepeatedRecord({ entries }: CheckInput): CheckRun {
     compared: entries.length >= 2,
     found: (n) => `Found ${plural(n, "medicine", "medicines")} recorded more than once`,
     noFinding: "No repeated medicines found in confirmed fields",
-    notApplicable: "Fewer than two medicines on file",
+    notApplicable: "No two medicines to compare",
   });
 }

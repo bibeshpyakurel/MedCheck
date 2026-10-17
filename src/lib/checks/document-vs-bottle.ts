@@ -131,6 +131,6 @@ export function checkDocumentVsBottle({ entries }: CheckInput): CheckRun {
     compared,
     found: (n) => `Found ${plural(n, "disagreement", "disagreements")} between documents`,
     noFinding: "No disagreements between documents found in confirmed fields",
-    notApplicable: "The same medicine isn't on two kinds of document (prescription, discharge list, bottle)",
+    notApplicable: "No medicine is on two kinds of document (prescription, discharge list, bottle) to compare",
   });
 }

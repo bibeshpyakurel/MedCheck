@@ -20,7 +20,9 @@ describe("ingredient overlap", () => {
     expect(run.status).toBe("finding");
     expect(run.findings).toHaveLength(1);
     const f = run.findings[0];
-    expect(f.title).toContain("Acetaminophen");
+    // The headline states the meaning; the detail gives each product's exact text, once.
+    expect(f.title).toBe("Two medicines list Acetaminophen");
+    expect(f.detail).not.toContain("as an active ingredient");
     expect(f.detail).toContain("NyQuil Cold & Flu Nighttime Relief");
     expect(f.detail).toContain("Calmora Fever Relief (Bottle A)");
     // the label text for each product

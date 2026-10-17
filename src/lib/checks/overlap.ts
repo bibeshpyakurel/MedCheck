@@ -8,10 +8,10 @@ import { overlapQuestion } from "./questions";
 import {
   buildRun,
   capitalize,
+  countWord,
   displayIngredientName,
   evidenceItem,
   ingredientProblem,
-  joinList,
   labelOf,
   makeFinding,
   plural,
@@ -78,8 +78,8 @@ export function checkIngredientOverlap({ entries, formulations }: CheckInput): C
         check: "ingredient_overlap",
         discriminator: ingredient,
         entryIds: hits.map((h) => h.entry.id),
-        title: `${capitalize(shown)} is in ${plural(hits.length, "medicine", "medicines")}`,
-        detail: `${joinList(names)} ${hits.length === 2 ? "both" : "all"} list ${shown} as an active ingredient. ${lines.join(". ")}.`,
+        title: `${capitalize(countWord(hits.length))} medicines list ${shown}`,
+        detail: `${lines.join(". ")}.`,
         evidence: hits.map((h) =>
           evidenceItem(h.entry, `ingredients[${h.ing.index}].name`, labelText(h.ing), h.entry.fields.ingredients[h.ing.index].name.evidence),
         ),
@@ -99,6 +99,6 @@ export function checkIngredientOverlap({ entries, formulations }: CheckInput): C
     compared: entries.length >= 2,
     found: (n) => `Found ${plural(n, "shared active ingredient", "shared active ingredients")}`,
     noFinding: "No shared active ingredients found in confirmed fields",
-    notApplicable: "Fewer than two different medicines on file",
+    notApplicable: "No two different medicines to compare",
   });
 }

@@ -21,6 +21,7 @@ describe("units", () => {
     expect(run.status).toBe("finding");
     const f = run.findings[0];
     expect(f.id).toBe("units:e-rx:volume_units");
+    expect(f.title).toMatch(/^The amount and strength use different units: /);
     expect(f.detail).toContain("2 tsp");
     expect(f.detail).toContain("160 mg per 5 mL");
     expect(f.evidence.map((e) => e.field)).toEqual(["doseAsWritten", "ingredients[0].strength"]);

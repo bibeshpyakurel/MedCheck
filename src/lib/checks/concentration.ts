@@ -6,7 +6,6 @@ import type { CheckInput, CheckRun, Finding, MedicationEntry, Strength } from "@
 import { strengthQuestion, type Side, uniqueSides } from "./questions";
 import {
   buildRun,
-  capitalize,
   displayIngredientName,
   evidenceItem,
   formFamily,
@@ -79,7 +78,7 @@ export function checkConcentration({ entries }: CheckInput): CheckRun {
         check: "concentration",
         discriminator: ingredient,
         entryIds: k.map((x) => x.entry.id),
-        title: `${capitalize(shown)} liquids with different strengths`,
+        title: `These liquids have different strengths of ${shown}`,
         detail: `The same volume holds different amounts of ${ingredient} in these liquids. ${asPrinted}: ${lines.join("; ")}.`,
         evidence: k.map((x) =>
           evidenceItem(
@@ -104,6 +103,6 @@ export function checkConcentration({ entries }: CheckInput): CheckRun {
     compared,
     found: (n) => `Found ${plural(n, "ingredient", "ingredients")} in liquids with different strengths`,
     noFinding: "No differing liquid strengths found in confirmed fields",
-    notApplicable: "Fewer than two liquids with the same ingredient on file",
+    notApplicable: "No two liquids with the same ingredient to compare",
   });
 }
