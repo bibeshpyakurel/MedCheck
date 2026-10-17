@@ -8,7 +8,7 @@ const PORT = 3000;
 
 export default defineConfig({
   testDir: "./e2e",
-  // The e2e flow talks to the real Supabase project; give each step room.
+  // The e2e tests talk to the real Supabase project; give each step room.
   timeout: 120_000,
   expect: { timeout: 15_000 },
   fullyParallel: false,
@@ -32,8 +32,8 @@ export default defineConfig({
     url: `http://localhost:${PORT}`,
     timeout: 300_000,
     reuseExistingServer: !process.env.CI,
-    // No Gemini: photos start with every field unknown and the test types the values, as a user would.
-    // Without this a local key would add extra drafts (e.g. the discharge list's second medicine).
+    // No Gemini: a photo's details all start unknown, so the photo test doesn't depend on what the model reads.
+    // No Resend: the report page offers "Send by email" through the user's own email app.
     env: { GOOGLE_GENERATIVE_AI_API_KEY: "", RESEND_API_KEY: "" },
   },
 });

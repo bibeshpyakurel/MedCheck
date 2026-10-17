@@ -31,7 +31,7 @@ jobs:
       - run: npm run build
 
   e2e:
-    # The demo flow (e2e/demo-flow.spec.ts) against the real Supabase project. Secrets can't be read
+    # e2e/medcheck.spec.ts against the real Supabase project. Secrets can't be read
     # in a job-level `if`, so they come in through env and every step is gated on them: without the
     # secrets (e.g. pull requests from forks) the job passes with a notice and runs nothing.
     runs-on: ubuntu-latest
@@ -39,7 +39,8 @@ jobs:
     env:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
-      # Optional: lets the test delete the anonymous users it creates (otherwise only their data).
+      # Optional: runs the email sign-in test and deletes the users the tests create (without it the
+      # email test is skipped and the guest tests' anonymous users are left behind).
       SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
     steps:
       - id: gate
