@@ -1,6 +1,6 @@
 "use client";
 
-import { CameraIcon, ImageIcon, LoaderCircleIcon } from "lucide-react";
+import { CameraIcon, ImageIcon, ImageUpIcon, LoaderCircleIcon } from "lucide-react";
 import { useEffect, useRef, useState, useTransition, type ReactNode } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -99,15 +99,20 @@ export function PhotoCapture({
       <div className="space-y-3">
         {previewUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- local object URL preview
-          <img src={previewUrl} alt="Your photo" className="max-h-80 w-full rounded-xl border bg-muted object-contain" />
+          <img src={previewUrl} alt="Your photo" className="max-h-80 w-full rounded-2xl border bg-muted object-contain shadow-xs" />
         ) : (
-          <div className="grid h-40 place-items-center rounded-xl border border-dashed bg-muted/40 text-sm text-muted-foreground">
-            No photo yet
+          <div className="grid h-48 place-items-center rounded-2xl border-2 border-dashed bg-surface text-sm text-muted-foreground">
+            <span className="flex flex-col items-center gap-2">
+              <span className="grid size-11 place-items-center rounded-xl bg-card ring-1 ring-border">
+                <ImageUpIcon aria-hidden className="size-5" />
+              </span>
+              No photo yet
+            </span>
           </div>
         )}
 
         <div className="grid gap-2 sm:grid-cols-2">
-          <label className="inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-lg border bg-background px-4 text-base font-medium hover:bg-muted has-focus-visible:ring-3 has-focus-visible:ring-ring/50">
+          <label className="inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-lg border bg-card px-4 text-base font-medium shadow-xs transition-colors hover:border-input hover:bg-muted/70 has-focus-visible:ring-3 has-focus-visible:ring-ring/50">
             <CameraIcon aria-hidden className="size-5" />
             {photo ? "Retake photo" : "Take photo"}
             <input
@@ -120,7 +125,7 @@ export function PhotoCapture({
               onChange={(e) => onFile(e.target.files?.[0])}
             />
           </label>
-          <label className="inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-lg border bg-background px-4 text-base font-medium hover:bg-muted has-focus-visible:ring-3 has-focus-visible:ring-ring/50">
+          <label className="inline-flex h-12 cursor-pointer items-center justify-center gap-2 rounded-lg border bg-card px-4 text-base font-medium shadow-xs transition-colors hover:border-input hover:bg-muted/70 has-focus-visible:ring-3 has-focus-visible:ring-ring/50">
             <ImageIcon aria-hidden className="size-5" />
             Choose from photos
             <input

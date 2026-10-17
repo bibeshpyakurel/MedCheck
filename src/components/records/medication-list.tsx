@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRightIcon, FileTextIcon, SearchIcon, XIcon } from "lucide-react";
+import { ChevronRightIcon, DatabaseIcon, FileTextIcon, PillIcon, SearchIcon, XIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
@@ -19,14 +19,14 @@ export function MedicationList({ patientId, entries }: { patientId: string; entr
     <div className="space-y-4">
       {entries.length > 1 ? (
         <div className="relative">
-          <SearchIcon aria-hidden className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <SearchIcon aria-hidden className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search medicines, ingredients, pharmacy…"
             aria-label="Search medicines"
-            className="h-11 pr-10 pl-9 text-base"
+            className="h-11 pr-10 pl-10 text-base"
           />
           {query ? (
             <button
@@ -42,7 +42,7 @@ export function MedicationList({ patientId, entries }: { patientId: string; entr
       ) : null}
 
       {query && visible.length === 0 ? (
-        <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+        <p className="rounded-2xl border border-dashed bg-card/50 p-8 text-center text-sm text-muted-foreground">
           No medicines match &ldquo;{query}&rdquo;.
         </p>
       ) : null}
@@ -53,7 +53,7 @@ export function MedicationList({ patientId, entries }: { patientId: string; entr
       ) : null}
 
       {groups.map((g) => (
-        <section key={g.key} className="overflow-hidden rounded-xl border bg-card">
+        <section key={g.key} className="overflow-hidden rounded-2xl border bg-card shadow-xs">
           <SourceHeader document={g.document} />
           <ul className="divide-y">
             {g.entries.map((e) => (
@@ -74,9 +74,11 @@ function SourceHeader({ document }: { document: SourceDocument | null }) {
     : [];
   const date = formatDocDate(document?.documentDate ?? null);
   return (
-    <header className="flex items-start gap-3 border-b bg-muted/50 px-4 py-3">
-      <FileTextIcon aria-hidden className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-      <div className="min-w-0 text-sm">
+    <header className="flex items-start gap-3 border-b bg-surface px-4 py-3">
+      <span className="grid size-7 shrink-0 place-items-center rounded-md bg-card text-muted-foreground ring-1 ring-border">
+        {document ? <FileTextIcon aria-hidden className="size-3.5" /> : <DatabaseIcon aria-hidden className="size-3.5" />}
+      </span>
+      <div className="min-w-0 self-center text-sm">
         <p className="font-medium">
           {document ? DOCUMENT_KIND_LABELS[document.kind] : "Label in the MedCheck catalog"}
           {date ? <span className="font-normal text-muted-foreground"> · {date}</span> : null}
@@ -94,16 +96,19 @@ function MedicineRow({ patientId, entry }: { patientId: string; entry: Medicatio
   return (
     <Link
       href={`/patients/${patientId}/entries/${entry.id}`}
-      className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:outline-none"
+      className="group flex items-center gap-4 px-4 py-4 transition-colors hover:bg-muted/50 focus-visible:bg-muted/60 focus-visible:outline-none"
     >
+      <span className="hidden size-10 shrink-0 place-items-center self-start rounded-xl bg-accent text-accent-foreground ring-1 ring-primary/10 sm:grid">
+        <PillIcon aria-hidden className="size-5" />
+      </span>
       <div className="min-w-0 flex-1">
-        <p className="font-medium text-pretty">{entryLabel(f)}</p>
+        <p className="font-semibold text-pretty">{entryLabel(f)}</p>
         {f.ingredients.length > 0 ? (
-          <ul className="mt-1 space-y-0.5 text-sm">
+          <ul className="mt-1.5 flex flex-wrap gap-1.5 text-sm">
             {f.ingredients.map((i, idx) => (
-              <li key={idx}>
-                <span>{i.name.value ?? "Ingredient unknown"}</span>{" "}
-                <span className="text-muted-foreground">
+              <li key={idx} className="inline-flex items-center gap-1.5 rounded-md bg-muted px-2 py-0.5 ring-1 ring-border/70">
+                <span className="font-medium">{i.name.value ?? "Ingredient unknown"}</span>{" "}
+                <span className="text-muted-foreground nums">
                   {i.strength.value ? formatStrength(i.strength.value) : "· strength unknown"}
                 </span>
               </li>
@@ -112,7 +117,7 @@ function MedicineRow({ patientId, entry }: { patientId: string; entry: Medicatio
         ) : (
           <p className="mt-1 text-sm text-muted-foreground">Ingredients unknown</p>
         )}
-        <p className="mt-1.5 flex flex-wrap gap-x-2 text-xs text-muted-foreground">
+        <p className="mt-2 flex flex-wrap gap-x-2 text-xs text-muted-foreground">
           {form ? <span className="capitalize">{form}</span> : null}
           {form ? <span aria-hidden>·</span> : null}
           <span>{INPUT_METHOD_LABELS[entry.inputMethod]}</span>
@@ -124,8 +129,8 @@ function MedicineRow({ patientId, entry }: { patientId: string; entry: Medicatio
           ) : null}
         </p>
       </div>
-      <span className="hidden text-sm text-primary sm:inline">View label</span>
-      <ChevronRightIcon aria-hidden className="size-5 shrink-0 text-muted-foreground" />
+      <span className="hidden text-sm font-medium text-primary sm:inline">View label</span>
+      <ChevronRightIcon aria-hidden className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
     </Link>
   );
 }
