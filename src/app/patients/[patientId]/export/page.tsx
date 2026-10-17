@@ -1,20 +1,29 @@
-import { SendIcon } from "lucide-react";
+import { ArrowRightIcon, ClockIcon, PlusIcon } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { RecordHeader } from "@/components/records/record-header";
-import { EmailDialog, EmailUnavailable } from "@/components/report/email-form";
-import { ReportPreview } from "@/components/report/report-preview";
-import { DownloadButton, ShareButton } from "@/components/report/share-button";
+import { EmailDialog } from "@/components/report/email-form";
+import { DownloadButton, EmailYourselfButton, PreviewButton, ShareButton } from "@/components/report/share-button";
+import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth";
 import { getPatient } from "@/lib/records";
-import { emailDraft } from "@/lib/report/build-report";
+import { emailDraft, NO_WARNINGS, type Report } from "@/lib/report/build-report";
 import { isEmailConfigured } from "@/lib/report/email-config";
 import { loadReport } from "@/lib/report/load-report";
 
-export const metadata: Metadata = { title: "Pharmacist report" };
+export const metadata: Metadata = { title: "Medicine report" };
+
+function contents(report: Report): string | null {
+  const n = report.medicines.length;
+  if (n === 0) return null;
+  const medicines = `${n} ${n === 1 ? "medicine" : "medicines"}`;
+  const w = report.warnings.length;
+  return w === 0 ? `${medicines}. ${NO_WARNINGS}` : `${medicines} · ${w} ${w === 1 ? "warning" : "warnings"}`;
+}
 
 export default async function ExportPage({ params }: PageProps<"/patients/[patientId]/export">) {
   const { patientId } = await params;
@@ -24,49 +33,58 @@ export default async function ExportPage({ params }: PageProps<"/patients/[patie
   if (!patient || !loaded) notFound();
   const { report } = loaded;
   const draft = emailDraft(report);
+  const share = { patientId, title: report.title, subject: draft.subject, body: draft.body };
   const configured = isEmailConfigured();
+  const summary = contents(report);
 
   return (
     <AppShell>
       <RecordHeader patient={patient} current="report" />
-      <div className="mx-auto max-w-4xl space-y-6">
-        <PageHeader
-          title="Pharmacist report"
-          description="Bring this to a pharmacist or doctor, or send it ahead. It shows what the labels and documents say and the questions to ask."
-        />
+      <div className="mx-auto max-w-2xl space-y-5">
+        <PageHeader title="Medicine report" description="A PDF of your medicines and any warnings." />
 
-        {/* The one place to share or save, in the page flow (never fixed over the footer or a focused field). */}
-        <section aria-labelledby="share-heading" className="rounded-2xl border bg-card p-4 sm:p-5">
-          <h2 id="share-heading" className="flex items-center gap-2 font-semibold">
-            <SendIcon aria-hidden className="size-4 text-primary" /> Share or save
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">A PDF with everything in the report below.</p>
-          <div className="mt-4 grid gap-2 sm:flex sm:flex-wrap">
-            <ShareButton
-              patientId={patientId}
-              title={report.title}
-              subject={draft.subject}
-              body={draft.body}
-              className="sm:w-40"
-            />
-            <DownloadButton patientId={patientId} className="w-full sm:w-auto sm:px-4" />
-            {configured ? (
-              <EmailDialog
-                patientId={patientId}
-                defaultSubject={draft.subject}
-                defaultBody={draft.body}
-                className="h-11 w-full text-base sm:w-auto sm:px-4"
-              />
-            ) : null}
-          </div>
-          {configured ? null : (
-            <div className="mt-3">
-              <EmailUnavailable />
+        {report.isEmpty ? (
+          <section aria-labelledby="empty-heading" className="rounded-2xl border bg-card p-5 text-center">
+            <h2 id="empty-heading" className="font-semibold">
+              You haven&apos;t added any medicines yet
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">Once you add one, it shows up in your report.</p>
+            <Button nativeButton={false} render={<Link href={`/patients/${patientId}/add`} />} className="mt-4 h-11 px-5 text-base">
+              <PlusIcon aria-hidden /> Add a medicine
+            </Button>
+          </section>
+        ) : null}
+
+        {summary ? <p className="text-sm text-muted-foreground">In this report: {summary}</p> : null}
+
+        {report.pendingNote ? (
+          <div className="flex gap-3 rounded-xl bg-unresolved-surface p-4 text-sm text-unresolved-foreground">
+            <ClockIcon aria-hidden className="mt-0.5 size-4 shrink-0" />
+            <div>
+              <p>{report.pendingNote}</p>
+              <Link
+                href={`/patients/${patientId}`}
+                className="-ml-1 mt-1 inline-flex min-h-11 items-center gap-1 rounded-md px-1 font-medium underline underline-offset-4 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+              >
+                Check {report.pendingCount === 1 ? "it" : "them"} now <ArrowRightIcon aria-hidden className="size-3.5" />
+              </Link>
             </div>
+          </div>
+        ) : null}
+
+        <section aria-label="Report actions" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <PreviewButton patientId={patientId} />
+          <DownloadButton patientId={patientId} />
+          <ShareButton {...share} />
+          {configured ? (
+            <EmailDialog patientId={patientId} defaultSubject={draft.subject} defaultBody={draft.body} />
+          ) : (
+            <EmailYourselfButton {...share} />
           )}
         </section>
-
-        <ReportPreview report={report} />
+        {configured ? null : (
+          <p className="text-sm text-muted-foreground">Send by email uses your own email app.</p>
+        )}
       </div>
     </AppShell>
   );

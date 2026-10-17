@@ -1,5 +1,5 @@
-// A realistic demo report (Sam, three medicines, three findings, one unresolved check) for the
-// PDF smoke test and for rendering a sample PDF by hand.
+// Realistic reports (Sam with three medicines and two warnings; an empty guest; a guest with only
+// unchecked medicines) for the PDF tests and for rendering sample PDFs by hand.
 import { FICTIONAL_FORMULATIONS } from "@/data/fictional-formulations";
 import type { CheckRun, EntryFields, Field, MedicationEntry, SourceDocument } from "@/lib/domain/schema";
 import { fieldsFromFormulation } from "@/lib/domain/fields";
@@ -116,27 +116,6 @@ export const sampleRuns: CheckRun[] = [
   },
   { check: "units", status: "no_finding", summary: "No unit mismatches found in confirmed fields", reasons: [], findings: [] },
   {
-    check: "document_vs_bottle",
-    status: "finding",
-    summary: "1 conflict between documents",
-    reasons: [],
-    findings: [
-      {
-        id: "document_vs_bottle:e1,e3:strength",
-        check: "document_vs_bottle",
-        title: "Discharge list and bottle disagree on strength",
-        detail: "The discharge list (Oct 16, 2026) says 160 mg per 5 mL. The bottle label says 100 mg per 5 mL.",
-        entryIds: ["e1", "e3"],
-        evidence: [
-          { entryId: "e3", entryLabel: "Acetaminophen 160 mg/5 mL oral suspension", field: "ingredients[0].strength", text: "160 mg per 5 mL", evidence: { kind: "photo", sourceDocumentId: "d3" }, documentKind: "discharge_list", documentDate: "2026-10-16" },
-          { entryId: "e1", entryLabel: "Calmora Fever Relief (Bottle A)", field: "ingredients[0].strength", text: "100 mg per 5 mL", evidence: { kind: "database", formulationId: "fA" }, documentKind: null, documentDate: null },
-        ],
-        labelWarningQuote: null,
-        pharmacistQuestion: "The discharge list says 160 mg per 5 mL but the bottle label says 100 mg per 5 mL. Which strength should I be using, and how much?",
-      },
-    ],
-  },
-  {
     check: "database_vs_box",
     status: "unresolved",
     summary: "Couldn't compare the catalog label with the box",
@@ -145,13 +124,28 @@ export const sampleRuns: CheckRun[] = [
   },
 ];
 
+const generatedAt = new Date("2026-10-17T19:05:00Z");
+const guest = { displayName: "Guest", relationship: "self" };
+
+/** Sam's report, with one more medicine still waiting to be checked. */
 export function sampleReport(): Report {
   return buildReport({
     caregiverName: "Alex Rivera",
-    patient: { id: "p1", displayName: "Sam", relationship: "son", notes: null, isDemo: true, createdAt: "2026-10-17T00:00:00Z" },
-    entries: sampleEntries,
+    patient: { displayName: "Sam", relationship: "son" },
+    entries: [...sampleEntries, { ...sampleEntries[0], id: "e4", status: "draft", confirmedAt: null }],
     runs: sampleRuns,
-    generatedAt: new Date("2026-10-17T19:05:00Z"),
+    generatedAt,
     timeZone: "America/Chicago",
   });
+}
+
+/** A guest who hasn't added anything yet. */
+export function emptyReport(): Report {
+  return buildReport({ caregiverName: null, patient: guest, entries: [], runs: [], generatedAt });
+}
+
+/** A guest with two medicines added, neither checked yet. */
+export function pendingOnlyReport(): Report {
+  const drafts = sampleEntries.slice(0, 2).map((e) => ({ ...e, status: "draft" as const, confirmedAt: null }));
+  return buildReport({ caregiverName: null, patient: guest, entries: drafts, runs: [], generatedAt });
 }
