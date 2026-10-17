@@ -3,6 +3,7 @@
 import { DownloadIcon, EyeIcon, Loader2Icon, MailIcon, Share2Icon, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { allowLeave } from "@/components/guest-leave-guard";
 import { Button } from "@/components/ui/button";
 import { cn } from "cn";
 import { useTimeZone } from "./local-time";
@@ -107,6 +108,7 @@ function ShareAction({
       const file = await fetchReportFile(reportPdfUrl(patientId, timeZone));
       if (navigator.canShare?.({ files: [file] })) return await share(file);
       saveFile(file);
+      allowLeave(2_000);
       window.location.assign(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
       setState({ kind: "mailto" });
     } catch (error) {
