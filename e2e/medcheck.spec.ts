@@ -609,23 +609,30 @@ test.describe("medicine package photo", () => {
     await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 
-  test("Know your drugs → Scan a barcode → the typed NDC finds its FDA label → Confirm → card", async () => {
+  test("Know your drugs → Scan a barcode → the typed NDC opens its medicine card → Save → My medicines", async () => {
+    const before = await medicinesOnFile(page, base);
     await page.goto(`${base}/add`);
     await expect(page.getByRole("heading", { level: 1, name: "Know your drugs" })).toBeVisible();
     await page.getByRole("link", { name: /Scan a barcode/ }).click();
     await page.waitForURL(/\/add\/scan$/);
     await expect(page.getByText("Step 1 of 3 · Scan")).toBeVisible();
 
-    // No camera in the test browser: the typed number is the scanner's fallback.
+    // The scanner opens at once; the test browser has no camera, so it closes and says so.
+    await expect(page.getByText("The camera didn't start.")).toBeVisible();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
     await page.getByLabel("Or type the NDC or barcode number").fill("NDC 50580-449-10");
     await page.getByRole("button", { name: "Look up" }).click();
-    const found = page.getByRole("region", { name: /Tylenol Extra Strength \(caplets\)/ });
-    await expect(found).toContainText("Acetaminophen 500 mg per caplet");
-    await expect(found).toContainText("Matches barcode NDC 50580-449-10");
 
-    await page.getByRole("button", { name: "Confirm" }).click();
-    await page.waitForURL(ENTRY_WITH_CARD);
-    await expect(page.getByRole("dialog", { name: "Tylenol Extra Strength (caplets)" })).toBeVisible();
+    // Straight to the medicine's card: no "Is this the medicine?" step.
+    await expect(page.getByRole("heading", { level: 1, name: "Tylenol Extra Strength (caplets)" })).toBeVisible();
+    const main = page.getByRole("main");
+    await expect(main).toContainText("Acetaminophen 500 mg per caplet");
+    await expect(main).toContainText("Matches barcode NDC 50580-449-10");
+    await expect(main.getByRole("tab", { name: "Quick View" })).toBeVisible();
+
+    await main.getByRole("button", { name: "Save to My medicines" }).click();
+    await page.waitForURL(new RegExp(`${base}$`));
+    await expect(page.getByText(new RegExp(`^${before + 1} medicines? on file`))).toBeVisible();
   });
 
   test("the type-in search never offers fictional demo products", async () => {
