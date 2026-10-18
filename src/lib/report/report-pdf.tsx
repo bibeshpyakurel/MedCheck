@@ -93,6 +93,11 @@ const s = StyleSheet.create({
   pending: { backgroundColor: c.violetSurface, borderRadius: 6, padding: 12 },
   pendingText: { fontSize: 10.5, lineHeight: 1.4 },
   bullet: { fontSize: 10, color: c.violet, marginTop: 3, lineHeight: 1.35 },
+  vitals: { backgroundColor: c.neutralSurface, borderRadius: 6, padding: 12 },
+  vitalRow: { flexDirection: "row", marginTop: 4 },
+  vitalValue: { flex: 1, fontSize: 10.5 },
+  vitalConfidence: { fontSize: 9, color: c.muted, paddingTop: 1 },
+  vitalNote: { marginTop: 8, fontSize: 9, color: c.muted, lineHeight: 1.35 },
   boundary: { marginTop: 24, fontSize: 9, color: c.muted },
   footer: {
     position: "absolute",
@@ -207,6 +212,29 @@ function NotYetConfirmed({ report }: { report: Report }) {
   );
 }
 
+/** The latest vitals scan, in neutral colours: numbers and confidence only, never a judgement. */
+function Vitals({ report }: { report: Report }) {
+  if (!report.vitals) return null;
+  return (
+    <Section
+      title="Vitals (estimate)"
+      items={[
+        <View key="vitals" style={s.vitals} wrap={false}>
+          <Text style={s.small}>Measured {report.vitals.measuredAtLabel}</Text>
+          {report.vitals.lines.map((l) => (
+            <View key={l.label} style={s.vitalRow}>
+              <Text style={s.dt}>{l.label}</Text>
+              <Text style={s.vitalValue}>{l.text}</Text>
+              <Text style={s.vitalConfidence}>{l.confidence}</Text>
+            </View>
+          ))}
+          <Text style={s.vitalNote}>{report.vitals.note}</Text>
+        </View>,
+      ]}
+    />
+  );
+}
+
 export function ReportDocument({ report }: { report: Report }) {
   const hasMedicines = report.medicines.length > 0;
   return (
@@ -262,6 +290,7 @@ export function ReportDocument({ report }: { report: Report }) {
             <NotYetConfirmed report={report} />
           </>
         )}
+        <Vitals report={report} />
 
         <Text style={s.boundary} wrap={false}>
           {report.boundary}

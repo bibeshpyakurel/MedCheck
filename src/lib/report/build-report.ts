@@ -12,6 +12,7 @@ import type {
 import { evidenceProvenance } from "@/lib/checks/evidence-source";
 import { entryLabel, formatDose, formatStrength, isUsable } from "@/lib/domain/fields";
 import type { Patient } from "@/lib/records";
+import { VITALS_NOTE, vitalLines, type SavedVitalReading, type VitalLine } from "@/lib/vitals";
 
 export const BOUNDARY_STATEMENT = "Evidence, not advice — this report shows what labels say; it doesn't recommend a dose.";
 
@@ -38,6 +39,13 @@ export type ReportMedicine = {
   source: string;
 };
 
+/** The person's latest vitals scan: numbers and confidence only, never a judgement. */
+export type ReportVitals = {
+  measuredAtLabel: string; // "Oct 18, 2026, 9:40 AM CDT", in the report's time zone
+  lines: VitalLine[];
+  note: string;
+};
+
 export type Report = {
   title: string; // "Medicine report for Sam", or "Medicine report" when there is no real name (a guest)
   personName: string | null;
@@ -51,7 +59,8 @@ export type Report = {
   pendingCount: number; // added but not confirmed yet
   pendingNote: string | null;
   notCompared: string[]; // details the checks couldn't use ("Strength unreadable on …")
-  isEmpty: boolean; // nothing added at all
+  isEmpty: boolean; // no medicines added at all (a vitals reading doesn't count)
+  vitals: ReportVitals | null; // the latest reading, if there is one
   boundary: string;
 };
 
@@ -84,6 +93,8 @@ export function buildReport(input: {
   generatedAt: Date;
   /** IANA zone for the generated date/time, e.g. "America/Chicago". Defaults to UTC. */
   timeZone?: string;
+  /** The person's latest vitals reading, if any. */
+  vitals?: SavedVitalReading | null;
 }): Report {
   const { patient, runs } = input;
   const timeZone = validTimeZone(input.timeZone);
@@ -104,15 +115,7 @@ export function buildReport(input: {
     generatedDate: new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(
       input.generatedAt,
     ),
-    generatedAtLabel: new Intl.DateTimeFormat("en-US", {
-      timeZone,
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      timeZoneName: "short",
-    }).format(input.generatedAt),
+    generatedAtLabel: dateTimeLabel(input.generatedAt, timeZone),
     medicines: confirmed.map(toReportMedicine),
     warnings: runs.flatMap((run) =>
       run.findings.map((f) => ({
@@ -134,6 +137,9 @@ export function buildReport(input: {
       ),
     ],
     isEmpty: input.entries.length === 0,
+    vitals: input.vitals
+      ? { measuredAtLabel: dateTimeLabel(new Date(input.vitals.measuredAt), timeZone), lines: vitalLines(input.vitals), note: VITALS_NOTE }
+      : null,
     boundary: BOUNDARY_STATEMENT,
   };
 }
@@ -158,6 +164,10 @@ export function emailDraft(report: Report): { subject: string; body: string } {
   } else {
     lines.push("Warnings:", ...[...new Set(report.warnings.map((w) => w.title))].map((t) => `- ${t}`));
   }
+  if (report.vitals) {
+    const read = report.vitals.lines.map((l) => `${l.label} ${l.text}`).join(" · ");
+    lines.push("", `Latest vitals (estimate, ${report.vitals.measuredAtLabel}): ${read}`, report.vitals.note);
+  }
   lines.push("", "The PDF is attached.", "", signer ? `Thanks — ${signer}` : "Thanks", "", `(${report.boundary})`);
   return { subject: report.title, body: lines.join("\n") };
 }
@@ -177,6 +187,19 @@ export function reportFilename(report: Pick<Report, "personName" | "generatedDat
 function realName(name: string | null | undefined): string | null {
   const trimmed = name?.trim();
   return trimmed && !GENERIC_NAME.test(trimmed) ? trimmed : null;
+}
+
+/** "Oct 17, 2026, 2:05 PM CDT" in the given zone. */
+function dateTimeLabel(at: Date, timeZone: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  }).format(at);
 }
 
 function validTimeZone(tz: string | undefined): string {
