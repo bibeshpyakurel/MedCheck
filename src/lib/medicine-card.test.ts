@@ -43,6 +43,8 @@ const FULL: Required<LabelSections> = {
   keep_out_of_reach: ["In case of overdose, get medical help or contact a Poison Control Center right away."],
   inactive_ingredients: ["FD&C green no. 3, gelatin, light mineral oil"],
   storage: ["store at 20-25°C (68-77°F)", "avoid excessive heat above 40°C (104°F)"],
+  other_information: ["each tablet contains: sodium 20 mg"],
+  questions: ["call 1-800-88-ADVIL"],
 };
 
 describe("cardSections", () => {
@@ -63,6 +65,8 @@ describe("cardSections", () => {
       ["keep_out_of_reach", "Keep out of reach of children"],
       ["inactive_ingredients", "Inactive ingredients (allergies)"],
       ["storage", "Storage"],
+      ["other_information", "Other information"],
+      ["questions", "Questions about this product"],
     ]);
   });
 
