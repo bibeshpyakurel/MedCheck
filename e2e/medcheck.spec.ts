@@ -37,13 +37,13 @@ async function expectThreeDoors(page: Page) {
   await expect(page.getByRole("button", { name: "Continue as a guest" })).toBeVisible();
 }
 
-/** Two ways in, both photos; no barcode scanning. */
+/** Three ways in: scan a barcode, take a photo, choose a photo. */
 async function expectCaptureOptions(page: Page) {
   await expect(page.getByRole("heading", { level: 1, name: "Know your drugs" })).toBeVisible();
   await expect(page.locator("label", { hasText: "Take a photo" }).locator("input[type=file]")).toHaveCount(1);
   await expect(page.locator("label", { hasText: "Choose a photo" }).locator("input[type=file]")).toHaveCount(1);
+  await expect(page.getByRole("main").getByRole("link", { name: /Scan a barcode/ })).toHaveAttribute("href", /\/add\/scan$/);
   await expect(page.getByRole("main").locator("label:has(input[type=file])")).toHaveCount(2);
-  await expect(page.locator("body")).not.toContainText(/barcode|\bscan\b/i);
 }
 
 /**
@@ -515,7 +515,7 @@ test.describe("medicine package photo", () => {
     await readPackagePhoto(page, browser, base, "advilAndTylenol");
     const confirm = page.getByRole("dialog", { name: "2 medicines in this photo" });
     await expect(confirm).toBeVisible({ timeout: 60_000 });
-    const first = confirm.getByRole("region", { name: /Advil/ });
+    const first = confirm.getByRole("region", { name: /Advil/i });
     const second = confirm.getByRole("region", { name: /Tylenol Extra Strength/i });
     await expect(first).toContainText("1 of 2");
     await expect(second).toContainText("2 of 2");
@@ -535,7 +535,7 @@ test.describe("medicine package photo", () => {
     await result.getByRole("button", { name: "Save to My medicines" }).click();
     await page.waitForURL(new RegExp(`${base}$`));
     await expect(page.getByText(`${before + 2} medicines on file`)).toBeVisible();
-    await expect(page.getByRole("main").getByRole("link", { name: /Advil/ }).first()).toBeVisible();
+    await expect(page.getByRole("main").getByRole("link", { name: /Advil/i }).first()).toBeVisible();
     const waiting = page.getByRole("region", { name: /Waiting for your review/ });
     await expect(waiting.locator('a[href$="/match"]')).toHaveCount(0);
   });
@@ -545,7 +545,7 @@ test.describe("medicine package photo", () => {
     await readPackagePhoto(page, browser, base, "advilAndTylenol");
     const confirm = page.getByRole("dialog", { name: "2 medicines in this photo" });
     await expect(confirm).toBeVisible({ timeout: 60_000 });
-    await confirm.getByRole("region", { name: /Advil/ }).getByRole("button", { name: "Remove from this photo" }).click();
+    await confirm.getByRole("region", { name: /Advil/i }).getByRole("button", { name: "Remove from this photo" }).click();
     await expect(confirm.getByRole("region", { name: "Medicine 1 of 2, removed" })).toContainText("removed from this photo");
     await confirm.getByRole("button", { name: "Continue" }).click();
 

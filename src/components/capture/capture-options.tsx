@@ -10,7 +10,7 @@ import { setPendingPhoto } from "./pending-photo";
 export type PhotoSource = "camera" | "library";
 
 const tileClass =
-  "group flex h-full min-h-28 w-full cursor-pointer items-center gap-4 rounded-2xl border bg-card p-5 text-left shadow-xs transition-[border-color,box-shadow] hover:border-primary/40 hover:shadow-md sm:min-h-44 sm:flex-col sm:items-start sm:gap-5 sm:p-6";
+  "group flex h-full min-h-24 w-full cursor-pointer items-center gap-4 rounded-2xl border bg-card p-5 text-left shadow-xs transition-[border-color,box-shadow] hover:border-primary/40 hover:shadow-md sm:min-h-44 sm:flex-col sm:items-start sm:gap-5 sm:p-6";
 
 function TileBody({ icon: Icon, title, detail, busy }: { icon: LucideIcon; title: string; detail: string; busy?: boolean }) {
   return (
