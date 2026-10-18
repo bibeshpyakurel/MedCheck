@@ -23,6 +23,9 @@ Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` and `docs/superpower
 ## Code map
 - `src/lib/domain/schema.ts` — the shared contract (zod + types). Do not change it inside a feature PR; propose changes separately.
 - `src/lib/domain/ingredients.ts` — `normalizeIngredient()`; all ingredient comparisons go through it.
+- `src/lib/domain/families.ts` — the reviewed ingredient families (NSAIDs, antihistamines, nasal decongestants, acid reducers, sleep aids): members are `normalizeIngredient()` names, `labelTerm` is how a label's warning names the family. Add a member only when catalog labels support it.
+- `src/lib/compare.ts` — `compareProducts()`: ingredients per product, shared ingredients and same-family pairs, each with the label's own quote (no quote → no family). `checks/family.ts` is the Medicines-page check over the same rules.
+- `src/components/compare/ingredient-comparison.tsx` — `IngredientComparison` ("Together"): a Venn for two medicines, a grid for three or more, plus shared/family callouts. Reuse it for any multi-medicine comparison.
 - `src/lib/supabase/{client,server,proxy}.ts` — Supabase clients. `createAdminClient()` (secret key) is only for catalog writes.
 - `src/lib/supabase/database.types.ts` — generated (`npm run db:types`); never hand-edit.
 - `src/lib/auth.ts` — `getCurrentUser()` / `requireUser()`.
@@ -32,6 +35,7 @@ Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` and `docs/superpower
 - `src/components/ui/` — shadcn components (`npx shadcn@latest add <name>`). Style `base-nova` = **Base UI, not Radix**: compose with the `render` prop (`<Button render={<Link href="/x" />} nativeButton={false}>`), there is no `asChild`.
 - `src/lib/records.ts` — all patient/document/entry/history/photo data access (runs as the user). Use these; don't query tables directly from features. `ensureSelfPatient()` returns the account's one person (relationship `self`), creating it on first use.
 - `src/lib/catalog.ts` — catalog reads (`listFormulations`, `getFormulation(s)ByIds`). The catalog holds every US oral OTC label (thousands of rows): never load it whole in a request; search with the `search_formulations` RPC.
+- `src/lib/quick-answers.ts` — `quickAnswers(f)`: the card's 14 quick answers, label bullets picked by keyword/heading rules (never reworded), adults/children split by the label's own age phrases (`splitDirectionsByAge`); rendered by `src/components/medicine-card/quick-answers.tsx` (shared bits in `label-parts.tsx`).
 - `src/lib/domain/fields.ts` — build/read `EntryFields` (`suggestedField`, `fieldsFromFormulation`, `isUsable`, `isFullyReviewed`, `formatStrength`, `entryLabel`).
 - `src/data/fictional-formulations.ts` — fictional formulations (Calmora) with their NDCs.
 - `src/lib/photo-flow.ts` — the OTC photo flow's decisions: `photoNextPath()` (package → `/match` or `/retake`; other photos → `/review`), `PhotoReadResult` (what `uploadPhotoAction` returns), the picker's options, "Save without a match" fields. The user never picks a photo's kind: Gemini returns `documentKind` and `extractIntoDrafts()` saves it on the source document (`otc_package` when unsure or unavailable). A photo is read as soon as it's taken or chosen; `afterRead` in `src/components/capture/photo-capture.tsx` decides what follows.

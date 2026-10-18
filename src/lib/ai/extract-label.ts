@@ -2,6 +2,7 @@
 import { generateText, Output } from "ai";
 import { z } from "zod";
 import type { BBox, EntryFields, Evidence, SourceDocument, SourceDocumentKind } from "@/lib/domain/schema";
+import { PHOTO_ISSUES, type PhotoIssue } from "@/lib/photo-issue";
 import { withGemini } from "./model";
 import { buildEntryFields, cleanText } from "./raw-fields";
 
@@ -58,14 +59,25 @@ export const geminiLabelSchema = z.object({
     pharmacy: z.string().nullable().describe("Pharmacy name as printed; null if none"),
   }),
   medications: z.array(geminiMedicationSchema).describe("One entry per medication on the document"),
+  photoIssue: z
+    .enum(PHOTO_ISSUES)
+    .nullish()
+    .describe(
+      "If the photo made the name, ingredients or strength hard or impossible to read, the main reason: glare (light reflecting off the print), blurry, cut_off (the label runs off the edge), too_far (print too small), too_dark, not_medicine (no medicine label in the photo). null if the photo is clear.",
+    ),
 });
 
 export type GeminiMedication = z.infer<typeof geminiMedicationSchema>;
 export type GeminiLabel = z.infer<typeof geminiLabelSchema>;
 
 export type DocumentDetails = Pick<SourceDocument, "documentDate" | "facility" | "prescriber" | "pharmacy">;
-/** `documentKind` is null when Gemini wasn't sure what the photo shows. */
-export type ExtractionResult = { documentKind: PhotoKind | null; document: DocumentDetails; medications: EntryFields[] };
+/** `documentKind` is null when Gemini wasn't sure what the photo shows; `photoIssue` when it saw no problem. */
+export type ExtractionResult = {
+  documentKind: PhotoKind | null;
+  document: DocumentDetails;
+  medications: EntryFields[];
+  photoIssue: PhotoIssue | null;
+};
 
 export const EXTRACTION_INSTRUCTIONS = `You read medicine labels and documents for a caregiver who will check every value you return.
 First say what the photo shows, as documentKind:
@@ -80,7 +92,8 @@ Rules:
 - doseAsWritten is the amount the directions say to take or give, exactly as written in the directions, with its unit as written ("2 tsp" stays 2 tsp). If the directions depend on age or weight, or there is a table, return null.
 - For every value give box_2d [ymin, xmin, ymax, xmax] on a 0-1000 scale around the printed text, or null.
 - Return one medications item per distinct medication. For package photos, return every distinct product you can see; a product shown on several sides of one package (front, back, Drug Facts panel) is one product: return it once.
-- Return an empty list if no medication is visible.`;
+- Return an empty list if no medication is visible.
+- photoIssue describes the photo only (glare, blur, framing, light), never the medicine.`;
 
 // ---------------------------------------------------------------------------
 // Pure mappers
@@ -123,12 +136,13 @@ export function toDocumentDetails(raw: GeminiLabel["document"]): DocumentDetails
   };
 }
 
-/** Gemini's answer → its kind (null when unsure), the document details, one EntryFields per medication. */
+/** Gemini's answer → its kind (null when unsure), the document details, one EntryFields per medication, the photo issue. */
 export function toExtractionResult(raw: GeminiLabel, sourceDocumentId: string): ExtractionResult {
   return {
     documentKind: raw.documentKind,
     document: toDocumentDetails(raw.document),
     medications: raw.medications.map((m) => toEntryFields(m, sourceDocumentId)),
+    photoIssue: raw.photoIssue ?? null,
   };
 }
 

@@ -5,6 +5,7 @@ import type { ExtractionNotice } from "@/lib/ai/run-extraction";
 import { isReadable, photoReadFromFields, preselectMatch, type CatalogMatch, type StrengthAgreement } from "@/lib/catalog-match";
 import { emptyField, formatStrength } from "@/lib/domain/fields";
 import type { EntryFields, Field, Formulation, SourceDocumentKind, Strength } from "@/lib/domain/schema";
+import type { PhotoIssue } from "@/lib/photo-issue";
 
 /**
  * A photo that was read: the page to go to next, one draft per medicine found (in order), what
@@ -18,7 +19,8 @@ const NOTHING_READ: ReadonlySet<ExtractionNotice> = new Set(["ai-unavailable", "
 /**
  * Where to go after a photo was read, for its first draft entry: a medicine package goes to the
  * confirm step (`/match`) when Gemini read a name or an ingredient, otherwise to `/retake`; every
- * other kind of photo goes to the per-field review, with its notice.
+ * other kind of photo goes to the per-field review, with its notice. A retake, or a review with
+ * nothing found, carries Gemini's `photoIssue` as `?why=` so the page can say what to change.
  */
 export function photoNextPath(input: {
   patientId: string;
@@ -26,11 +28,16 @@ export function photoNextPath(input: {
   kind: SourceDocumentKind;
   notice: ExtractionNotice | null;
   fields: EntryFields;
+  photoIssue?: PhotoIssue | null;
 }): string {
   const base = `/patients/${input.patientId}/entries/${input.entryId}`;
-  if (input.kind !== "otc_package") return `${base}/review${input.notice ? `?notice=${input.notice}` : ""}`;
+  const why = input.photoIssue ? `why=${input.photoIssue}` : null;
+  if (input.kind !== "otc_package") {
+    const params = [input.notice && `notice=${input.notice}`, input.notice === "nothing-found" && why].filter(Boolean);
+    return `${base}/review${params.length ? `?${params.join("&")}` : ""}`;
+  }
   const readable = !(input.notice && NOTHING_READ.has(input.notice)) && isReadable(photoReadFromFields(input.fields));
-  return readable ? `${base}/match` : `${base}/retake`;
+  return readable ? `${base}/match` : `${base}/retake${why ? `?${why}` : ""}`;
 }
 
 /**

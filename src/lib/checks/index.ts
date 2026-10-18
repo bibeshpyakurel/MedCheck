@@ -1,10 +1,10 @@
 // The checks. Deterministic rules over confirmed label facts → findings. Evidence, not advice:
 // nothing here computes a dose or says a combination is safe.
 // The schema's CHECK_IDS still lists "document_vs_bottle"; that check was retired and never runs.
-// "ingredient_family" is in the contract ahead of its check (photo-answers spec §4); it joins CHECKS with it.
 import { CHECK_IDS, type CheckId, type CheckInput, type CheckRun } from "@/lib/domain/schema";
 import { checkConcentration } from "./concentration";
 import { checkDatabaseVsBox } from "./database-vs-box";
+import { checkIngredientFamily } from "./family";
 import { checkIngredientOverlap } from "./overlap";
 import { checkRepeatedRecord } from "./repeated";
 import { checkUnits } from "./units";
@@ -12,10 +12,11 @@ import { checkUnits } from "./units";
 export { productIdentity } from "./identity";
 export { mgPerMl } from "./shared";
 
-type ActiveCheckId = Exclude<CheckId, "document_vs_bottle" | "ingredient_family">;
+type ActiveCheckId = Exclude<CheckId, "document_vs_bottle">;
 
 const CHECKS: Record<ActiveCheckId, (input: CheckInput) => CheckRun> = {
   ingredient_overlap: checkIngredientOverlap,
+  ingredient_family: checkIngredientFamily,
   repeated_record: checkRepeatedRecord,
   concentration: checkConcentration,
   units: checkUnits,
@@ -31,6 +32,7 @@ export const ACTIVE_CHECK_IDS: readonly ActiveCheckId[] = CHECK_IDS.filter((id):
  */
 export const CHECK_TITLES: Readonly<Partial<Record<CheckId, string>>> = {
   ingredient_overlap: "Same ingredient in two medicines",
+  ingredient_family: "Same family of medicine",
   repeated_record: "Same medicine listed twice",
   concentration: "Different liquid strengths",
   units: "Units in the amount and strength",

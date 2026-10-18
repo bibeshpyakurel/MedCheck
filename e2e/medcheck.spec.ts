@@ -389,7 +389,8 @@ test.describe("medicine package photo", () => {
     const card = page.getByRole("dialog", { name: "Tylenol Extra Strength (caplets)" });
     await expect(card).toBeVisible();
     await expect(card).toContainText("Acetaminophen 500 mg per caplet");
-    await expect(card.locator('a[href="tel:18002221222"]')).toBeVisible();
+    // Quick answers' "Took too much?" and the footer both carry Poison Control.
+    await expect(card.locator('a[href="tel:18002221222"]').first()).toBeVisible();
     await expect(card).toContainText("Step 3 of 3 · Saved");
     await card.getByRole("button", { name: "Done" }).click();
 
@@ -406,8 +407,10 @@ test.describe("medicine package photo", () => {
 
   test("unreadable package → retake screen → Type it in instead → pick from the FDA list", async ({ browser }) => {
     await readPackagePhoto(page, browser, base, "unreadable");
-    await page.waitForURL(/\/entries\/[0-9a-f-]{36}\/retake$/, { timeout: 60_000 });
+    await page.waitForURL(/\/entries\/[0-9a-f-]{36}\/retake\?why=glare$/, { timeout: 60_000 });
     await expect(page.getByRole("heading", { level: 1, name: "We couldn't read this label — retake the photo" })).toBeVisible();
+    // Gemini's reason, in words about the photo.
+    await expect(page.getByText("Light is reflecting off the label.")).toBeVisible();
     await expect(page.getByRole("button", { name: "Retake photo" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Check the details" })).toHaveCount(0);
 
@@ -440,7 +443,7 @@ test.describe("medicine package photo", () => {
 
   test("unreadable package → Retake photo → back to the camera, nothing left waiting", async ({ browser }) => {
     await readPackagePhoto(page, browser, base, "unreadable");
-    await page.waitForURL(/\/entries\/[0-9a-f-]{36}\/retake$/, { timeout: 60_000 });
+    await page.waitForURL(/\/entries\/[0-9a-f-]{36}\/retake\?why=glare$/, { timeout: 60_000 });
     await page.getByRole("button", { name: "Retake photo" }).click();
     await page.waitForURL(/\/add\/photo\?source=camera$/);
     await expect(page.locator("label", { hasText: "Take a photo" }).locator("input[type=file]")).toHaveCount(1);

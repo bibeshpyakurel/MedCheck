@@ -33,6 +33,7 @@ const READS = {
     documentKind: "otc_package",
     document: noDocument,
     medications: [medication({ ingredients: [{ name: text(null), strength: noStrength }] })],
+    photoIssue: "glare",
   },
   [SCENARIO_WIDTHS.advilAndTylenol]: {
     documentKind: "otc_package",
@@ -58,7 +59,7 @@ const READS = {
   [SCENARIO_WIDTHS.prescriptionNothingRead]: { documentKind: "prescription_label", document: noDocument, medications: [] },
 };
 // Gemini isn't sure what an empty photo shows.
-const NOTHING_FOUND = { documentKind: null, document: noDocument, medications: [] };
+const NOTHING_FOUND = { documentKind: null, document: noDocument, medications: [], photoIssue: null };
 
 /** Width of a JPEG (SOFn marker) or PNG (IHDR), or null. */
 function imageWidth(bytes) {

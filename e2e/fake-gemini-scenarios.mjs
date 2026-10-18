@@ -8,7 +8,7 @@ export const FAKE_GEMINI_PORT = 3999;
 export const SCENARIO_WIDTHS = {
   /** A Tylenol Extra Strength package: brand, caplets, acetaminophen 500 mg per caplet. */
   tylenolExtraStrength: 500,
-  /** A package with nothing legible: one medication, every value null. */
+  /** A package with nothing legible: one medication, every value null; Gemini blames glare. */
   unreadable: 520,
   /** Two packages in one photo: Advil (ibuprofen 200 mg tablet) and Tylenol Extra Strength (acetaminophen 500 mg caplet). */
   advilAndTylenol: 540,

@@ -24,13 +24,13 @@ import {
 } from "./shared";
 
 /** "Acetaminophen 325 mg per caplet", or just the name when the strength isn't usable. */
-function labelText(ing: UsableIngredient): string {
+export function labelText(ing: UsableIngredient): string {
   const name = displayIngredientName(ing.name);
   return ing.strength ? `${name} ${formatStrength(ing.strength)}` : name;
 }
 
 /** "entered" when the user typed the name or the shown strength. */
-function ingredientProvenance(entry: MedicationEntry, ing: UsableIngredient): Provenance {
+export function ingredientProvenance(entry: MedicationEntry, ing: UsableIngredient): Provenance {
   const name = provenanceOf(entry, entry.fields.ingredients[ing.index].name);
   return name === "label" && ing.strength ? provenanceOf(entry, ing.strengthField) : name;
 }
