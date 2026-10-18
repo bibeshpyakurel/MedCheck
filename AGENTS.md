@@ -37,6 +37,10 @@ Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` and `docs/superpower
 - `src/lib/photo-flow.ts` — the OTC photo flow's decisions: `photoNextPath()` (package → `/match` or `/retake`; other photos → `/review`), the picker's options, "Save without a match" fields.
 - `e2e/fake-gemini.mjs` — the e2e Gemini stand-in (via `GOOGLE_GENERATIVE_AI_BASE_URL`); it picks a canned read by the photo's width (`e2e/fake-gemini-scenarios.mjs`).
 - `src/components/already-gave-both.tsx` — the fixed "I already gave both" message; reuse it, never re-word it.
+- `src/components/back-link.tsx` — `BackLink` / `goBackTo()`: every "← …" link; goes back in history when the page before is its target (keeps scroll), else opens `href`.
+- `src/components/use-back-to-close.ts` — every overlay (sheet, dialog, popover) uses it, so device Back closes it; a link inside calls `release()` and navigates with `replace`.
+- `src/lib/add-flow.ts`, `src/components/records/add-flow-bar.tsx` — the add flow's steps and Cancel; add-a-medicine screens show `AddFlowBar` instead of `RecordHeader`.
+- `src/lib/page-lookup.ts` — record pages read their person/entry with `findPatient` / `findEntry` and title themselves with `patientMetadata` / `entryMetadata`, so a 404 is titled "Page not found".
 - Status colors: `finding`, `unresolved` tokens in `globals.css`.
 
 ## Supabase Auth
@@ -48,6 +52,7 @@ Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` and `docs/superpower
 - Next.js 16 App Router, `cacheComponents` off. Middleware is `src/proxy.ts`.
 - Server-only modules start with `import "server-only"`. Secrets never in `NEXT_PUBLIC_*`.
 - Phone-first layouts that also work at laptop width; tap targets ≥ 44px; works in light and dark.
+- A server action that finishes a step (upload, confirm, save, discard) redirects with `RedirectType.replace`, so Back skips the finished step.
 - Pure logic gets Vitest tests next to it (`*.test.ts`), written first.
 - Before pushing: `npm run lint && npm run typecheck && npm test && npm run build`.
 
