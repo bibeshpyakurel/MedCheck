@@ -66,6 +66,13 @@ async function openTab(page: Page, name: "Medicines" | "Medicine report") {
   await page.waitForURL(name === "Medicines" ? /\/patients\/[0-9a-f-]{36}$/ : /\/export$/);
 }
 
+/** Opens "My medicines" or "Medicine report" from the ☰ menu (the add flow shows no tabs). */
+async function openFromMenu(page: Page, name: "My medicines" | "Medicine report") {
+  await page.getByRole("button", { name: "Menu" }).click();
+  await page.getByRole("navigation", { name: "Menu" }).getByRole("link", { name, exact: true }).click();
+  await page.waitForURL(name === "My medicines" ? /\/patients\/[0-9a-f-]{36}$/ : /\/export$/);
+}
+
 async function openMenu(page: Page) {
   await page.getByRole("button", { name: "Menu" }).click();
   const account = page.getByRole("region", { name: "Account" });
@@ -149,7 +156,10 @@ test.describe("guest", () => {
   });
 
   test("the report starts empty", async () => {
-    await openTab(page, "Medicine report");
+    // The capture page is part of adding a medicine: Cancel and its steps instead of the tabs.
+    await expect(page.getByText("Step 1 of 3 · Photo")).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Record" })).toHaveCount(0);
+    await openFromMenu(page, "Medicine report");
     await expect(page.getByRole("heading", { level: 1, name: "Medicine report" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "You haven't added any medicines yet" })).toBeVisible();
   });
@@ -185,8 +195,9 @@ test.describe("guest", () => {
     await page.waitForURL(/\/entries\/[0-9a-f-]{36}\/review(\?|$)/, { timeout: 60_000 });
     await expect(page.getByRole("heading", { level: 1, name: "Check the details" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Confirm medicine" })).toBeVisible();
+    await expect(page.getByText("Step 2 of 3 · Check the details")).toBeVisible();
 
-    await openTab(page, "Medicines");
+    await openFromMenu(page, "My medicines");
     const waiting = page.getByRole("region", { name: /Waiting for your review/ });
     await expect(waiting.getByRole("heading", { name: "Waiting for your review (1)" })).toBeVisible();
     await expect(waiting.getByRole("link", { name: /Check details/ })).toHaveAttribute("href", /\/review$/);

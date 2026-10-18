@@ -29,7 +29,6 @@ export function MatchPicker({
   options,
   selectedId,
   onlySearch,
-  back,
   readName,
   photoUrl,
   othersFromPhoto,
@@ -42,8 +41,6 @@ export function MatchPicker({
   selectedId: string | null;
   /** No matches to pick from (or nothing readable): only "Type it in". */
   onlySearch: boolean;
-  /** The link above the title while picking ("← Matches" replaces it in "Type it in"). */
-  back?: { href: string; label: string };
   /** The product name Gemini read, to start the search with. */
   readName: string | null;
   photoUrl: string | null;
@@ -98,11 +95,9 @@ export function MatchPicker({
   const [first, ...rest] = options;
   const preselected = mode === "pick" && selectedId !== null && first?.id === selectedId;
 
-  const backLink = mode === "search" && !onlySearch ? { href: pathname, label: "Matches" } : back;
-
   return (
     <div className="space-y-6">
-      {backLink && <BackLink href={backLink.href}>{backLink.label}</BackLink>}
+      {mode === "search" && !onlySearch && <BackLink href={pathname}>Matches</BackLink>}
       <header className="flex items-start gap-4">
         <div className="min-w-0 flex-1 space-y-2">
           <h1 className="font-display text-2xl font-semibold tracking-tight text-balance sm:text-3xl">

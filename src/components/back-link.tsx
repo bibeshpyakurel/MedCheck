@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeftIcon } from "lucide-react";
+import { ArrowLeftIcon, XIcon } from "lucide-react";
 import Link from "next/link";
 import type { MouseEvent, ReactNode } from "react";
 import { isBackTo, previousUrl } from "@/lib/nav-history";
@@ -36,19 +36,23 @@ export function goBackTo(href: string, { toPrevious = false } = {}): boolean {
  * "← Back" link used above page titles. Large enough to tap. When the page it names is the one before
  * this in history, it goes back (that page keeps its scroll position, and browser Back stays sensible);
  * otherwise it opens `href`. `toPrevious`: go back to whatever MedCheck page came before (sign-in and the
- * explainer pages, which are opened from anywhere), with `href` for a direct visit.
+ * explainer pages, which are opened from anywhere), with `href` for a direct visit. `icon="close"`
+ * draws an × (the add flow's Cancel).
  */
 export function BackLink({
   href,
   toPrevious = false,
+  icon = "back",
   children,
   className,
 }: {
   href: string;
   toPrevious?: boolean;
+  icon?: "back" | "close";
   children: ReactNode;
   className?: string;
 }) {
+  const Icon = icon === "close" ? XIcon : ArrowLeftIcon;
   function onClick(e: MouseEvent<HTMLAnchorElement>) {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
     if (goBackTo(href, { toPrevious })) e.preventDefault();
@@ -64,7 +68,7 @@ export function BackLink({
       )}
     >
       <span className="grid size-6 place-items-center rounded-md border bg-card shadow-xs transition-transform group-hover:-translate-x-0.5">
-        <ArrowLeftIcon aria-hidden className="size-3.5" />
+        <Icon aria-hidden className="size-3.5" />
       </span>
       {children}
     </Link>

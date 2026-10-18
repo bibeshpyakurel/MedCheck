@@ -3,12 +3,10 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { CameraIcon, KeyboardIcon } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
-import { BackLink } from "@/components/page-header";
-import { RecordHeader } from "@/components/records/record-header";
+import { AddFlowBar } from "@/components/records/add-flow-bar";
 import { SubmitButton } from "@/components/records/submit-button";
 import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth";
-import { recordTitle } from "@/lib/record-format";
 import { getEntry, getPatient, signedPhotoUrl } from "@/lib/records";
 import { isUuid } from "@/lib/uuid";
 import { retakePhotoAction } from "../match/actions";
@@ -29,9 +27,8 @@ export default async function RetakePage({ params }: PageProps<"/patients/[patie
 
   return (
     <AppShell>
-      <RecordHeader patient={patient} current="medicines" />
+      <AddFlowBar patientId={patient.id} screen="retake" draftId={entry.id} />
       <div className="mx-auto max-w-xl space-y-6">
-        <BackLink href={`/patients/${patientId}`}>{recordTitle(patient)}</BackLink>
         <header className="space-y-2">
           <h1 className="font-display text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
             We couldn&apos;t read this label — retake the photo

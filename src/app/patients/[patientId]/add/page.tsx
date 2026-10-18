@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { AppShell } from "@/components/app-shell";
 import { CaptureOptions } from "@/components/capture/capture-options";
-import { RecordHeader } from "@/components/records/record-header";
+import { AddFlowBar } from "@/components/records/add-flow-bar";
 import { requireUser } from "@/lib/auth";
 import { getPatient } from "@/lib/records";
 
@@ -19,7 +19,7 @@ export default async function AddPage({ params }: PageProps<"/patients/[patientI
 
   return (
     <AppShell>
-      <RecordHeader patient={patient} current="medicines" />
+      <AddFlowBar patientId={patient.id} screen="photo" />
       <div className="max-w-4xl space-y-4 sm:space-y-8">
         {/* Compact on phones: the heading and both options fit one screen. */}
         <header className="space-y-1 sm:space-y-2">

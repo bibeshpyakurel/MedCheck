@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { MedicineCardSheet } from "@/components/medicine-card/medicine-card-sheet";
 import { Button } from "@/components/ui/button";
 import { useBackToClose } from "@/components/use-back-to-close";
+import { addFlowStep } from "@/lib/add-flow";
 import type { Formulation } from "@/lib/domain/schema";
 
 // Entry pages whose just-added card already opened. Back restores the page as first rendered (with
@@ -66,7 +67,7 @@ export function MedicineCardButton({
           showFooter ? (
             <>
               <p role="status" className="self-center text-sm text-muted-foreground sm:mr-auto">
-                Saved to the Medicines page.
+                <span className="font-medium text-foreground">{addFlowStep("saved").label}</span> to the Medicines page.
               </p>
               <Button
                 variant="outline"

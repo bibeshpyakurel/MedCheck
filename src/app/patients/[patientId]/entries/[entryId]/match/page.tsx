@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
-import { RecordHeader } from "@/components/records/record-header";
+import { AddFlowBar } from "@/components/records/add-flow-bar";
 import { requireUser } from "@/lib/auth";
 import { isReadable, photoReadFromFields, type CatalogMatch } from "@/lib/catalog-match";
 import { findCatalogMatches } from "@/lib/catalog-match-server";
 import { matchChoices } from "@/lib/photo-flow";
-import { recordTitle } from "@/lib/record-format";
 import { getEntry, getPatient, listEntries, signedPhotoUrl } from "@/lib/records";
 import { isUuid } from "@/lib/uuid";
 import { confirmMatchAction, saveTypedNameAction } from "./actions";
@@ -43,7 +42,7 @@ export default async function MatchPage({ params }: PageProps<"/patients/[patien
 
   return (
     <AppShell>
-      <RecordHeader patient={patient} current="medicines" />
+      <AddFlowBar patientId={patient.id} screen="match" draftId={entry.id} />
       <div className="mx-auto max-w-xl space-y-6">
         <MatchPicker
           patientId={patientId}
@@ -51,7 +50,6 @@ export default async function MatchPage({ params }: PageProps<"/patients/[patien
           options={options}
           selectedId={selectedId}
           onlySearch={options.length === 0 || !isReadable(read)}
-          back={{ href: `/patients/${patientId}`, label: recordTitle(patient) }}
           readName={read.productName}
           photoUrl={photoUrl}
           othersFromPhoto={othersFromPhoto}

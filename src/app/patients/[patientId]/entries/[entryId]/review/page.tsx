@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { BackLink } from "@/components/page-header";
+import { AddFlowBar } from "@/components/records/add-flow-bar";
 import { RecordHeader } from "@/components/records/record-header";
 import { ReviewForm } from "@/components/review/review-form";
 import { DECISION_LABELS } from "@/components/review/review-status";
@@ -70,12 +71,17 @@ export default async function ReviewPage({ params, searchParams }: PageProps<"/p
 
   return (
     <AppShell>
-      <RecordHeader patient={patient} current="medicines" />
+      {/* A medicine still being added gets the add flow's Cancel and steps; editing a saved one keeps the tabs. */}
+      {entry.status === "draft" ? (
+        <AddFlowBar patientId={patient.id} screen="review" draftId={entry.id} />
+      ) : (
+        <RecordHeader patient={patient} current="medicines" />
+      )}
       <div className="mx-auto max-w-3xl space-y-6">
         <div className="space-y-3">
           {from === "entry" ? (
             <BackLink href={`/patients/${patientId}/entries/${entry.id}`}>{entryLabel(entry.fields)}</BackLink>
-          ) : (
+          ) : entry.status === "draft" ? null : (
             <BackLink href={`/patients/${patientId}`}>{recordTitle(patient)}</BackLink>
           )}
           <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">Check the details</h1>
