@@ -5,9 +5,13 @@
 //   npm run import:otc -- --dry-run            fetch, map and report; writes nothing
 //   npm run import:otc                         upsert on slug in batches (SUPABASE_SECRET_KEY)
 //   flags: --with-medlineplus                  add MedlinePlus ingredient links (≤100 req/min, cached)
+//          --prune                             delete imported rows (otc-…, unreviewed) this run no longer
+//                                              produces, except rows a saved entry references; with
+//                                              --dry-run it only prints what it would delete
+//          --no-spl                            skip DailyMed SPL XML (bullets from text heuristics only)
 //          --refresh                           re-download instead of using .cache/fda
 //
-// Downloads are untrusted data: cached under .cache/fda (gitignored), parsed as JSON only.
+// Downloads are untrusted data: cached under .cache/fda (gitignored), parsed only (JSON, XML).
 // Hand-checked rows (reviewed_at set) are never touched; labels sharing a package NDC with one are skipped.
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -15,11 +19,12 @@ import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { unzipSync } from "fflate";
 import { formatStrength } from "@/lib/domain/fields";
-import type { LabelSectionKey } from "@/lib/domain/schema";
 import { indexNdcProducts } from "@/lib/fda/join";
 import { importLabels, REJECT_REASONS, type ImportResult } from "@/lib/fda/map";
 import { ingredientSetKey, medlinePlusLinks, medlinePlusQueryUrl } from "@/lib/fda/medlineplus";
-import { sectionText } from "@/lib/fda/sections";
+import { planPrune, type CatalogRowRef } from "@/lib/fda/prune";
+import { labelSourceTexts } from "@/lib/fda/sections";
+import { parseSpl, splUrl, type SplSections } from "@/lib/fda/spl";
 import type { FdaLabel, NdcProduct } from "@/lib/fda/types";
 import { formulationToRow, type CatalogFormulation } from "@/lib/openfda";
 import type { Database } from "@/lib/supabase/database.types";
@@ -38,6 +43,9 @@ const args = new Set(process.argv.slice(2));
 const dryRun = args.has("--dry-run");
 const refresh = args.has("--refresh");
 const withMedlinePlus = args.has("--with-medlineplus");
+const withSpl = !args.has("--no-spl");
+const doPrune = args.has("--prune");
+const SPL_CONCURRENCY = 4;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const sha = (text: string) => createHash("sha256").update(text).digest("hex").slice(0, 16);
@@ -180,15 +188,57 @@ async function reviewedNdcs(): Promise<Set<string>> {
   return new Set(data.flatMap((r) => r.ndc_packages));
 }
 
-/** MedlinePlus Connect: one query per distinct ingredient set, by one of its package NDCs; cached. */
+
+/** DailyMed SPL XML per label (cached; parse-only). Missing or failed documents fall back to text heuristics. */
+async function loadSpl(setIds: string[]): Promise<{ spl: Map<string, SplSections>; missing: number; failed: number }> {
+  const spl = new Map<string, SplSections>();
+  let missing = 0;
+  let failed = 0;
+  let done = 0;
+  const queue = [...setIds];
+  const worker = async () => {
+    for (let setId = queue.shift(); setId; setId = queue.shift()) {
+      const file = path.join(CACHE, "spl", `${setId}.xml`);
+      const marker = path.join(CACHE, "spl", `${setId}.missing`);
+      let xml = (await readCached(file))?.toString("utf8") ?? null;
+      if (!xml && !(await readCached(marker))) {
+        const res = await fetch(splUrl(setId), { signal: AbortSignal.timeout(60_000) }).catch(() => null);
+        if (res?.ok) {
+          xml = await res.text();
+          await mkdir(path.dirname(file), { recursive: true });
+          await writeFile(file, xml);
+        } else if (res?.status === 404) {
+          await mkdir(path.dirname(marker), { recursive: true });
+          await writeFile(marker, "");
+        } else {
+          failed++;
+        }
+        await sleep(150);
+      }
+      if (xml) {
+        const parsed = parseSpl(xml);
+        if (parsed.setId === setId) spl.set(setId, parsed);
+        else failed++;
+      } else {
+        missing++;
+      }
+      if (++done % 250 === 0) process.stdout.write(`\r  SPL XML: ${done}/${setIds.length}`);
+    }
+  };
+  await Promise.all(Array.from({ length: SPL_CONCURRENCY }, worker));
+  process.stdout.write("\n");
+  return { spl, missing, failed };
+}
+
+/** MedlinePlus Connect: one query per distinct ingredient set and form, by one of its package NDCs; cached. */
 async function addMedlinePlus(rows: CatalogFormulation[], labels: FdaLabel[]) {
   const ndcBySet = new Map(labels.map((l) => [l.set_id, l.openfda?.package_ndc?.[0]]));
   const groups = new Map<string, CatalogFormulation[]>();
   for (const r of rows) {
-    const key = ingredientSetKey(r.activeIngredients.map((i) => i.normalized));
+    const key = ingredientSetKey(r.activeIngredients.map((i) => i.normalized), r.dosageForm);
     groups.set(key, [...(groups.get(key) ?? []), r]);
   }
-  console.log(`  MedlinePlus: ${groups.size} distinct ingredient sets`);
+  console.log(`  MedlinePlus: ${groups.size} distinct ingredient sets × forms`);
   let n = 0;
   for (const [key, group] of groups) {
     n++;
@@ -201,26 +251,51 @@ async function addMedlinePlus(rows: CatalogFormulation[], labels: FdaLabel[]) {
       },
     );
     if (fetched) await sleep(650); // ≤100 req/min
-    const links = medlinePlusLinks(data);
-    for (const r of group) r.sourceLinks = [...r.sourceLinks, ...links];
+    for (const r of group) r.sourceLinks = [...r.sourceLinks, ...medlinePlusLinks(data, r.dosageForm)];
     if (n % 50 === 0) process.stdout.write(`\r  MedlinePlus: ${n}/${groups.size}`);
   }
   process.stdout.write("\n");
+}
+
+/** Every row in pages of 1000 (PostgREST's default cap). */
+async function selectAll<T>(query: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>): Promise<T[]> {
+  const out: T[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await query(from, from + 999);
+    if (error) throw error;
+    out.push(...(data ?? []));
+    if (!data || data.length < 1000) return out;
+  }
+}
+
+/** Imported rows this run no longer produces, minus those a saved entry references. Reads only. */
+async function prunePlan(produced: Set<string>) {
+  const client = supabase(process.env.SUPABASE_SECRET_KEY); // medication_entries is RLS-protected; selects only
+  if (!client) throw new Error("--prune needs NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SECRET_KEY (.env.local)");
+  const existing = await selectAll<CatalogRowRef>((from, to) =>
+    client.from("formulations").select("id, slug, source, reviewed_at").eq("source", "openfda").is("reviewed_at", null).like("slug", "otc-%").order("slug").range(from, to),
+  );
+  const refs = await selectAll<{ formulation_id: string | null }>((from, to) =>
+    client.from("medication_entries").select("formulation_id").not("formulation_id", "is", null).order("id").range(from, to),
+  );
+  return { existing: existing.length, ...planPrune(existing, produced, new Set(refs.map((r) => r.formulation_id!))) };
 }
 
 // ---------------------------------------------------------------------------
 // Report
 // ---------------------------------------------------------------------------
 
-function describe(r: CatalogFormulation, note = ""): string {
+function describe(r: CatalogFormulation, note = "", full = false): string {
   const strengths = r.activeIngredients.map((i) => `${i.name} [${i.normalized}] ${formatStrength(i.strength)}`).join(" + ");
+  const cut = (b: string) => (full || b.length <= 110 ? b : `${b.slice(0, 110)}…`);
   const sections = Object.entries(r.labelSections)
-    .map(([k, v]) => `    ${k} (${v.length}): ${v.slice(0, 3).map((b) => JSON.stringify(b.length > 110 ? `${b.slice(0, 110)}…` : b)).join(" | ")}`)
+    .map(([k, v]) => `    ${k} (${v.length}): ${(full ? v : v.slice(0, 3)).map((b) => JSON.stringify(cut(b))).join(" | ")}`)
     .join("\n");
   return [
     `  ${r.slug}${note}`,
     `    ${r.brandName} — ${r.labelerName} — ${r.dosageForm} — ${strengths}`,
     `    ${r.ndcPackages.length} package NDCs | label ${r.labelEffectiveDate} | 24-h: ${r.max24hText ?? "none"} | ${r.warningsQuotes.length} warning quotes | table: ${r.dosageTableHtml ? "yes" : "no"}`,
+    `    directions_text: ${JSON.stringify(cut(r.directionsText ?? ""))}`,
     `    sources: ${r.sourceLinks.map((l) => l.label).join(", ")}`,
     sections,
   ].join("\n");
@@ -233,7 +308,13 @@ const SAMPLES: [string, (r: CatalogFormulation) => boolean][] = [
   ["NyQuil", (r) => /nyquil/i.test(r.brandName) && /procter/i.test(r.labelerName ?? "")],
 ];
 
-function report(labels: FdaLabel[], products: number, exportDate: string, result: ImportResult) {
+/** Rows the verifiers flagged; the report shows what each is now. */
+const FLAGGED = [
+  "cf0987a3", "d0eff659", "e696038c", "4f7125aa", "04a78a5c", "581f81a0", "a39c772b", "90b5c3d8", "12a38e29", "ae63fe31",
+];
+const ADVIL = "1a665e64-9f30-be37-4a83-38789f1f1e89";
+
+async function report(labels: FdaLabel[], products: number, exportDate: string, result: ImportResult, splStats: string) {
   const rows = result.rows;
   console.log(`\n=== OTC import ${dryRun ? "DRY RUN (nothing written)" : ""} ===`);
   console.log(`labels fetched: ${labels.length} | NDC Directory OTC products: ${products} (export ${exportDate})`);
@@ -241,6 +322,7 @@ function report(labels: FdaLabel[], products: number, exportDate: string, result
   console.log(
     `join: spl_id ${result.joins.spl_id}, package_ndc ${result.joins.package_ndc}, none ${result.joins.none} → ${((100 * joined) / Math.max(1, labels.length)).toFixed(2)}% joined`,
   );
+  console.log(`SPL XML: ${splStats}`);
   console.log(`rows produced: ${rows.length}`);
   console.log("rejects by reason:");
   for (const reason of REJECT_REASONS) {
@@ -248,18 +330,24 @@ function report(labels: FdaLabel[], products: number, exportDate: string, result
     console.log(`  ${reason}: ${result.rejects[reason]}`);
     for (const example of result.rejectExamples[reason] ?? []) console.log(`      e.g. ${example}`);
   }
+  const s = result.strengthSources;
+  const total = s.label_and_ndc + s.label + s.ndc_per;
+  console.log(
+    `strength traceability gate: ${result.traceableRows} mapped rows with every strength traced to the label's Active ingredient text; ${result.rejects.untraceable_strength ?? 0} rejected`,
+  );
+  console.log(
+    `  ${total} stored strengths: ${s.label_and_ndc} label + NDC agree, ${s.label} label only (NDC disagreed or none), ${s.ndc_per} label amount with the NDC's per-quantity`,
+  );
 
-  // The card's bullets are cut from the label text, never reworded: check it on every row.
   const bySetId = new Map(labels.map((l) => [l.set_id, l]));
   let bullets = 0;
   const reworded: string[] = [];
   for (const r of rows) {
-    const label = bySetId.get(r.openfdaSetId ?? "")!;
-    for (const [key, list] of Object.entries(r.labelSections) as [LabelSectionKey, string[]][]) {
-      const text = sectionText(label, key) ?? "";
+    const sources = labelSourceTexts(bySetId.get(r.openfdaSetId ?? "")!);
+    for (const [key, list] of Object.entries(r.labelSections)) {
       for (const b of list) {
         bullets++;
-        if (!text.includes(b)) reworded.push(`${r.slug} ${key}: ${b}`);
+        if (!sources.some((t) => t.includes(b))) reworded.push(`${r.slug} ${key}: ${b}`);
       }
     }
   }
@@ -268,6 +356,9 @@ function report(labels: FdaLabel[], products: number, exportDate: string, result
   const lengths = rows.flatMap((r) => Object.values(r.labelSections).flat().map((b) => b.length)).sort((a, b) => a - b);
   const pct = (p: number) => lengths[Math.floor((lengths.length - 1) * p)] ?? 0;
   console.log(`bullet length (chars): median ${pct(0.5)}, p90 ${pct(0.9)}, p99 ${pct(0.99)}, max ${pct(1)}`);
+  const tableOnly = rows.filter((r) => !r.labelSections.directions && r.dosageTableHtml).length;
+  const noDirections = rows.filter((r) => !r.labelSections.directions && !r.dosageTableHtml).length;
+  console.log(`directions only in the dosing table (directions empty, table set): ${tableOnly}; no directions and no table: ${noDirections}`);
 
   const forms = new Map<string, number>();
   for (const r of rows) forms.set(r.dosageForm, (forms.get(r.dosageForm) ?? 0) + 1);
@@ -284,13 +375,32 @@ function report(labels: FdaLabel[], products: number, exportDate: string, result
   console.log(`rows with a dosing table: ${rows.filter((r) => r.dosageTableHtml).length}; with a 24-h limit: ${rows.filter((r) => r.max24hText).length}`);
   console.log(`rows with a MedlinePlus link: ${rows.filter((r) => r.sourceLinks.some((l) => l.label.startsWith("MedlinePlus"))).length}`);
 
+  console.log("flagged rows now:");
+  for (const prefix of FLAGGED) {
+    const setId = labels.find((l) => l.set_id?.startsWith(prefix))?.set_id ?? prefix;
+    const status = result.status.get(setId) ?? "not in this run";
+    const row = rows.find((r) => r.openfdaSetId === setId);
+    const strengths = row ? row.activeIngredients.map((i) => `${i.name} ${formatStrength(i.strength)}`).join(" + ") : "";
+    console.log(`  otc-${setId}: ${status === "row" ? `row — ${strengths}` : `rejected: ${status}`}`);
+  }
+
   console.log("sample rows:");
   for (const [name, test] of SAMPLES) {
     const row = rows.find(test);
     const skipped = row ? undefined : result.skippedForReviewed.find(test);
-    if (row) console.log(`- ${name}\n${describe(row)}`);
+    if (row) console.log(`- ${name}\n${describe(row, "", row.openfdaSetId === ADVIL)}`);
     else if (skipped) console.log(`- ${name} (skipped: package NDC on a reviewed row)\n${describe(skipped)}`);
     else console.log(`- ${name}: no match`);
+  }
+
+  const live = supabase(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+  if (live) {
+    const { data } = await live.from("formulations").select("active_ingredients, label_sections, directions_text").eq("slug", `otc-${ADVIL}`).maybeSingle();
+    if (data) {
+      console.log(`Advil as live now (before this run):`);
+      console.log(`    directions_text: ${JSON.stringify(data.directions_text)}`);
+      for (const [k, v] of Object.entries((data.label_sections ?? {}) as Record<string, string[]>)) console.log(`    ${k} (${v.length}): ${v.map((b) => JSON.stringify(b)).join(" | ")}`);
+    }
   }
 
   const bytes = Buffer.byteLength(JSON.stringify(rows.map((r) => formulationToRow(r, null))));
@@ -304,10 +414,30 @@ async function main() {
   const labels = await loadLabels();
   const { products, exportDate } = await loadNdcProducts();
   const reviewed = await reviewedNdcs();
-  const result = importLabels(labels, indexNdcProducts(products), reviewed);
+  const index = indexNdcProducts(products);
+
+  let splStats = "skipped (--no-spl)";
+  let result = importLabels(labels, index, reviewed);
+  if (withSpl) {
+    // Fetch SPL XML only for labels that become rows (or would, but for a reviewed row), then map again.
+    const candidates = [...result.rows, ...result.skippedForReviewed].map((r) => r.openfdaSetId!).filter(Boolean);
+    const { spl, missing, failed } = await loadSpl(candidates);
+    splStats = `${spl.size} of ${candidates.length} candidate labels have a matching SPL document; ${missing} not on DailyMed, ${failed} failed (text heuristics used for those)`;
+    result = importLabels(labels, index, reviewed, { spl });
+  }
   if (withMedlinePlus) await addMedlinePlus(result.rows, labels);
   else console.log("  MedlinePlus links: skipped (pass --with-medlineplus)");
-  report(labels, products.length, exportDate, result);
+  await report(labels, products.length, exportDate, result, splStats);
+
+  let plan: Awaited<ReturnType<typeof prunePlan>> | null = null;
+  if (doPrune) {
+    plan = await prunePlan(new Set(result.rows.map((r) => r.slug)));
+    console.log(`prune: ${plan.existing} imported rows in the table; ${plan.remove.length} not produced by this run would be deleted${dryRun ? " (dry run: nothing deleted)" : ""}`);
+    plan.remove.slice(0, 15).forEach((r) => console.log(`  - ${r.slug}`));
+    if (plan.remove.length > 15) console.log(`  … and ${plan.remove.length - 15} more`);
+    console.log(`  kept because a saved medication entry references them: ${plan.keptReferenced.length}`);
+    plan.keptReferenced.forEach((r) => console.log(`  = ${r.slug}`));
+  }
 
   if (dryRun) return;
   const admin = supabase(process.env.SUPABASE_SECRET_KEY)!;
@@ -320,6 +450,21 @@ async function main() {
     process.stdout.write(`\r  upserted ${written}/${result.rows.length}`);
   }
   process.stdout.write("\n");
+
+  if (plan && plan.remove.length > 0) {
+    const ids = plan.remove.map((r) => r.id);
+    for (let i = 0; i < ids.length; i += 200) {
+      const { error } = await admin
+        .from("formulations")
+        .delete()
+        .in("id", ids.slice(i, i + 200))
+        .eq("source", "openfda")
+        .is("reviewed_at", null)
+        .like("slug", "otc-%");
+      if (error) throw new Error(`prune batch at ${i}: ${error.message}`);
+    }
+    console.log(`  pruned ${ids.length} rows`);
+  }
 }
 
 main().catch((error) => {

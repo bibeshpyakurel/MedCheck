@@ -30,7 +30,20 @@ describe("MedlinePlus Connect", () => {
     expect(medlinePlusLinks({ feed: "nope" })).toEqual([]);
   });
 
-  it("keys a product by its sorted normalized ingredients", () => {
-    expect(ingredientSetKey(["phenylephrine", "acetaminophen"])).toBe("acetaminophen+phenylephrine");
+  it("keys a product by its sorted normalized ingredients and its form", () => {
+    expect(ingredientSetKey(["phenylephrine", "acetaminophen"], "caplet")).toBe("acetaminophen+phenylephrine|caplet");
+  });
+
+  const feed = (...titles: string[]) => ({
+    feed: { entry: titles.map((t, i) => ({ title: { _value: t }, link: [{ href: `https://medlineplus.gov/druginfo/meds/a60${i}.html` }] })) },
+  });
+
+  it("drops pages for another route or form, keeping the plain ingredient page", () => {
+    const links = medlinePlusLinks(feed("Nicotine Transdermal Patch", "Nicotine Nasal Spray", "Nicotine Gum", "Nicotine Lozenges", "Nicotine"), "lozenge");
+    expect(links.map((l) => l.label)).toEqual(["MedlinePlus: Nicotine Lozenges", "MedlinePlus: Nicotine"]);
+    expect(medlinePlusLinks(feed("Nicotine Gum"), "lozenge")).toEqual([]);
+    expect(medlinePlusLinks(feed("Diphenhydramine Injection", "Diphenhydramine Topical", "Diphenhydramine"), "softgel").map((l) => l.label)).toEqual([
+      "MedlinePlus: Diphenhydramine",
+    ]);
   });
 });
