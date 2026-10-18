@@ -305,6 +305,9 @@ function OptionCard({ option, checked, onSelect }: { option: MatchOption; checke
           </span>
         )}
         {meta && <span className="block text-sm text-muted-foreground">{meta}</span>}
+        {option.matchedByCode && (
+          <span className="block text-sm font-medium text-primary">Matches the NDC printed on the package.</span>
+        )}
         {option.strengthDiffers && (
           <span className="block text-sm text-unresolved-foreground">Strength differs from what MedCheck read on the photo.</span>
         )}

@@ -57,6 +57,20 @@ export async function searchFormulations(query: string, max = 8): Promise<Formul
   return data.map(rowToFormulation);
 }
 
+/** Real (not fictional) catalog labels listing any of these 11-digit package NDCs. Few: an NDC belongs to one label. */
+export async function findFormulationsByNdc11(ndc11: string[]): Promise<Formulation[]> {
+  if (ndc11.length === 0) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("formulations")
+    .select("*")
+    .overlaps("ndc_packages", ndc11)
+    .eq("is_fictional", false)
+    .limit(5);
+  if (error) throw error;
+  return data.map(rowToFormulation);
+}
+
 export async function getFormulationsByIds(ids: string[]): Promise<Record<string, Formulation>> {
   const unique = [...new Set(ids)];
   if (unique.length === 0) return {};

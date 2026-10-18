@@ -13,10 +13,12 @@ const records = vi.hoisted(() => ({
   updateSourceDocument: vi.fn(),
 }));
 const gemini = vi.hoisted(() => ({ extractFromPhoto: vi.fn(), hasGeminiKey: vi.fn() }));
+const codes = vi.hoisted(() => ({ findFormulationByCodes: vi.fn() }));
 
 vi.mock("@/lib/records", () => records);
 vi.mock("./model", () => ({ hasGeminiKey: gemini.hasGeminiKey }));
 vi.mock("./extract-label", () => ({ extractFromPhoto: gemini.extractFromPhoto }));
+vi.mock("@/lib/code-lookup", () => codes);
 
 import { extractIntoDrafts } from "./run-extraction";
 
@@ -38,11 +40,17 @@ function medicationNamed(name: string) {
   return { ...fields, productName: suggestedField(name, { kind: "photo", sourceDocumentId: doc.id }) };
 }
 
-function geminiReads(documentKind: PhotoKind | null, names: string[] = ["Advil"], photoIssue: PhotoIssue | null = null): void {
+function geminiReads(
+  documentKind: PhotoKind | null,
+  names: string[] = ["Advil"],
+  photoIssue: PhotoIssue | null = null,
+  productCodes: string[][] = names.map(() => []),
+): void {
   const result: ExtractionResult = {
     documentKind,
     document: { documentDate: null, facility: null, prescriber: null, pharmacy: null },
     medications: names.map(medicationNamed),
+    productCodes,
     photoIssue,
   };
   gemini.extractFromPhoto.mockResolvedValue(result);
@@ -107,6 +115,7 @@ describe("extractIntoDrafts: what kind of photo it was", () => {
       documentKind: "discharge_list",
       document: { documentDate: "2026-10-16", facility: "Lakeside Hospital", prescriber: null, pharmacy: null },
       medications: [medicationNamed("Amoxicillin")],
+      productCodes: [[]],
       photoIssue: null,
     } satisfies ExtractionResult);
     await extractIntoDrafts(doc);
@@ -126,5 +135,35 @@ describe("extractIntoDrafts: drafts", () => {
     expect(outcome.notice).toBe("several-found");
     expect(outcome.firstFields.productName.value).toBe("Advil");
     expect(records.createDraftEntry.mock.calls.map(([d]) => d.fields.productName.value)).toEqual(["Advil", "Tylenol Extra Strength"]);
+  });
+});
+
+describe("extractIntoDrafts: the code printed on a package", () => {
+  beforeEach(() => {
+    codes.findFormulationByCodes.mockResolvedValue(null);
+  });
+
+  it("links each package draft to the product its printed code points to (still a draft to confirm)", async () => {
+    codes.findFormulationByCodes.mockImplementation(async (c: string[]) => (c.length ? { id: "f-tylenol-es" } : null));
+    geminiReads("otc_package", ["TYLENOL", "Advil"], null, [["NDC 50580-449-10"], []]);
+    const outcome = await extractIntoDrafts(doc);
+    expect(codes.findFormulationByCodes.mock.calls.map(([c]) => c)).toEqual([["NDC 50580-449-10"], []]);
+    expect(records.createDraftEntry.mock.calls.map(([d]) => d.formulationId)).toEqual(["f-tylenol-es", null]);
+    expect(outcome.firstFormulationId).toBe("f-tylenol-es");
+  });
+
+  it("prescription labels and discharge lists aren't looked up (the catalog is over-the-counter only)", async () => {
+    geminiReads("prescription_label", ["Amoxicillin"], null, [["NDC 00093-4155-73"]]);
+    const outcome = await extractIntoDrafts(doc);
+    expect(codes.findFormulationByCodes).not.toHaveBeenCalled();
+    expect(outcome.firstFormulationId).toBeNull();
+  });
+
+  it("a failed lookup leaves the draft unlinked", async () => {
+    codes.findFormulationByCodes.mockRejectedValue(new Error("db down"));
+    geminiReads("otc_package", ["TYLENOL"], null, [["NDC 50580-449-10"]]);
+    const outcome = await extractIntoDrafts(doc);
+    expect(records.createDraftEntry.mock.calls[0][0].formulationId).toBeNull();
+    expect(outcome.firstFormulationId).toBeNull();
   });
 });

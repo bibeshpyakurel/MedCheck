@@ -323,7 +323,7 @@ async function readPackagePhoto(
   page: Page,
   browser: Browser,
   base: string,
-  scenario?: "tylenolExtraStrength" | "unreadable" | "advilAndTylenol",
+  scenario?: "tylenolExtraStrength" | "unreadable" | "advilAndTylenol" | "tylenolByCode",
 ) {
   await page.goto(`${base}/add`);
   await page.locator("label", { hasText: "Choose a photo" }).locator("input[type=file]").setInputFiles(await labelPhoto(browser, scenario));
@@ -501,6 +501,15 @@ test.describe("medicine package photo", () => {
     await page.goto(base);
     const waiting = page.getByRole("region", { name: /Waiting for your review/ });
     await expect(waiting.locator('a[href$="/match"]')).toHaveCount(2);
+  });
+
+  test("a package where only the printed NDC is legible still finds its FDA label, pre-selected", async ({ browser }) => {
+    await readPackagePhoto(page, browser, base, "tylenolByCode");
+    await page.waitForURL(/\/entries\/[0-9a-f-]{36}\/match$/, { timeout: 60_000 });
+    const byCode = page.getByRole("radio", { name: /Tylenol Extra Strength \(caplets\)/ });
+    await expect(byCode).toBeChecked();
+    await expect(page.locator("label", { has: byCode })).toContainText("Matches the NDC printed on the package.");
+    await expect(page.locator("label", { has: byCode })).toContainText("Acetaminophen 500 mg per caplet");
   });
 
   test("the type-in search never offers fictional demo products", async () => {
