@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { FICTIONAL_FORMULATIONS } from "@/data/fictional-formulations";
 import type { CheckRun, EntryFields, Field, MedicationEntry, SourceDocument } from "@/lib/domain/schema";
 import { fieldsFromFormulation } from "@/lib/domain/fields";
+import { VITALS_NOTE, type SavedVitalReading } from "@/lib/vitals";
 import { BOUNDARY_STATEMENT, buildReport, emailDraft, pendingNote, reportFilename } from "./build-report";
 
 const patient = { displayName: "Sam", relationship: "son" };
@@ -248,6 +249,58 @@ describe("buildReport", () => {
   });
 });
 
+const reading: SavedVitalReading = {
+  id: "v1",
+  measuredAt: "2026-10-17T18:40:00Z",
+  heartRate: { value: 72, confidence: 0.92 },
+  respiratoryRate: { value: null, confidence: 0.41 },
+};
+const withVitals = buildReport({
+  caregiverName: "Alex Rivera",
+  patient,
+  entries: [entryA],
+  runs: [],
+  generatedAt,
+  timeZone: "America/Chicago",
+  vitals: reading,
+});
+
+describe("buildReport vitals (the latest reading, numbers and confidence only)", () => {
+  it("has no vitals section without a reading", () => {
+    expect(report.vitals).toBeNull();
+    expect(buildReport({ caregiverName: null, patient, entries: [], runs: [], generatedAt, vitals: null }).vitals).toBeNull();
+  });
+
+  it("shows when it was measured, in the report's time zone, each vital's line and the note", () => {
+    expect(withVitals.vitals).toEqual({
+      measuredAtLabel: expect.stringMatching(/Oct(ober)? 17, 2026.*1:40.*CDT/),
+      lines: [
+        { label: "Heart rate", text: "72 bpm", confidence: "92% confidence" },
+        { label: "Breathing rate", text: "Couldn't read clearly", confidence: "41% confidence" },
+      ],
+      note: VITALS_NOTE,
+    });
+  });
+
+  it("doesn't count a reading as a medicine", () => {
+    const onlyVitals = buildReport({ caregiverName: null, patient, entries: [], runs: [], generatedAt, vitals: reading });
+    expect(onlyVitals.isEmpty).toBe(true);
+    expect(onlyVitals.vitals).not.toBeNull();
+  });
+
+  it("never judges a value", () => {
+    const fast = buildReport({
+      caregiverName: null,
+      patient,
+      entries: [],
+      runs: [],
+      generatedAt,
+      vitals: { ...reading, heartRate: { value: 160, confidence: 0.95 }, respiratoryRate: { value: 40, confidence: 0.95 } },
+    });
+    expect(JSON.stringify(fast.vitals)).not.toMatch(/normal|\bhigh|\blow|\bsafe|healthy|elevated/i);
+  });
+});
+
 describe("emailDraft", () => {
   it("uses the report title as the subject and a plain message", () => {
     const { subject, body } = emailDraft(report);
@@ -274,6 +327,19 @@ describe("emailDraft", () => {
     expect(emailDraft(guest).body).toContain("Here is my medicine report.");
     expect(emailDraft(guest).body).toContain("\nThanks\n");
     expect(emailDraft(guest).body).not.toContain("Thanks —");
+  });
+
+  it("adds the latest vitals after the warnings, with the note", () => {
+    const { body } = emailDraft(withVitals);
+    expect(body).toMatch(
+      /No warnings found in confirmed fields\.\n\nLatest vitals \(estimate, Oct(ober)? 17, 2026[^)]*CDT\): Heart rate 72 bpm · Breathing rate Couldn't read clearly\n/,
+    );
+    expect(body).toContain(VITALS_NOTE);
+    expect(body.indexOf("Latest vitals")).toBeLessThan(body.indexOf("The PDF is attached."));
+  });
+
+  it("leaves vitals out of the email when there is no reading", () => {
+    expect(emailDraft(report).body).not.toContain("vitals");
   });
 
   it("never mentions pharmacists or questions, or says safe", () => {

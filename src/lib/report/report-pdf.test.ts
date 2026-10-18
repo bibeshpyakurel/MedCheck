@@ -1,7 +1,8 @@
 import { writeFileSync } from "node:fs";
 import { inflateSync } from "node:zlib";
 import { describe, expect, it } from "vitest";
-import { emptyReport, pendingOnlyReport, sampleReport } from "./__fixtures__/sample-report";
+import { VITALS_NOTE } from "@/lib/vitals";
+import { emptyReport, pendingOnlyReport, sampleReport, sampleVitals } from "./__fixtures__/sample-report";
 import { BOUNDARY_STATEMENT } from "./build-report";
 import { renderReportPdf } from "./report-pdf";
 
@@ -48,6 +49,25 @@ describe("renderReportPdf", () => {
     expect(text).toContain("1 medicine is waiting for you to check its details.");
     expect(text).toContain("maximum unreadable on the Drug Facts photo");
     expect(text).toContain("Evidence, not advice");
+  }, 20_000);
+
+  it("adds the latest vitals as an estimate, with each line's confidence and the note", async () => {
+    const pdf = await renderReportPdf(sampleReport(sampleVitals));
+    keep("vitals", pdf);
+    const text = pdfText(pdf);
+    expect(text).toContain("Vitals (estimate)");
+    expect(text).toMatch(/Measured Oct(ober)? 17, 2026, 1:40 PM CDT/);
+    expect(text).toContain("Heart rate");
+    expect(text).toContain("72 bpm");
+    expect(text).toContain("92% confidence");
+    expect(text).toContain("Breathing rate");
+    expect(text).toContain("read clearly");
+    expect(text).toContain(VITALS_NOTE.slice(0, 40));
+    expect(text).not.toMatch(/normal|\bhigh\b|\blow\b|\bsafe/i);
+  }, 20_000);
+
+  it("has no vitals section without a reading", async () => {
+    expect(pdfText(await renderReportPdf(sampleReport()))).not.toContain("Vitals");
   }, 20_000);
 
   it("has no pharmacist framing, questions, check listings or demo labels", async () => {

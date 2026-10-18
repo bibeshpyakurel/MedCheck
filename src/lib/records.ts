@@ -13,6 +13,7 @@ import {
 import { isSelf } from "@/lib/record-format";
 import type { Database, Json } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
+import type { SavedVitalReading, VitalReading } from "@/lib/vitals";
 
 type Tables = Database["public"]["Tables"];
 type DocumentRow = Tables["source_documents"]["Row"];
@@ -329,6 +330,50 @@ export async function listHistory(patientId: string, limit = 100): Promise<Histo
     after: h.after,
     at: h.at,
   }));
+}
+
+// ---------------------------------------------------------------------------
+// Vital readings (numbers only; the scan's video never leaves the browser and VitalLens)
+// ---------------------------------------------------------------------------
+
+export async function insertVitalReading(patientId: string, reading: VitalReading): Promise<SavedVitalReading> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("vital_readings")
+    .insert({
+      patient_id: patientId,
+      heart_rate_bpm: reading.heartRate.value,
+      heart_rate_confidence: reading.heartRate.confidence,
+      respiratory_rate_bpm: reading.respiratoryRate.value,
+      respiratory_rate_confidence: reading.respiratoryRate.confidence,
+    })
+    .select("*")
+    .single();
+  if (error) throw error;
+  return rowToVitalReading(data);
+}
+
+/** The person's newest reading, or null when they have none. */
+export async function latestVitalReading(patientId: string): Promise<SavedVitalReading | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("vital_readings")
+    .select("*")
+    .eq("patient_id", patientId)
+    .order("measured_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? rowToVitalReading(data) : null;
+}
+
+function rowToVitalReading(r: Tables["vital_readings"]["Row"]): SavedVitalReading {
+  return {
+    id: r.id,
+    measuredAt: r.measured_at,
+    heartRate: { value: r.heart_rate_bpm, confidence: r.heart_rate_confidence },
+    respiratoryRate: { value: r.respiratory_rate_bpm, confidence: r.respiratory_rate_confidence },
+  };
 }
 
 // ---------------------------------------------------------------------------

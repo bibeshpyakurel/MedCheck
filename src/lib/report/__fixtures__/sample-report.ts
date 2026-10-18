@@ -3,6 +3,7 @@
 import { FICTIONAL_FORMULATIONS } from "@/data/fictional-formulations";
 import type { CheckRun, EntryFields, Field, MedicationEntry, SourceDocument } from "@/lib/domain/schema";
 import { fieldsFromFormulation } from "@/lib/domain/fields";
+import type { SavedVitalReading } from "@/lib/vitals";
 import { buildReport, type Report } from "../build-report";
 
 function confirmAll(fields: EntryFields): EntryFields {
@@ -128,7 +129,7 @@ const generatedAt = new Date("2026-10-17T19:05:00Z");
 const guest = { displayName: "Guest", relationship: "self" };
 
 /** Sam's report, with one more medicine still waiting to be checked. */
-export function sampleReport(): Report {
+export function sampleReport(vitals: SavedVitalReading | null = null): Report {
   return buildReport({
     caregiverName: "Alex Rivera",
     patient: { displayName: "Sam", relationship: "son" },
@@ -136,8 +137,17 @@ export function sampleReport(): Report {
     runs: sampleRuns,
     generatedAt,
     timeZone: "America/Chicago",
+    vitals,
   });
 }
+
+/** Sam's latest vitals scan: heart rate read, breathing rate not read clearly. */
+export const sampleVitals: SavedVitalReading = {
+  id: "v1",
+  measuredAt: "2026-10-17T18:40:00Z",
+  heartRate: { value: 72, confidence: 0.92 },
+  respiratoryRate: { value: null, confidence: 0.41 },
+};
 
 /** A guest who hasn't added anything yet. */
 export function emptyReport(): Report {

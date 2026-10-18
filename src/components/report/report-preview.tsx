@@ -1,7 +1,7 @@
 // The medicine report as a page: the same Report the PDF is drawn from (report-pdf.tsx), section for
 // section, so the preview works on every phone (a PDF in a frame doesn't) and in light and dark.
 // Evidence only: what the labels say and the warnings found, never a dose and never "safe".
-import { CircleDashedIcon, TriangleAlertIcon } from "lucide-react";
+import { ActivityIcon, CircleDashedIcon, TriangleAlertIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { BrandLogo } from "@/components/brand";
 import { NO_WARNINGS, type Report, type ReportMedicine, type ReportWarning } from "@/lib/report/build-report";
@@ -103,6 +103,31 @@ function NotYetConfirmed({ report }: { report: Report }) {
   );
 }
 
+/** The latest vitals scan, in neutral colours: numbers and confidence only, never a judgement. */
+function Vitals({ report }: { report: Report }) {
+  if (!report.vitals) return null;
+  return (
+    <Section id="preview-vitals" title="Vitals (estimate)">
+      <div className="space-y-3 rounded-xl bg-muted p-4 text-sm">
+        <p className="flex items-center gap-2 text-muted-foreground">
+          <ActivityIcon aria-hidden className="size-4 shrink-0" />
+          Measured {report.vitals.measuredAtLabel}
+        </p>
+        <dl className="space-y-2">
+          {report.vitals.lines.map((l) => (
+            <div key={l.label} className="grid grid-cols-[8.5rem_1fr] gap-x-4 sm:grid-cols-[10rem_1fr_auto]">
+              <dt className="text-muted-foreground">{l.label}</dt>
+              <dd className="font-medium nums">{l.text}</dd>
+              <dd className="col-start-2 text-xs text-muted-foreground nums sm:col-start-3 sm:self-center">{l.confidence}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="text-xs text-muted-foreground">{report.vitals.note}</p>
+      </div>
+    </Section>
+  );
+}
+
 /** The report, laid out like its PDF. Its title is the page's heading. */
 export function ReportPreview({ report }: { report: Report }) {
   const hasMedicines = report.medicines.length > 0;
@@ -155,6 +180,7 @@ export function ReportPreview({ report }: { report: Report }) {
           <NotYetConfirmed report={report} />
         </>
       )}
+      <Vitals report={report} />
 
       <p className="border-t pt-4 text-sm text-muted-foreground">{report.boundary}</p>
     </article>

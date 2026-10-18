@@ -4,7 +4,7 @@ import "server-only";
 import { getFormulationsByIds } from "@/lib/catalog";
 import { runChecks } from "@/lib/checks";
 import type { CheckRun } from "@/lib/domain/schema";
-import { getCaregiver, getPatient, listEntries } from "@/lib/records";
+import { getCaregiver, getPatient, latestVitalReading, listEntries } from "@/lib/records";
 import { createClient } from "@/lib/supabase/server";
 import type { Json } from "@/lib/supabase/database.types";
 import { buildReport, type Report } from "./build-report";
@@ -15,7 +15,7 @@ export async function loadReport(
 ): Promise<{ report: Report; runs: CheckRun[] } | null> {
   const patient = await getPatient(patientId);
   if (!patient) return null;
-  const [caregiver, entries] = await Promise.all([getCaregiver(), listEntries(patientId)]);
+  const [caregiver, entries, vitals] = await Promise.all([getCaregiver(), listEntries(patientId), latestVitalReading(patientId)]);
   const confirmed = entries.filter((e) => e.status === "confirmed");
   const formulations = await getFormulationsByIds(
     confirmed.map((e) => e.formulationId).filter((id): id is string => id !== null),
@@ -28,6 +28,7 @@ export async function loadReport(
     runs,
     generatedAt: new Date(),
     timeZone: opts.timeZone,
+    vitals,
   });
   return { report, runs };
 }
