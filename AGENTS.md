@@ -34,6 +34,8 @@ Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` and `docs/superpower
 - `src/lib/catalog.ts` — catalog reads (`listFormulations`, `getFormulation(s)ByIds`). The catalog holds every US oral OTC label (thousands of rows): never load it whole in a request; search with the `search_formulations` RPC.
 - `src/lib/domain/fields.ts` — build/read `EntryFields` (`suggestedField`, `fieldsFromFormulation`, `isUsable`, `isFullyReviewed`, `formatStrength`, `entryLabel`).
 - `src/data/fictional-formulations.ts` — fictional formulations (Calmora) with their NDCs.
+- `src/lib/photo-flow.ts` — the OTC photo flow's decisions: `photoNextPath()` (package → `/match` or `/retake`; other photos → `/review`), the picker's options, "Save without a match" fields.
+- `e2e/fake-gemini.mjs` — the e2e Gemini stand-in (via `GOOGLE_GENERATIVE_AI_BASE_URL`); it picks a canned read by the photo's width (`e2e/fake-gemini-scenarios.mjs`).
 - `src/components/already-gave-both.tsx` — the fixed "I already gave both" message; reuse it, never re-word it.
 - Status colors: `finding`, `unresolved` tokens in `globals.css`.
 

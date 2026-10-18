@@ -162,6 +162,8 @@ export const LABEL_SECTION_KEYS = [
   "keep_out_of_reach",
   "inactive_ingredients",
   "storage",
+  "other_information", // the label's "Other information" beyond storage (sodium content, tamper seals, allergens)
+  "questions", // "Questions or comments?" — the maker's phone line
 ] as const;
 export const labelSectionKeySchema = z.enum(LABEL_SECTION_KEYS);
 export type LabelSectionKey = z.infer<typeof labelSectionKeySchema>;

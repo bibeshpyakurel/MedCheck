@@ -2,6 +2,7 @@ import "server-only";
 
 import { isReadable, rankCatalogMatches, searchTermsFor, type CatalogMatch, type PhotoRead } from "@/lib/catalog-match";
 import { searchFormulations } from "@/lib/catalog";
+import { withoutFictional } from "@/lib/photo-flow";
 
 const PER_TERM = 20;
 
@@ -10,5 +11,5 @@ export async function findCatalogMatches(read: PhotoRead, limit = 6): Promise<Ca
   if (!isReadable(read)) return [];
   // Generic ingredient terms match thousands of rows, so ask for more than the default per term.
   const results = await Promise.all(searchTermsFor(read).map((term) => searchFormulations(term, PER_TERM)));
-  return rankCatalogMatches(read, results.flat()).slice(0, limit);
+  return rankCatalogMatches(read, withoutFictional(results.flat())).slice(0, limit);
 }

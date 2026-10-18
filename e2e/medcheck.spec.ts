@@ -1,7 +1,7 @@
 // The product end to end against the real app and Supabase: the three doors on the landing page, a
 // guest adding medicines by photo (typing what the label says), warnings, the report, Get help and
-// leaving, and an email sign-in. Gemini is off (see playwright.config.ts), so a photo's details all
-// start unknown.
+// leaving, the one-tap medicine-package path, and an email sign-in. Gemini is a local stand-in
+// (e2e/fake-gemini.mjs) that reads a photo by its width; the default photo reads as nothing found.
 import { expect, test, type Browser, type BrowserContext, type Page } from "@playwright/test";
 import { ALREADY_GAVE_BOTH_MESSAGE } from "../src/components/already-gave-both";
 import {
@@ -44,12 +44,12 @@ async function expectCaptureOptions(page: Page) {
   await expect(page.locator("body")).not.toContainText(/barcode|\bscan\b/i);
 }
 
-/** Choose a photo → Medicine package → review; types the label's details (Gemini is off) and confirms. */
+/** Choose a photo → Prescription label → review; types the label's details (Gemini reads nothing) and confirms. */
 async function addMedicineByPhoto(page: Page, browser: Browser, base: string, name: string) {
   await page.goto(`${base}/add`);
   await page.locator("label", { hasText: "Choose a photo" }).locator("input[type=file]").setInputFiles(await labelPhoto(browser));
   await page.waitForURL(/\/add\/photo\?source=library$/);
-  await page.getByRole("radio", { name: /Medicine package/ }).check();
+  await page.getByRole("radio", { name: /Prescription label/ }).check();
   await page.getByRole("button", { name: "Read this photo" }).click();
   await page.waitForURL(/\/entries\/[0-9a-f-]{36}\/review(\?|$)/, { timeout: 60_000 });
   await typeText(page, "Product name", name);
@@ -176,11 +176,11 @@ test.describe("guest", () => {
     await expect(main).not.toContainText(/\bsafe\b/i);
   });
 
-  test("Choose a photo → photo page → review; the draft waits on the Medicines tab", async ({ browser }) => {
+  test("a prescription label photo → per-field review; the draft waits on the Medicines tab", async ({ browser }) => {
     await page.goto(`${base}/add`);
     await page.locator("label", { hasText: "Choose a photo" }).locator("input[type=file]").setInputFiles(await labelPhoto(browser));
     await page.waitForURL(/\/add\/photo\?source=library$/);
-    await page.getByRole("radio", { name: /Medicine package/ }).check();
+    await page.getByRole("radio", { name: /Prescription label/ }).check();
     await page.getByRole("button", { name: "Read this photo" }).click();
     await page.waitForURL(/\/entries\/[0-9a-f-]{36}\/review(\?|$)/, { timeout: 60_000 });
     await expect(page.getByRole("heading", { level: 1, name: "Check the details" })).toBeVisible();
@@ -257,6 +257,126 @@ test.describe("guest", () => {
       const { data: photos } = await admin.storage.from("label-photos").list(userId!);
       expect(photos ?? []).toEqual([]);
     }
+  });
+});
+
+/** Choose a photo of a medicine package and let MedCheck read it. */
+async function readPackagePhoto(page: Page, browser: Browser, base: string, scenario?: "tylenolExtraStrength" | "unreadable") {
+  await page.goto(`${base}/add`);
+  await page.locator("label", { hasText: "Choose a photo" }).locator("input[type=file]").setInputFiles(await labelPhoto(browser, scenario));
+  await page.waitForURL(/\/add\/photo\?source=library$/);
+  // Package-first: Medicine package is already chosen.
+  await expect(page.getByRole("radio", { name: /Medicine package/ })).toBeChecked();
+  await page.getByRole("button", { name: "Read this photo" }).click();
+}
+
+const ENTRY_WITH_CARD = /\/entries\/[0-9a-f-]{36}\?card=new$/;
+
+// The fast path for store-bought medicines, against the hand-checked Tylenol rows in the catalog.
+test.describe("medicine package photo", () => {
+  test.describe.configure({ mode: "serial" });
+
+  let context: BrowserContext;
+  let page: Page;
+  let base: string;
+  let userId: string | null = null;
+
+  test.beforeAll(async ({ browser }, testInfo) => {
+    context = await browser.newContext(testInfo.project.use);
+    page = await context.newPage();
+    page.on("dialog", (dialog) => (dialog.type() === "beforeunload" ? dialog.accept() : dialog.dismiss()));
+    await page.goto("/");
+    await page.getByRole("button", { name: "Continue as a guest" }).click();
+    await page.waitForURL(RECORD_URL);
+    base = `/patients/${RECORD_URL.exec(new URL(page.url()).pathname)![1]}`;
+    userId = await sessionUserId(context);
+  });
+
+  test.afterAll(async () => {
+    if (userId) await deleteTestUsers([userId]);
+    await context.close();
+  });
+
+  test("photo → “Is this the medicine?” with the match pre-selected → Confirm → card → Done", async ({ browser }) => {
+    await readPackagePhoto(page, browser, base, "tylenolExtraStrength");
+    await page.waitForURL(/\/entries\/[0-9a-f-]{36}\/match$/, { timeout: 60_000 });
+    await expect(page.getByRole("heading", { level: 1, name: "Is this the medicine?" })).toBeVisible();
+
+    const best = page.getByRole("radio", { name: /Tylenol Extra Strength \(caplets\)/ });
+    await expect(best).toBeChecked();
+    await expect(page.locator("label", { has: best })).toContainText("Acetaminophen 500 mg per caplet");
+    // The 325 mg label is offered, not chosen.
+    await page.getByRole("button", { name: /Other matches/ }).click();
+    const regular = page.getByRole("radio", { name: /Tylenol Regular Strength/ });
+    await expect(regular).not.toBeChecked();
+    await expect(page.locator("label", { has: regular })).toContainText("Acetaminophen 325 mg per tablet");
+    await expect(page.getByRole("button", { name: "None of these — type it in" })).toBeVisible();
+    await expect(page.getByRole("main")).not.toContainText(/pharmacist|\bsafe\b/i);
+
+    await page.getByRole("button", { name: "Confirm", exact: true }).click();
+    await page.waitForURL(ENTRY_WITH_CARD);
+    const card = page.getByRole("dialog", { name: "Tylenol Extra Strength (caplets)" });
+    await expect(card).toBeVisible();
+    await expect(card).toContainText("Acetaminophen 500 mg per caplet");
+    await expect(card.locator('a[href="tel:18002221222"]')).toBeVisible();
+    await card.getByRole("button", { name: "Done" }).click();
+
+    await page.waitForURL(new RegExp(`${base}$`));
+    await expect(page.getByText("1 medicine on file")).toBeVisible();
+    await expect(page.getByRole("region", { name: /Waiting for your review/ })).toHaveCount(0);
+    await page.getByRole("link", { name: /Tylenol Extra Strength \(caplets\)/ }).first().click();
+    await expect(page.getByText("Confirmed", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("Photo", { exact: true }).first()).toBeVisible();
+    // The card stays reachable from the entry page.
+    await page.getByRole("button", { name: "View medicine card" }).click();
+    await expect(page.getByRole("dialog", { name: "Tylenol Extra Strength (caplets)" })).toBeVisible();
+  });
+
+  test("unreadable package → retake screen → Type it in instead → pick from the FDA list", async ({ browser }) => {
+    await readPackagePhoto(page, browser, base, "unreadable");
+    await page.waitForURL(/\/entries\/[0-9a-f-]{36}\/retake$/, { timeout: 60_000 });
+    await expect(page.getByRole("heading", { level: 1, name: "We couldn't read this label — retake the photo" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Retake photo" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Check the details" })).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Type it in instead" }).click();
+    await page.waitForURL(/\/match\?search=1$/);
+    await page.getByLabel("Medicine name").fill("Tylenol Regular");
+    const regular = page.getByRole("radio", { name: /Tylenol Regular Strength \(tablets\)/ });
+    await regular.check();
+    await page.getByRole("button", { name: "Confirm", exact: true }).click();
+    await page.waitForURL(ENTRY_WITH_CARD);
+    await page.getByRole("dialog", { name: "Tylenol Regular Strength (tablets)" }).getByRole("button", { name: "Done" }).click();
+    await page.waitForURL(new RegExp(`${base}$`));
+    await expect(page.getByText("2 medicines on file")).toBeVisible();
+  });
+
+  test("unreadable package → Retake photo → back to the camera, nothing left waiting", async ({ browser }) => {
+    await readPackagePhoto(page, browser, base, "unreadable");
+    await page.waitForURL(/\/entries\/[0-9a-f-]{36}\/retake$/, { timeout: 60_000 });
+    await page.getByRole("button", { name: "Retake photo" }).click();
+    await page.waitForURL(/\/add\/photo\?kind=otc_package&source=camera$/);
+    await expect(page.getByRole("radio", { name: /Medicine package/ })).toBeChecked();
+    await page.goto(base);
+    await expect(page.getByRole("region", { name: /Waiting for your review/ })).toHaveCount(0);
+  });
+
+  test("a medicine package with nothing found (Gemini read no medicine) also asks for a retake", async ({ browser }) => {
+    await readPackagePhoto(page, browser, base);
+    await page.waitForURL(/\/entries\/[0-9a-f-]{36}\/retake$/, { timeout: 60_000 });
+    await expect(page.getByRole("button", { name: "Type it in instead" })).toBeVisible();
+
+    // Left waiting: a package draft goes back to its one-tap step, not the per-field review.
+    await page.goto(base);
+    const waiting = page.getByRole("region", { name: /Waiting for your review/ });
+    await expect(waiting.getByRole("link", { name: /Check details/ })).toHaveAttribute("href", /\/entries\/[0-9a-f-]{36}\/match$/);
+  });
+
+  test("the type-in search never offers fictional demo products", async () => {
+    const response = await page.request.get("/api/catalog/search?q=Calmora");
+    expect(response.ok()).toBe(true);
+    const { options } = (await response.json()) as { options: { brandName: string }[] };
+    expect(options.filter((o) => /calmora/i.test(o.brandName))).toEqual([]);
   });
 });
 
