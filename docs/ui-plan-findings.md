@@ -104,3 +104,25 @@ The user said "just work on it" without answering one by one (2026-10-17), so ea
 - **Aurora (WP5/WP6):** gradients and one transform animation, with no blur filter (large blurred layers are a known iOS Safari paint problem while scrolling).
 - **WP9:** React's `<ViewTransition name share="morph">` is used, not `next-view-transitions`. Medicine rows use `<Link prefetch>` (full prefetch, production only), so the entry page renders in the same commit and the title can morph; without it the `[patientId]/loading.tsx` skeleton breaks the pair. Verified in a production build: tapping a medicine runs `::view-transition-group(entry-<id>-title)`. **Back doesn't animate.** History-back (device Back, and `BackLink`, which uses `history.back()`) isn't a React transition here, so no view transition starts, and the page just returns. The plan's "Back reverses it" is not met.
 - **`?fx=1`** forces effects on a device the gate would skip (for demo testing); it never overrides reduced motion.
+
+## Tier 1 status
+
+| WP | Status | Notes |
+|---|---|---|
+| Phase 1 | Done | No live scene exists yet, so `SceneSlot`'s live path (lease, cross-fade, pause, error fallback) is unexercised. |
+| WP1 | Done (not reproduced) | Header opacity fix; needs a real-iPhone check. |
+| WP2 | Done | Phones only; the page pads for the bar and its raised Add. |
+| WP3 | Done | List and medicine page. The medicine card (FDA label) and the match picker keep plain text. |
+| WP4 | Done | |
+| WP5 | Done | CSS/SVG stand-ins; the Spline and Unicorn scenes aren't built yet. |
+| WP6 | Done | CSS aurora with an `alert` crossfade. |
+| WP7 | **On hold** | Waits for `feat/photo-sheets` (§11). |
+| WP8 | **On hold** | Waits for `feat/photo-sheets` (§11). |
+| WP9 | Partly | The forward morph works; Back doesn't animate. |
+| WP10 | Done | Not yet tried as an installed app on a real phone. |
+| WP11 | Done | |
+| WP12 | Done | Share stays (spec), shown as the main action when the phone can share files. |
+
+Follow-ups:
+- `IngredientComparison` (from `feat/ingredient-compare`) uses the older left-rail warning style. Moving it onto `--overlap`, `--ring-a/b` and `IngredientChip` would make both Venns one design. Do it once `feat/photo-sheets` has placed it on a page.
+- Lighthouse budgets (§11 of the plan) haven't been measured.
