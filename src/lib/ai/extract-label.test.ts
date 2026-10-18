@@ -221,4 +221,10 @@ describe("toExtractionResult", () => {
   it("keeps an unsure kind as null (the caller decides the default)", () => {
     expect(toExtractionResult(read({ documentKind: null }), DOC).documentKind).toBeNull();
   });
+
+  it("carries Gemini's photo issue, and null when it named none or left it out", () => {
+    expect(toExtractionResult(read({ photoIssue: "glare" }), DOC).photoIssue).toBe("glare");
+    expect(toExtractionResult(read({ photoIssue: null }), DOC).photoIssue).toBeNull();
+    expect(toExtractionResult(read(), DOC).photoIssue).toBeNull();
+  });
 });
