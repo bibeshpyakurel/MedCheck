@@ -15,11 +15,16 @@ export const metadata: Metadata = {
   title: { default: "MedCheck", template: "%s · MedCheck" },
   description:
     "Photograph your medicines, see what their labels share, and share a simple report. Evidence, not advice.",
+  // Installed to the Home Screen: full screen, with a status bar that follows the theme ("black-translucent"
+  // would put white text over the light theme's header).
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "MedCheck" },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  // Lets the header and bottom bar pad for the notch and home indicator (env(safe-area-inset-*)).
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
     { media: "(prefers-color-scheme: dark)", color: "#0e1218" },
