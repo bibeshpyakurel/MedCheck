@@ -279,6 +279,24 @@ export async function packageNdcsForUpc(upc: string, timeoutMs = 4000): Promise<
   return packageNdcs(body.results ?? []);
 }
 
+/**
+ * NDC Directory products for product NDCs ("50580-472"), 50 per request. No matches → []. Throws on network
+ * errors or timeouts.
+ */
+export async function ndcProductsByProductNdc(productNdcs: string[], timeoutMs = 20_000): Promise<NdcProduct[]> {
+  const unique = [...new Set(productNdcs)].filter((n) => /^\d{4,5}-\d{3,4}$/.test(n));
+  const products: NdcProduct[] = [];
+  for (let i = 0; i < unique.length; i += 50) {
+    const search = `product_ndc:(${unique.slice(i, i + 50).map((n) => `"${n}"`).join(" OR ")})`;
+    const url = `${NDC_ENDPOINT}?${new URLSearchParams({ search, limit: "1000" })}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs), cache: "no-store" });
+    if (res.status === 404) continue;
+    if (!res.ok) throw new Error(`openFDA NDC search failed: ${res.status}`);
+    products.push(...(((await res.json()) as { results?: NdcProduct[] }).results ?? []));
+  }
+  return products;
+}
+
 /** Runs an openFDA label search. No matches → []. Throws on network errors or timeouts. */
 export async function searchLabels(search: string, limit = 100, timeoutMs = 8000): Promise<OpenFdaLabel[]> {
   const url = `${LABEL_ENDPOINT}?${new URLSearchParams({ search, limit: String(limit) })}`;

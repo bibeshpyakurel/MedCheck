@@ -48,7 +48,7 @@ export function isReadable(read: PhotoRead): boolean {
 // Package words that many products share; searched alone they drown out the brand
 // ("Rolaids Extra Strength" ranked store-brand "Extra Strength" antacids first).
 const STRENGTH = /\b\d+(?:\.\d+)?\s*(?:mg|mcg|g|ml|%)(?=\W|$)/gi;
-const FORM = "liqui-?gels?|liquid ?gels?|tablets?|caplets?|capsules?|softgels?|gelcaps?|geltabs?|chewables?|liquid|suspension";
+const FORM = "liqui-?gels?|liquid ?gels?|tablets?|caplets?|capsules?|softgels?|gelcaps?|geltabs?|chewables?|liquid|oral|suspension";
 const PACKAGE_WORDS = new RegExp(
   `\\b(?:extra|maximum|max|regular|original|ultra|strength|fast|acting|rapid|relief|formula|advanced|plus|${FORM})\\b`,
   "gi",

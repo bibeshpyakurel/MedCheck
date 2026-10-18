@@ -262,6 +262,27 @@ describe("rankCatalogMatches", () => {
     expect(preselectMatch(rankCatalogMatches(r, [capsule, checked]))?.formulation.id).toBe("f-checked");
   });
 
+  it("between hand-checked labels that differ only in their solid form, the form on the package decides (Aleve, Motrin IB, Pepto-Bismol)", () => {
+    const NAPROXEN = (per: string) => ing("Naproxen sodium", "naproxen", s(220, "mg", 1, per));
+    const gels = formulation("a-gels", "Aleve Liquid Gels (capsules)", "Naproxen sodium", "capsule", [NAPROXEN("capsule")], true);
+    const caplets = formulation("b-caplets", "Aleve (caplets)", "Naproxen sodium", "caplet", [NAPROXEN("caplet")], true);
+    const pick = (form: string, per: string) => preselectMatch(rankCatalogMatches(read("Aleve", form, [["Naproxen sodium", s(220, "mg", 1, per)]]), [gels, caplets]))?.formulation.id;
+    expect(pick("caplets", "caplet")).toBe("b-caplets");
+    expect(pick("liquid gels", "capsule")).toBe("a-gels");
+    expect(pick("Liqui-Gels", "capsule")).toBe("a-gels");
+    const BSS = (per: string) => ing("Bismuth subsalicylate", "bismuth subsalicylate", s(262, "mg", 1, per));
+    const pCaplets = formulation("a-pepto-caplets", "Pepto-Bismol (caplets)", "Bismuth subsalicylate", "caplet", [BSS("caplet")], true);
+    const pChew = formulation("b-pepto-chew", "Pepto-Bismol Chewables (chewable tablets)", "Bismuth subsalicylate", "chewable tablet", [BSS("chewable tablet")], true);
+    const chewRead = read("Pepto Bismol Chewables", "chewable tablets", [["Bismuth subsalicylate", s(262, "mg", 1, "tablet")]]);
+    expect(preselectMatch(rankCatalogMatches(chewRead, [pCaplets, pChew]))?.formulation.id).toBe("b-pepto-chew");
+  });
+
+  it("'Oral' in 'Oral Suspension' is a form word, not part of the brand (Children's Tylenol)", () => {
+    const checked = formulation("f-checked-kids", "Children's Tylenol Oral Suspension", "Acetaminophen", "liquid", [APAP(s(160, "mg", 5, "mL"))], true);
+    const r = read("Children's Tylenol", "oral suspension", [["Acetaminophen", s(160, "mg", 5, "mL")]]);
+    expect(preselectMatch(rankCatalogMatches(r, [childrensTylenol, checked]))?.formulation.id).toBe("f-checked-kids");
+  });
+
   it("a hand-checked label never beats a better match", () => {
     const checkedRegular = formulation("f-checked-reg", "Tylenol Regular Strength (tablets)", "Acetaminophen", "tablet", [APAP(s(325, "mg", 1, "tablet"))], true);
     const extra = formulation("a-extra", "TYLENOL Extra Strength", "Acetaminophen", "tablet", [APAP(s(500, "mg", 1, "tablet"))]);
