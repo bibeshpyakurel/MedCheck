@@ -397,7 +397,7 @@ test.describe("medicine package photo", () => {
     // "Took too much?" and the footer both carry Poison Control.
     await expect(card.locator('a[href="tel:18002221222"]').first()).toBeVisible();
     await card.getByRole("tab", { name: "Original FDA label" }).click();
-    await expect(card.getByRole("tabpanel")).toContainText("Every Drug Facts section as published");
+    await expect(card.getByRole("tabpanel", { name: "Original FDA label" })).toContainText("Every Drug Facts section as published");
     await expect(card).toContainText("Nothing is saved yet.");
 
     // Device Back returns to the question; Continue again.
