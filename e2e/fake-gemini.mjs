@@ -15,6 +15,7 @@ const medication = (m) => ({
   instructions: text(m.instructions ?? null),
   doseAsWritten: { amount: m.dose?.amount ?? null, unit: m.dose?.unit ?? null, box_2d: null },
   max24h: text(m.max24h ?? null),
+  codes: m.codes ?? [],
 });
 const ingredient = (name, amount, perUnit) => ({
   name: text(name),
@@ -57,6 +58,11 @@ const READS = {
     ],
   },
   [SCENARIO_WIDTHS.prescriptionNothingRead]: { documentKind: "prescription_label", document: noDocument, medications: [] },
+  [SCENARIO_WIDTHS.tylenolByCode]: {
+    documentKind: "otc_package",
+    document: noDocument,
+    medications: [medication({ codes: ["NDC 50580-449-10"] })],
+  },
 };
 // Gemini isn't sure what an empty photo shows.
 const NOTHING_FOUND = { documentKind: null, document: noDocument, medications: [], photoIssue: null };

@@ -54,6 +54,12 @@ describe("photoNextPath (where a photo goes after Gemini reads it)", () => {
     );
   });
 
+  it("a package whose printed code matched a product goes to confirm, even with nothing else read", () => {
+    expect(photoNextPath({ ...at, kind: "otc_package", notice: null, fields: blank, codeMatched: true })).toBe(
+      "/patients/p-1/entries/e-1/match",
+    );
+  });
+
   it("a readable package goes to confirm even if Gemini noted a photo issue", () => {
     expect(photoNextPath({ ...at, kind: "otc_package", notice: null, fields: readable, photoIssue: "glare" })).toBe(
       "/patients/p-1/entries/e-1/match",
@@ -172,6 +178,7 @@ describe("toMatchOption", () => {
       dosageForm: "caplet",
       labelerName: "Kenvue",
       strengthDiffers: false,
+      matchedByCode: false,
     });
   });
   it("flags a strength that differs from what was read", () => {
@@ -204,6 +211,22 @@ describe("matchChoices", () => {
 
   it("no matches → nothing to pick", () => {
     expect(matchChoices([])).toEqual({ selectedId: null, options: [] });
+  });
+
+  it("a code match goes first, pre-selected and marked, and isn't listed twice", () => {
+    const choices = matchChoices([match(reg, "agrees"), match(es, "agrees")], match(es, "agrees"));
+    expect(choices.selectedId).toBe("f-es");
+    expect(choices.options.map((o) => [o.id, o.matchedByCode])).toEqual([
+      ["f-es", true],
+      ["f-reg", false],
+    ]);
+  });
+
+  it("a code match alone is enough to offer and pre-select", () => {
+    expect(matchChoices([], match(es, "not_read", false))).toEqual({
+      selectedId: "f-es",
+      options: [toMatchOption(es, "not_read", true)],
+    });
   });
 });
 
@@ -253,13 +276,14 @@ describe("matchOptionLabel (what a screen reader says for a match)", () => {
         dosageForm: "CAPLET",
         labelerName: "Kenvue",
         strengthDiffers: false,
+        matchedByCode: false,
       }),
     ).toBe("Tylenol Extra Strength (caplets), Acetaminophen 500 mg per caplet");
   });
 
   it("is just the brand name when no ingredient is listed", () => {
     expect(
-      matchOptionLabel({ id: "x", brandName: "Calm Tea", ingredients: [], dosageForm: "", labelerName: null, strengthDiffers: false }),
+      matchOptionLabel({ id: "x", brandName: "Calm Tea", ingredients: [], dosageForm: "", labelerName: null, strengthDiffers: false, matchedByCode: false }),
     ).toBe("Calm Tea");
   });
 });

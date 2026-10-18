@@ -5,6 +5,7 @@
 import sanitizeHtml from "sanitize-html";
 import type { CatalogIngredient, Formulation } from "@/lib/domain/schema";
 import { normalizeIngredient } from "@/lib/domain/ingredients";
+import type { NdcProduct } from "@/lib/fda/types";
 import type { Database, Json } from "@/lib/supabase/database.types";
 import { ndc11FromHyphenated } from "./ndc";
 
@@ -255,6 +256,28 @@ export function formulationToRow(
 // ---------------------------------------------------------------------------
 
 const LABEL_ENDPOINT = "https://api.fda.gov/drug/label.json";
+
+const NDC_ENDPOINT = "https://api.fda.gov/drug/ndc.json";
+
+/** The 11-digit package NDCs (5-4-2, no hyphens) of NDC Directory products, once each. */
+export function packageNdcs(products: NdcProduct[]): string[] {
+  const all = products.flatMap((p) => (p.packaging ?? []).map((k) => ndc11FromHyphenated(k.package_ndc ?? "")));
+  return [...new Set(all.filter((n): n is string => n !== null))];
+}
+
+/**
+ * The package NDCs the NDC Directory lists for a 13-digit UPC (`openfda.upc`). Boxes can carry a
+ * labeler code the FDA no longer lists (Tylenol prints McNeil's 0045, its label says 50580), so only
+ * the UPC finds them. No matches → []. Throws on network errors or timeouts.
+ */
+export async function packageNdcsForUpc(upc: string, timeoutMs = 4000): Promise<string[]> {
+  const url = `${NDC_ENDPOINT}?${new URLSearchParams({ search: `openfda.upc:"${upc}"`, limit: "20" })}`;
+  const res = await fetch(url, { signal: AbortSignal.timeout(timeoutMs), cache: "no-store" });
+  if (res.status === 404) return [];
+  if (!res.ok) throw new Error(`openFDA NDC search failed: ${res.status}`);
+  const body = (await res.json()) as { results?: NdcProduct[] };
+  return packageNdcs(body.results ?? []);
+}
 
 /** Runs an openFDA label search. No matches → []. Throws on network errors or timeouts. */
 export async function searchLabels(search: string, limit = 100, timeoutMs = 8000): Promise<OpenFdaLabel[]> {

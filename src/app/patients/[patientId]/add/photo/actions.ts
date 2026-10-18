@@ -47,9 +47,17 @@ export async function uploadPhotoAction(formData: FormData): Promise<PhotoResult
     return { error: "We couldn't save the photo. Check your connection and try again." };
   }
 
-  const { entryIds, kind, notice, firstFields, photoIssue } = outcome;
+  const { entryIds, kind, notice, firstFields, photoIssue, firstFormulationId } = outcome;
   return {
-    next: photoNextPath({ patientId, entryId: entryIds[0], kind, notice, fields: firstFields, photoIssue }),
+    next: photoNextPath({
+      patientId,
+      entryId: entryIds[0],
+      kind,
+      notice,
+      fields: firstFields,
+      photoIssue,
+      codeMatched: firstFormulationId !== null,
+    }),
     entryIds,
     kind,
     sourceDocumentId,

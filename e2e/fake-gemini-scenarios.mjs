@@ -16,4 +16,6 @@ export const SCENARIO_WIDTHS = {
   prescriptionLabel: 560,
   /** A prescription label with no medicine legible: the kind is known, nothing else. */
   prescriptionNothingRead: 580,
+  /** A package where only the printed NDC is legible: "NDC 50580-449-10" (Tylenol Extra Strength caplets). */
+  tylenolByCode: 600,
 };
