@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/page-header";
 import { RecordHeader } from "@/components/records/record-header";
 import { requireUser } from "@/lib/auth";
 import { getPatient } from "@/lib/records";
-import { uploadPhotoAction } from "./actions";
+import { discardReadAction, uploadPhotoAction } from "./actions";
 import { PhotoForm, type PhotoKind } from "./photo-form";
 
 export const metadata: Metadata = { title: "Photo of the label" };
@@ -46,6 +46,7 @@ export default async function PhotoPage({ params, searchParams }: PageProps<"/pa
           patientId={patientId}
           initialKind={kind}
           action={uploadPhotoAction}
+          discardAction={discardReadAction}
           otherWaysHref={`/patients/${patientId}/add`}
           source={sourceParam.success ? sourceParam.data : undefined}
         />

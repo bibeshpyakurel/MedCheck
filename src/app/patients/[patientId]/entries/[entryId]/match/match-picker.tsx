@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDownIcon, LoaderCircleIcon, SearchIcon } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useEffectEvent, useId, useRef, useState, useTransition } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import type { MatchOption } from "@/lib/photo-flow";
 import { cn } from "@/lib/utils";
 
-type ActionResult = Promise<{ error: string } | void>;
+type ActionResult = Promise<{ error: string; gone?: true } | void>;
 
 const SEARCH_DELAY_MS = 300;
 
@@ -44,7 +45,7 @@ export function MatchPicker({
 }) {
   const [mode, setMode] = useState<"pick" | "search">(startInSearch ? "search" : "pick");
   const [selected, setSelected] = useState<string | null>(startInSearch ? null : selectedId);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ message: string; gone: boolean } | null>(null);
   const [pending, startTransition] = useTransition();
   const [showOthers, setShowOthers] = useState(selectedId === null);
   const othersId = useId();
@@ -55,7 +56,7 @@ export function MatchPicker({
     setError(null);
     startTransition(async () => {
       const result = await action();
-      if (result?.error) setError(result.error);
+      if (result?.error) setError({ message: result.error, gone: result.gone === true });
     });
   }
 
@@ -187,7 +188,14 @@ export function MatchPicker({
 
       {error && (
         <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription className="space-y-3">
+            <p>{error.message}</p>
+            {error.gone && (
+              <Button variant="outline" className="h-11 px-4" nativeButton={false} render={<Link href={`/patients/${patientId}`} />}>
+                Go to My medicines
+              </Button>
+            )}
+          </AlertDescription>
         </Alert>
       )}
 
