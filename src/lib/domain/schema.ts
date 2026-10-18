@@ -204,6 +204,7 @@ export type Formulation = {
 
 export const CHECK_IDS = [
   "ingredient_overlap",
+  "ingredient_family", // different ingredients in one reviewed family (two NSAIDs), named by a label's own warning
   "repeated_record",
   "concentration",
   "units",
