@@ -162,6 +162,62 @@ describe("labelSections — multi-product labels and Questions (Advil tablets/ca
     expect(s.inactive_ingredients?.join(" ")).not.toMatch(/Questions|1-800/);
   });
 
+  it("doesn't glue a whole item ending in 'your child' onto the next one (Children's Motrin SPL list items)", () => {
+    const block = (text: string, title = false) => ({ text, keys: ["ask_doctor" as const], title });
+    const text = "Ask a doctor before use if stomach bleeding warning applies to your child child has a history of stomach problems, such as heartburn";
+    const blocks = [block("Ask a doctor before use if", true), block("stomach bleeding warning applies to your child"), block("child has a history of stomach problems, such as heartburn")];
+    expect(splitSection("ask_doctor", text, { blocks })).toEqual([
+      "stomach bleeding warning applies to your child",
+      "child has a history of stomach problems, such as heartburn",
+    ]);
+    const leadIn = [block("Ask a doctor before use if", true), block("if your child"), block("has a sodium-restricted diet")];
+    expect(splitSection("ask_doctor", "Ask a doctor before use if if your child has a sodium-restricted diet", { blocks: leadIn })).toEqual([
+      "if your child has a sodium-restricted diet",
+    ]);
+  });
+
+  it("leaves a dosing table out of the directions bullets when its HTML spells ½ as a hex entity (Children's Tylenol Chewables)", () => {
+    const label = {
+      set_id: "x",
+      dosage_and_administration: [
+        "Directions find right dose on chart below. do not give more than 5 times in 24 hours Weight (lb) Age (yr) Dose (tablets) under 24 under 2 years ask a doctor 36-47 4-5 years 1½ tablets 72-95 11 years 3 tablets",
+      ],
+      dosage_and_administration_table: [
+        "<table><thead><tr><th>Weight (lb)</th><th>Age (yr)</th><th>Dose (tablets)</th></tr></thead><tbody><tr><td>under 24</td><td>under 2 years</td><td>ask a doctor</td></tr><tr><td>36-47</td><td>4-5 years</td><td>1&#xBD; tablets</td></tr><tr><td>72-95</td><td>11 years</td><td>3 tablets</td></tr></tbody></table>",
+      ],
+    };
+    expect(labelSections(label).directions).toEqual(["find right dose on chart below.", "do not give more than 5 times in 24 hours"]);
+  });
+
+  it("joins 'the child is', 'the child has' and 'the user' with the item that follows (Children's Motrin, Tylenol Regular Strength)", () => {
+    const block = (text: string, title = false) => ({ text, keys: ["ask_doctor_or_pharmacist" as const], title });
+    const text = "Ask a doctor or pharmacist before use if the child is under a doctor's care for any serious condition taking any other drug";
+    const blocks = [block("Ask a doctor or pharmacist before use if", true), block("the child is"), block("under a doctor's care for any serious condition"), block("taking any other drug")];
+    expect(splitSection("ask_doctor_or_pharmacist", text, { blocks })).toEqual(["the child is under a doctor's care for any serious condition", "taking any other drug"]);
+    const ask = (t: string, title = false) => ({ text: t, keys: ["ask_doctor" as const], title });
+    const user = [ask("Ask a doctor before use if", true), ask("the user"), ask("has liver disease"), ask("is a child with pain of arthritis")];
+    expect(splitSection("ask_doctor", "Ask a doctor before use if the user has liver disease is a child with pain of arthritis", { blocks: user })).toEqual([
+      "the user has liver disease",
+      "is a child with pain of arthritis",
+    ]);
+  });
+
+  it("joins 'relieves' and 'Do not take if you are' with the item that follows (Pepto-Bismol SPL list items)", () => {
+    const block = (key: "uses" | "warnings", text: string, title = false) => ({ text, keys: [key], title });
+    const uses = "Uses relieves traveler's diarrhea diarrhea";
+    expect(splitSection("uses", uses, { blocks: [block("uses", "Uses", true), block("uses", "relieves"), block("uses", "traveler's diarrhea"), block("uses", "diarrhea")] })).toEqual([
+      "relieves traveler's diarrhea",
+      "diarrhea",
+    ]);
+    const warnings = "Allergy alert: Contains salicylate. Do not take if you are allergic to salicylates (including aspirin) taking other salicylate products";
+    const blocks = [block("warnings", "Allergy alert: Contains salicylate. Do not take if you are"), block("warnings", "allergic to salicylates (including aspirin)"), block("warnings", "taking other salicylate products")];
+    expect(splitSection("warnings", warnings, { blocks })).toEqual([
+      "Allergy alert: Contains salicylate.",
+      "Do not take if you are allergic to salicylates (including aspirin)",
+      "taking other salicylate products",
+    ]);
+  });
+
   it("doesn't glue a whole item ending in 'you' onto the next one", () => {
     expect(s.ask_doctor?.slice(0, 2)).toEqual([
       "stomach bleeding warning applies to you",
@@ -253,7 +309,12 @@ describe("labelSections — safety text and duplicates (full-catalog scan)", () 
 
 describe("labelSections — age lines and parentheses (allergy/cold scan)", () => {
   it("K: each age line carries its own instruction; lowercase instructions are never taken for headings (Xyzal)", () => {
-    const s = labelSections(fixtureLabel("xyzal-age-lines"));
+    // Its directions are all in its dosing table (hex entities: &#x25A0; ■, &#xBD; ½), which the card shows
+    // whole: the bullets leave them out. Without the table they are cut at the age lines.
+    expect(labelSections(fixtureLabel("xyzal-age-lines")).directions).toBeUndefined();
+    const label = fixtureLabel("xyzal-age-lines");
+    delete label.dosage_and_administration_table;
+    const s = labelSections(label);
     expect(s.directions).toEqual(
       expect.arrayContaining([
         "adults 65 years of age and older ask a doctor",

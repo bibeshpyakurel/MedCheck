@@ -11,7 +11,9 @@
 //          --with-spl                          cut bullets at DailyMed SPL XML list items (one request per
 //                                              label, ~200/min, cached); without it: text heuristics
 //          --enrich-reviewed                   fill label_sections, labeler_name, source_links (and a missing
-//                                              max_24h_text) on hand-checked rows from their label; nothing else
+//                                              max_24h_text) on hand-checked rows from their label; nothing else.
+//                                              Their bullets are always cut at the label's SPL list items
+//                                              (XML fetched for just those labels); every bullet is printed
 //          --refresh                           re-download instead of using .cache/fda
 //
 // Downloads are untrusted data: cached under .cache/fda (gitignored), parsed only (JSON, XML).
@@ -529,6 +531,12 @@ async function enrichReviewed(labels: FdaLabel[], index: ReturnType<typeof index
     .order("slug");
   if (error) throw error;
   const bySet = new Map(labels.map((l) => [l.set_id, l]));
+  // Hand-checked rows are few: their bullets are always cut at the label's own SPL list items (fetched for
+  // just these labels when --with-spl didn't load them; a failed fetch falls back to the text heuristics).
+  const wanted = data.flatMap((r) => (r.openfda_set_id && !r.is_fictional && !spl?.has(r.openfda_set_id) ? [r.openfda_set_id] : []));
+  const fetched = wanted.length ? await loadSpl(wanted) : null;
+  if (fetched) console.log(`  SPL XML for reviewed rows: ${fetched.spl.size} of ${wanted.length} (${fetched.missing} not on DailyMed, ${fetched.failed} failed)`);
+  const splFor = (setId: string) => spl?.get(setId) ?? fetched?.spl.get(setId);
   console.log(`enrich reviewed rows${dryRun ? " (dry run: nothing written)" : ""}:`);
   for (const row of data) {
     if (row.is_fictional || !row.openfda_set_id) {
@@ -548,7 +556,8 @@ async function enrichReviewed(labels: FdaLabel[], index: ReturnType<typeof index
       continue;
     }
     const ingredients = row.active_ingredients as unknown as CatalogFormulation["activeIngredients"];
-    const update = reviewedEnrichment(label, index, { ingredientNames: ingredients.map((i) => i.name), max24hText: row.max_24h_text }, { spl: spl?.get(row.openfda_set_id) });
+    const rowSpl = splFor(row.openfda_set_id);
+    const update = reviewedEnrichment(label, index, { ingredientNames: ingredients.map((i) => i.name), max24hText: row.max_24h_text }, { spl: rowSpl });
     if (withMedlinePlus) {
       const probe = { activeIngredients: ingredients, dosageForm: row.dosage_form, openfdaSetId: row.openfda_set_id, sourceLinks: update.source_links } as unknown as CatalogFormulation;
       await addMedlinePlus([probe], [label]);
@@ -557,8 +566,9 @@ async function enrichReviewed(labels: FdaLabel[], index: ReturnType<typeof index
     const sections = update.label_sections as Record<string, string[]>;
     const links = update.source_links as unknown as { label: string }[];
     console.log(
-      `  ${row.slug}: ${Object.keys(sections).length} sections (${Object.values(sections).flat().length} bullets) | labeler ${update.labeler_name} | sources: ${links.map((l) => l.label).join(", ")}${"max_24h_text" in update ? ` | 24-h: ${update.max_24h_text}` : ""}`,
+      `  ${row.slug}: ${Object.keys(sections).length} sections (${Object.values(sections).flat().length} bullets, ${rowSpl ? "cut at SPL list items" : "text heuristics"}) | labeler ${update.labeler_name} | sources: ${links.map((l) => l.label).join(", ")}${"max_24h_text" in update ? ` | 24-h: ${update.max_24h_text}` : ""}`,
     );
+    for (const [k, bullets] of Object.entries(sections)) console.log(`    ${k}: ${bullets.map((b) => JSON.stringify(b)).join(" | ")}`);
     if (!dryRun) {
       const { error: e } = await client.from("formulations").update(update).eq("id", row.id).not("reviewed_at", "is", null);
       if (e) throw new Error(`enrich ${row.slug}: ${e.message}`);

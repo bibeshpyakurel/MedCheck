@@ -49,6 +49,14 @@ describe("findCatalogMatches", () => {
     expect(matches.map((m) => m.formulation.id)).toEqual(["f-tylenol"]);
   });
 
+  it("still finds the hand-checked label behind 25 same-brand copies the search ranks first (Tylenol Extra Strength)", async () => {
+    const copies = Array.from({ length: 25 }, (_, i) => ({ ...label(`f-copy-${i}`, "Tylenol Extra Strength", 500), reviewed: false }));
+    const checked = label("f-checked", "Tylenol Extra Strength (caplets)", 500);
+    searchFormulations.mockImplementation(async (_q, max) => [...copies, checked].slice(0, max));
+    const [best] = await findCatalogMatches({ ...read, productName: "Tylenol Extra Strength" });
+    expect(best.formulation.id).toBe("f-checked");
+  });
+
   it("still fills the limit with real labels", async () => {
     const real = Array.from({ length: 6 }, (_, i) => label(`f-${i}`, `Brand ${i} Extra Strength`, 500));
     searchFormulations.mockResolvedValue([label("f-calmora", "Calmora Extra Strength", 500, true), ...real]);

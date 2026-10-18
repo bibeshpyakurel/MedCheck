@@ -195,9 +195,12 @@ const STORAGE_LINE = /^(?:store|keep (?:in|at|tightly|away from (?:heat|light|mo
 const NOT_STORAGE = /do not use if|tamper|seal|contains|sodium|calcium|phenylketonurics|\blot\b|\bexp\b|\bsee\b|retain|read all|carton|packet|blister/i;
 
 /** A piece that needs what follows it: "you have", "Symptoms may include:", "if your child takes", a subheading. */
-const LEAD_IN_END = /(?:^|\s)(?:if|if you|takes?|includes?|of|with|the|a|an|and|or|than|for|such as|due to|following|your child)$/i;
+// "your child" leads in only on its own or after "if": "… applies to your child" is a whole item.
+// "relieves" alone opens a Uses list (Pepto-Bismol); "… if you are" opens the item after it.
+const LEAD_IN_END =
+  /(?:^|\s)(?:if|if you|if you (?:are|have)|takes?|includes?|of|with|the|a|an|and|or|than|for|such as|due to|following)$|(?:^|\bif )your child$|^(?:temporarily )?relieves$/i;
 /** Short fragments that only open a sentence: "you have", "you are", "if you", "your child is". */
-const SHORT_LEAD_IN = /^(?:if )?(?:you|your child)(?: (?:have|are|has|is|take|get|are taking|have ever had))?$|^if$/i;
+const SHORT_LEAD_IN = /^(?:if )?(?:you|your child|the child|the user)(?: (?:have|are|has|is|take|get|are taking|have ever had))?$|^if$/i;
 
 // ---------------------------------------------------------------------------
 // Label text
@@ -506,7 +509,8 @@ function tableText(html: string): string {
     .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
-    .replace(/&#(\d+);/g, (_, n: string) => String.fromCodePoint(Number(n)));
+    .replace(/&#(\d+);/g, (_, n: string) => String.fromCodePoint(Number(n)))
+    .replace(/&#x([\da-f]+);/gi, (_, n: string) => String.fromCodePoint(parseInt(n, 16)));
   return tidy(text);
 }
 
