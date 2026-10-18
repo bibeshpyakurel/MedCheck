@@ -359,11 +359,13 @@ test.describe("medicine package photo", () => {
     const best = page.getByRole("radio", { name: /Tylenol Extra Strength \(caplets\)/ });
     await expect(best).toBeChecked();
     await expect(page.locator("label", { has: best })).toContainText("Acetaminophen 500 mg per caplet");
-    // The 325 mg label is offered, not chosen.
+    // Other labels are offered, not chosen. In the full catalog the hand-checked caplets win over the
+    // equally good unreviewed TYLENOL Extra Strength labels (capsules, gelcaps, tablets), listed below it.
     await page.getByRole("button", { name: /Other matches/ }).click();
-    const regular = page.getByRole("radio", { name: /Tylenol Regular Strength/ });
-    await expect(regular).not.toBeChecked();
-    await expect(page.locator("label", { has: regular })).toContainText("Acetaminophen 325 mg per tablet");
+    const others = page.getByRole("radio", { name: /^TYLENOL Extra Strength, Acetaminophen 500 mg per / });
+    await expect(others.first()).toBeVisible();
+    await expect(others.first()).not.toBeChecked();
+    await expect(page.getByRole("radio", { checked: true })).toHaveCount(1);
     await expect(page.getByRole("main")).not.toContainText(/pharmacist|\bsafe\b/i);
     await expect(page.getByText("Step 2 of 3 · Match")).toBeVisible();
 
