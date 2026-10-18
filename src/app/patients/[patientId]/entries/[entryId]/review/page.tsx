@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { BackLink } from "@/components/page-header";
@@ -13,10 +12,11 @@ import { getFormulation } from "@/lib/catalog";
 import { entryLabel } from "@/lib/domain/fields";
 import type { Evidence, SourceDocumentKind } from "@/lib/domain/schema";
 import { catalogMatchLabel, recordTitle } from "@/lib/record-format";
-import { getEntry, getPatient, listEntries, signedPhotoUrl } from "@/lib/records";
+import { entryMetadata, findEntry, findPatient } from "@/lib/page-lookup";
+import { listEntries, signedPhotoUrl } from "@/lib/records";
 import { confirmReviewAction, saveDraftAction } from "./actions";
 
-export const metadata: Metadata = { title: "Check the details" };
+export const generateMetadata = ({ params }: PageProps<"/patients/[patientId]/entries/[entryId]/review">) => entryMetadata(params, "Check the details");
 
 const KIND_LABEL: Record<SourceDocumentKind, string> = {
   prescription_label: "Prescription label",
@@ -50,7 +50,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps<"/p
   const { patientId, entryId } = await params;
   const { notice, from: fromParam } = await searchParams;
   const from = fromParam === "entry" ? "entry" : null;
-  const [patient, entry] = await Promise.all([getPatient(patientId), getEntry(entryId)]);
+  const [patient, entry] = await Promise.all([findPatient(patientId), findEntry(entryId)]);
   if (!patient || !entry || entry.patientId !== patientId) notFound();
 
   const doc = entry.sourceDocument;

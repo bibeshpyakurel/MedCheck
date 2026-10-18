@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { AppShell } from "@/components/app-shell";
@@ -7,11 +6,11 @@ import { RecordHeader } from "@/components/records/record-header";
 import { ReportActions } from "@/components/report/report-actions";
 import { ReportPreview } from "@/components/report/report-preview";
 import { requireUser } from "@/lib/auth";
-import { getPatient } from "@/lib/records";
+import { findPatient, patientMetadata } from "@/lib/page-lookup";
 import { isEmailConfigured } from "@/lib/report/email-config";
 import { loadReport, timeZoneParam } from "@/lib/report/load-report";
 
-export const metadata: Metadata = { title: "Report preview" };
+export const generateMetadata = ({ params }: PageProps<"/patients/[patientId]/export/preview">) => patientMetadata(params, "Report preview");
 
 /**
  * The report preview, inside MedCheck: what the PDF contains, drawn as a page (a PDF in a frame
@@ -24,7 +23,7 @@ export default async function ReportPreviewPage({ params, searchParams }: PagePr
   const user = await requireUser();
   if (!z.uuid().safeParse(patientId).success) notFound();
   const timeZone = timeZoneParam(typeof tz === "string" ? tz : undefined);
-  const [patient, loaded] = await Promise.all([getPatient(patientId), loadReport(patientId, { timeZone })]);
+  const [patient, loaded] = await Promise.all([findPatient(patientId), loadReport(patientId, { timeZone })]);
   if (!patient || !loaded) notFound();
   // Guests send with their own email app; the in-app sender is for accounts only (see the email route).
   const configured = isEmailConfigured() && !user.isAnonymous;

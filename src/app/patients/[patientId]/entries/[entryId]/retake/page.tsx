@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { CameraIcon, KeyboardIcon } from "lucide-react";
@@ -7,18 +6,19 @@ import { AddFlowBar } from "@/components/records/add-flow-bar";
 import { SubmitButton } from "@/components/records/submit-button";
 import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth";
-import { getEntry, getPatient, signedPhotoUrl } from "@/lib/records";
+import { entryMetadata, findEntry, findPatient } from "@/lib/page-lookup";
+import { signedPhotoUrl } from "@/lib/records";
 import { isUuid } from "@/lib/uuid";
 import { retakePhotoAction } from "../match/actions";
 
-export const metadata: Metadata = { title: "Retake the photo" };
+export const generateMetadata = ({ params }: PageProps<"/patients/[patientId]/entries/[entryId]/retake">) => entryMetadata(params, "Retake the photo");
 
 /** A medicine-package photo Gemini couldn't read (no name, no ingredient): retake it, or type the name. */
 export default async function RetakePage({ params }: PageProps<"/patients/[patientId]/entries/[entryId]/retake">) {
   await requireUser();
   const { patientId, entryId } = await params;
   if (!isUuid(patientId) || !isUuid(entryId)) notFound();
-  const [patient, entry] = await Promise.all([getPatient(patientId), getEntry(entryId)]);
+  const [patient, entry] = await Promise.all([findPatient(patientId), findEntry(entryId)]);
   if (!patient || !entry || entry.patientId !== patient.id) notFound();
   if (entry.status !== "draft") redirect(`/patients/${patientId}/entries/${entryId}`);
   const doc = entry.sourceDocument;

@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { AddFlowBar } from "@/components/records/add-flow-bar";
@@ -6,12 +5,13 @@ import { requireUser } from "@/lib/auth";
 import { isReadable, photoReadFromFields, type CatalogMatch } from "@/lib/catalog-match";
 import { findCatalogMatches } from "@/lib/catalog-match-server";
 import { matchChoices } from "@/lib/photo-flow";
-import { getEntry, getPatient, listEntries, signedPhotoUrl } from "@/lib/records";
+import { entryMetadata, findEntry, findPatient } from "@/lib/page-lookup";
+import { listEntries, signedPhotoUrl } from "@/lib/records";
 import { isUuid } from "@/lib/uuid";
 import { confirmMatchAction, saveTypedNameAction } from "./actions";
 import { MatchPicker } from "./match-picker";
 
-export const metadata: Metadata = { title: "Is this the medicine?" };
+export const generateMetadata = ({ params }: PageProps<"/patients/[patientId]/entries/[entryId]/match">) => entryMetadata(params, "Is this the medicine?");
 
 /**
  * The one-tap confirm step for a medicine-package photo: Gemini's read is matched to FDA labels and
@@ -22,7 +22,7 @@ export default async function MatchPage({ params }: PageProps<"/patients/[patien
   await requireUser();
   const { patientId, entryId } = await params;
   if (!isUuid(patientId) || !isUuid(entryId)) notFound();
-  const [patient, entry] = await Promise.all([getPatient(patientId), getEntry(entryId)]);
+  const [patient, entry] = await Promise.all([findPatient(patientId), findEntry(entryId)]);
   if (!patient || !entry || entry.patientId !== patient.id) notFound();
   if (entry.status !== "draft") redirect(`/patients/${patientId}/entries/${entryId}`);
   const doc = entry.sourceDocument;

@@ -17,13 +17,13 @@ import { entryLabel } from "@/lib/domain/fields";
 import type { Formulation, MedicationEntry } from "@/lib/domain/schema";
 import { DOCUMENT_KIND_LABELS, formatDocDate, INPUT_METHOD_LABELS, recordTitle } from "@/lib/record-format";
 import { draftPath } from "@/lib/photo-flow";
-import { getPatient, listEntries, listHistory } from "@/lib/records";
-import { isUuid } from "@/lib/uuid";
+import { findPatient, NOT_FOUND_TITLE } from "@/lib/page-lookup";
+import { listEntries, listHistory } from "@/lib/records";
 
 export async function generateMetadata({ params }: PageProps<"/patients/[patientId]">): Promise<Metadata> {
   const { patientId } = await params;
-  const patient = isUuid(patientId) ? await getPatient(patientId) : null;
-  return { title: patient ? recordTitle(patient) : "Medicines" };
+  const patient = await findPatient(patientId);
+  return { title: patient ? recordTitle(patient) : NOT_FOUND_TITLE };
 }
 
 /**
@@ -34,7 +34,7 @@ export default async function PatientRecordPage({ params }: PageProps<"/patients
   await requireUser();
   const { patientId } = await params;
   // Malformed ids are a 404, not a database error.
-  const patient = isUuid(patientId) ? await getPatient(patientId) : null;
+  const patient = await findPatient(patientId);
   if (!patient) notFound();
 
   const [entries, history] = await Promise.all([listEntries(patientId), listHistory(patientId)]);
