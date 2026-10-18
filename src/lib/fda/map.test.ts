@@ -3,7 +3,7 @@ import { formatStrength } from "@/lib/domain/fields";
 import { formulationToRow } from "@/lib/openfda";
 import { allFixtureNames, allFixtureProducts, fixtureLabel, fixtureProducts, type FixtureName } from "./__fixtures__";
 import { indexNdcProducts } from "./join";
-import { importLabels, mapLabel, otcSlug, type MapResult } from "./map";
+import { importLabels, mapLabel, otcSlug, plausibleStrength, type MapResult } from "./map";
 
 const index = indexNdcProducts(allFixtureProducts());
 const map = (name: FixtureName): MapResult => mapLabel(fixtureLabel(name), index);
@@ -98,6 +98,58 @@ describe("mapLabel — rows", () => {
     expect(row.reviewed_at).toBeNull();
     expect(row.slug).toMatch(/^otc-/);
     expect(row.dosage_form).toBe("capsule");
+  });
+});
+
+describe("mapLabel — strengths are the label's own (NDC values only confirm them)", () => {
+  it("keeps the label's per-quantity when the NDC states the same strength per mL (Tukol: per 30 mL)", () => {
+    expect(strengths("tukol-syrup-per-ml")).toEqual([
+      "acetaminophen 650 mg per 30 mL",
+      "dextromethorphan 20 mg per 30 mL",
+      "doxylamine 12.5 mg per 30 mL",
+    ]);
+  });
+
+  it("uses the label when the NDC value is wrong (200 mg/1201 typo; a whole-package 1.5 g/108.27 g)", () => {
+    expect(strengths("ibuprofen-dye-free-ndc-typo")).toEqual(["ibuprofen 200 mg per capsule"]);
+    expect(ok("soothe-chewable-package-strength").activeIngredients.map((i) => formatStrength(i.strength))).toEqual([
+      "75 mg per chewable gel",
+    ]);
+  });
+
+  it("names 'Ranitidine 75 mg (as ranitidine hydrochloride 84 mg)' by its leading name", () => {
+    expect(ok("ranitidine-as-salt").activeIngredients).toEqual([
+      { name: "Ranitidine", normalized: "ranitidine", strength: { amount: 75, unit: "mg", perAmount: 1, perUnit: "tablet" } },
+    ]);
+  });
+
+  it.each<[FixtureName, string]>([
+    ["fluoride-rinse-ion-basis", "strength_mismatch"], // label 0.05% sodium fluoride; NDC 0.2 mg/mL is the ion
+    ["crest-rinse-ion-basis", "strength_mismatch"],
+    ["listerine-toothpaste-smfp", "strength_mismatch"], // 0.76% SMFP vs NDC 1.3 mg/g (the ion)
+    ["mineral-oil-percent", "strength_mismatch"], // 100% vs NDC 100 mg/100 mL
+    ["jba-omelia-no-active-section", "strength_not_on_label"],
+    ["placeholder-head-and-cold", "placeholder_label"],
+  ])("%s → %s", (name, reason) => {
+    expect(map(name)).toMatchObject({ ok: false, reason });
+  });
+
+  it("converts a percent only when the basis is stated or the NDC confirms it", () => {
+    const label = fixtureLabel("fluoride-rinse-ion-basis");
+    label.active_ingredient = ["Active ingredient Sodium fluoride 0.02% w/v"];
+    expect(mapLabel(label, index)).toMatchObject({ ok: true });
+    const r = mapLabel(label, index);
+    if (r.ok) expect(formatStrength(r.formulation.activeIngredients[0].strength)).toBe("0.2 mg per mL");
+  });
+});
+
+describe("plausibleStrength", () => {
+  it("rejects per-amounts no label uses", () => {
+    expect(plausibleStrength({ amount: 200, unit: "mg", perAmount: 1201, perUnit: "capsule" })).toBe(false);
+    expect(plausibleStrength({ amount: 200, unit: "mg", perAmount: 2, perUnit: "capsule" })).toBe(true);
+    expect(plausibleStrength({ amount: 160, unit: "mg", perAmount: 5, perUnit: "mL" })).toBe(true);
+    expect(plausibleStrength({ amount: 1, unit: "mg", perAmount: 500, perUnit: "mL" })).toBe(false);
+    expect(plausibleStrength({ amount: 1.5, unit: "g", perAmount: 108.27, perUnit: "g" })).toBe(false);
   });
 });
 
