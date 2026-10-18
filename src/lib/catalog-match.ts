@@ -141,9 +141,12 @@ function strengthAgreement(read: PhotoRead, f: Formulation): StrengthAgreement {
 //   ingredients  40 when the read names are exactly the label's set, else 30 × Jaccard overlap; 0 if none read
 //   strength     +30 agrees, 0 not_read, −40 disagrees
 //   brand        25 × Dice similarity of name tokens (read name vs brand, or vs generic name), form words left out
-//   dosage form  +8 same family (liquid / solid unit / same word), −8 when both known and different
+//   dosage form  +8 same kind of solid unit (tablet/caplet, capsule/Liqui-Gels, chewable, …) or, when either
+//                isn't one, same family (liquid / solid unit / same word); −8 when both known and different;
+//                +1 more when the label's form word is the one printed (caplets → caplet, not tablet)
 //   reviewed     +2 for a hand-checked row: it wins when the substance (ingredients, strength, brand, form) ties
-// Ties break on formulation id, so the order never depends on the candidates' order.
+// Ties break on the number of package NDCs (the brand owner sells more sizes than a travel-pack
+// relabeler of the same label), then formulation id, so the order never depends on the candidates' order.
 const STRENGTH_POINTS: Record<StrengthAgreement, number> = { agrees: 30, not_read: 0, disagrees: -40 };
 
 /** Ingredient points, and how many normalized ingredient names the read shares with the label. */
@@ -186,9 +189,42 @@ function formFamily(form: string): string {
   return t;
 }
 
-function formPoints(read: PhotoRead, f: Formulation): number {
+// Kinds of solid unit, as packages print them and as the catalog stores them ("tablet", "capsule",
+// "CAPSULE, LIQUID FILLED", "chewable tablet"). One brand and strength is often sold as tablets,
+// Liqui-Gels and chewables, each its own label, so the kind tells them apart. Caplets and gel caplets
+// are tablets (the NDC Directory files them as TABLET); Liqui-Gels, liquid gels and softgels are
+// capsules. First match wins: "chewable tablets" is chewable, "capsule-shaped tablets" a tablet.
+const SOLID_KINDS: [kind: string, pattern: RegExp][] = [
+  ["chewable", /chew/],
+  ["extended-release", /extended|\ber\b/],
+  ["orally disintegrating", /disintegrat|melt/],
+  ["effervescent", /efferves/],
+  ["lozenge", /lozenge|troche|pastille/],
+  ["tablet", /tablet|caplet|\btabs?\b|ultratab|geltab|\bpills?\b/],
+  ["gelcap", /gelcap/],
+  ["capsule", /capsule|liqui-?gel|liquid[ -]?gel|soft-?gel|liqui-?cap|\bgels?\b/],
+];
+
+function solidKind(form: string): string | null {
+  const t = form.trim().toLowerCase();
+  return SOLID_KINDS.find(([, pattern]) => pattern.test(t))?.[0] ?? null;
+}
+
+/** The form as read; when Gemini gave none, a form word in the product name ("Advil Liqui-Gels"). */
+function readForm(read: PhotoRead): string | null {
   const form = text(read.dosageForm);
+  if (form) return form;
+  const name = text(read.productName);
+  return name?.match(FORM_WORDS)?.[0] ?? null;
+}
+
+/** Same kind of solid unit when both name one, else the same family (liquid / solid unit / same word). */
+function formPoints(read: PhotoRead, f: Formulation): number {
+  const form = readForm(read);
   if (!form || !text(f.dosageForm)) return 0;
+  const [a, b] = [solidKind(form), solidKind(f.dosageForm)];
+  // +1 more when the label's own form word is the one printed ("caplets" → the caplet label).
+  if (a && b) return a === b ? 8 + (form.toLowerCase().includes(f.dosageForm.trim().toLowerCase()) ? 1 : 0) : -8;
   return formFamily(form) === formFamily(f.dosageForm) ? 8 : -8;
 }
 
@@ -209,7 +245,12 @@ export function rankCatalogMatches(read: PhotoRead, candidates: Formulation[]): 
         (formulation.reviewed ? 2 : 0);
       return { formulation, strengthAgreement: agreement, score, related: ingredients.shared > 0 || brand >= 0.5 };
     })
-    .sort((a, b) => b.score - a.score || (a.formulation.id < b.formulation.id ? -1 : a.formulation.id > b.formulation.id ? 1 : 0));
+    .sort(
+      (a, b) =>
+        b.score - a.score ||
+        b.formulation.ndcPackages.length - a.formulation.ndcPackages.length ||
+        (a.formulation.id < b.formulation.id ? -1 : a.formulation.id > b.formulation.id ? 1 : 0),
+    );
 }
 
 /**
