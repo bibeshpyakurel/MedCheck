@@ -5,15 +5,15 @@ import { startGuest } from "@/app/actions/session";
 import { GoogleButton } from "@/app/sign-in/google-button";
 import { AppShell } from "@/components/app-shell";
 import { Aurora } from "@/components/fx/aurora";
-import { OverlapMark } from "@/components/landing/overlap-mark";
+import { MedicineArt } from "@/components/landing/medicine-art";
 import { SubmitButton } from "@/components/records/submit-button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { signInErrorMessage } from "@/lib/account";
 import { getCurrentUser, homePath } from "@/lib/auth";
 
-// One screen, no scrolling: the overlap at a glance, the job in a line, then the three ways in. The
-// explainers live in the ☰ menu.
+// One screen, no scrolling: the headline, the job in a line, then the three ways in. The explainers
+// live in the ☰ menu.
 // Anyone already signed in (guests too) goes straight home — their medicines, or adding the first one — like opening an app they use.
 export default async function Home({ searchParams }: PageProps<"/">) {
   const { error, code } = await searchParams;
@@ -27,11 +27,9 @@ export default async function Home({ searchParams }: PageProps<"/">) {
       <section className="relative isolate overflow-hidden">
         <Aurora className="[mask-image:linear-gradient(to_bottom,black_55%,transparent)]" />
         <div className="mx-auto w-full max-w-md px-4 pt-4 pb-6 sm:px-6 sm:pt-12">
-          <OverlapMark className="mx-auto h-[clamp(5.5rem,17dvh,11rem)] w-auto" />
-          <h1 className="mt-4 font-display text-[2.125rem] leading-[1.02] font-extrabold tracking-[-0.035em] text-balance animate-fade-up sm:text-5xl">
-            Two medicines.
-            <br />
-            <span className="text-finding-foreground">One ingredient.</span>
+          <MedicineArt className="mx-auto h-[clamp(5.5rem,17dvh,11rem)] w-auto" />
+          <h1 className="mt-4 font-display text-[2.375rem] leading-[1.02] font-extrabold tracking-[-0.035em] text-balance animate-fade-up sm:text-6xl">
+            Know Your <span className="text-finding-foreground">Drugs.</span>
           </h1>
           <p className="mt-3 text-[0.9375rem] leading-relaxed text-muted-foreground text-pretty animate-fade-up sm:text-lg">
             Photograph your medicine labels. MedCheck shows what they share, straight from the label.

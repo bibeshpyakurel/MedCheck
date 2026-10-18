@@ -46,8 +46,11 @@ export function AddFlowBar({
       <div className="flex flex-col items-end gap-1.5">
         <p className="text-sm font-medium text-muted-foreground nums">{label}</p>
         <div aria-hidden className="flex gap-1">
+          {/* The step just reached fills in from the left. */}
           {Array.from({ length: total }, (_, i) => (
-            <span key={i} className={cn("h-1 w-8 rounded-full", i < step ? "bg-primary" : "bg-muted")} />
+            <span key={i} className="h-1 w-8 overflow-hidden rounded-full bg-muted">
+              {i < step && <span className={cn("block h-full origin-left rounded-full bg-primary", i === step - 1 && step > 1 && "animate-fill-x")} />}
+            </span>
           ))}
         </div>
       </div>
