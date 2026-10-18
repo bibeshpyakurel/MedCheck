@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
-import { BackLink } from "@/components/page-header";
 import { RecordHeader } from "@/components/records/record-header";
 import { requireUser } from "@/lib/auth";
 import { isReadable, photoReadFromFields, type CatalogMatch } from "@/lib/catalog-match";
@@ -17,12 +16,12 @@ export const metadata: Metadata = { title: "Is this the medicine?" };
 
 /**
  * The one-tap confirm step for a medicine-package photo: Gemini's read is matched to FDA labels and
- * the user picks the one on the package (or types the name). Query: `search=1` opens "Type it in".
+ * the user picks the one on the package (or types the name). Query: `search=1` is "Type it in" (read
+ * by the picker, so switching modes doesn't reload the matches).
  */
-export default async function MatchPage({ params, searchParams }: PageProps<"/patients/[patientId]/entries/[entryId]/match">) {
+export default async function MatchPage({ params }: PageProps<"/patients/[patientId]/entries/[entryId]/match">) {
   await requireUser();
   const { patientId, entryId } = await params;
-  const { search } = await searchParams;
   if (!isUuid(patientId) || !isUuid(entryId)) notFound();
   const [patient, entry] = await Promise.all([getPatient(patientId), getEntry(entryId)]);
   if (!patient || !entry || entry.patientId !== patient.id) notFound();
@@ -46,13 +45,13 @@ export default async function MatchPage({ params, searchParams }: PageProps<"/pa
     <AppShell>
       <RecordHeader patient={patient} current="medicines" />
       <div className="mx-auto max-w-xl space-y-6">
-        <BackLink href={`/patients/${patientId}`}>{recordTitle(patient)}</BackLink>
         <MatchPicker
           patientId={patientId}
           entryId={entry.id}
           options={options}
           selectedId={selectedId}
-          startInSearch={search === "1" || options.length === 0 || !isReadable(read)}
+          onlySearch={options.length === 0 || !isReadable(read)}
+          back={{ href: `/patients/${patientId}`, label: recordTitle(patient) }}
           readName={read.productName}
           photoUrl={photoUrl}
           othersFromPhoto={othersFromPhoto}

@@ -27,10 +27,18 @@ export function photoNextPath(input: {
   return readable ? `${base}/match` : `${base}/retake`;
 }
 
-/** A draft's "Check details" link: a medicine-package draft returns to `/match`, anything else to `/review`. */
-export function draftPath(patientId: string, entry: { id: string; sourceDocument: { kind: SourceDocumentKind } | null }): string {
-  const step = entry.sourceDocument?.kind === "otc_package" ? "match" : "review";
-  return `/patients/${patientId}/entries/${entry.id}/${step}`;
+/**
+ * A draft's "Check details" link: a medicine-package draft returns to `/match`, anything else to
+ * `/review` (`fromEntry`: opened from the medicine's detail page, which the review then returns to).
+ */
+export function draftPath(
+  patientId: string,
+  entry: { id: string; sourceDocument: { kind: SourceDocumentKind } | null },
+  { fromEntry = false } = {},
+): string {
+  const base = `/patients/${patientId}/entries/${entry.id}`;
+  if (entry.sourceDocument?.kind === "otc_package") return `${base}/match`;
+  return `${base}/review${fromEntry ? "?from=entry" : ""}`;
 }
 
 /** Fictional demo products (Calmora) are no longer part of the product; never offer them. */
@@ -88,6 +96,11 @@ export function toMatchOption(f: Formulation, agreement: StrengthAgreement = "no
     labelerName: f.labelerName,
     strengthDiffers: agreement === "disagrees",
   };
+}
+
+/** A match's accessible name: "Tylenol Extra Strength (caplets), Acetaminophen 500 mg per caplet". */
+export function matchOptionLabel(option: MatchOption): string {
+  return [option.brandName, ...option.ingredients.map((i) => `${i.name} ${i.strength}`)].join(", ");
 }
 
 const OTHER_MATCHES = 5;

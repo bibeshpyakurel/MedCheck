@@ -2,12 +2,14 @@
 
 import { ChevronDownIcon, LoaderCircleIcon, SearchIcon } from "lucide-react";
 import Link from "next/link";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useEffectEvent, useId, useRef, useState, useTransition } from "react";
+import { BackLink, goBackTo } from "@/components/back-link";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { MatchOption } from "@/lib/photo-flow";
+import { matchOptionLabel, type MatchOption } from "@/lib/photo-flow";
 import { cn } from "@/lib/utils";
 
 type ActionResult = Promise<{ error: string; gone?: true } | void>;
@@ -17,14 +19,17 @@ const SEARCH_DELAY_MS = 300;
 /**
  * "Is this the medicine?": the pre-selected FDA label (if any) with the other matches below, or
  * "Type it in" — a catalog search with the same picker, and saving the typed name as a last resort.
- * Nothing is saved until the user taps Confirm (or Save without a match).
+ * "Type it in" has its own URL (`?search=1`), so browser Back returns to the matches; with no matches
+ * to show (`onlySearch`) it is the whole page. Nothing is saved until the user taps Confirm (or Save
+ * without a match).
  */
 export function MatchPicker({
   patientId,
   entryId,
   options,
   selectedId,
-  startInSearch,
+  onlySearch,
+  back,
   readName,
   photoUrl,
   othersFromPhoto,
@@ -35,7 +40,10 @@ export function MatchPicker({
   entryId: string;
   options: MatchOption[];
   selectedId: string | null;
-  startInSearch: boolean;
+  /** No matches to pick from (or nothing readable): only "Type it in". */
+  onlySearch: boolean;
+  /** The link above the title while picking ("← Matches" replaces it in "Type it in"). */
+  back?: { href: string; label: string };
   /** The product name Gemini read, to start the search with. */
   readName: string | null;
   photoUrl: string | null;
@@ -43,8 +51,14 @@ export function MatchPicker({
   confirmAction: (input: { patientId: string; entryId: string; formulationId: string }) => ActionResult;
   saveTypedAction: (input: { patientId: string; entryId: string; name: string }) => ActionResult;
 }) {
-  const [mode, setMode] = useState<"pick" | "search">(startInSearch ? "search" : "pick");
-  const [selected, setSelected] = useState<string | null>(startInSearch ? null : selectedId);
+  const pathname = usePathname();
+  const searchParam = useSearchParams().get("search");
+  const mode: "pick" | "search" = onlySearch || searchParam === "1" ? "search" : "pick";
+  // Each mode keeps its own choice, so going back to the matches finds the pre-selected one again.
+  const [picked, setPicked] = useState<string | null>(selectedId);
+  const [found, setFound] = useState<string | null>(null);
+  const selected = mode === "pick" ? picked : found;
+  const setSelected = mode === "pick" ? setPicked : setFound;
   const [error, setError] = useState<{ message: string; gone: boolean } | null>(null);
   const [pending, startTransition] = useTransition();
   const [showOthers, setShowOthers] = useState(selectedId === null);
@@ -65,23 +79,30 @@ export function MatchPicker({
   }
 
   function openSearch() {
-    setMode("search");
-    setSelected(null);
+    setFound(null);
     setError(null);
-    search.run(search.query);
+    window.history.pushState(null, "", `${pathname}?search=1`);
   }
 
-  // Opened straight into "Type it in": search for what Gemini read.
-  const searchOnArrival = useEffectEvent(() => search.run(search.query));
+  function backToMatches() {
+    setError(null);
+    if (!goBackTo(pathname)) window.history.replaceState(null, "", pathname);
+  }
+
+  // Each time "Type it in" opens (including on arrival), search for what's in the box: at first, what Gemini read.
+  const searchOnOpen = useEffectEvent(() => search.run(search.query));
   useEffect(() => {
-    if (startInSearch) queueMicrotask(searchOnArrival);
-  }, [startInSearch]);
+    if (mode === "search") queueMicrotask(searchOnOpen);
+  }, [mode]);
 
   const [first, ...rest] = options;
   const preselected = mode === "pick" && selectedId !== null && first?.id === selectedId;
 
+  const backLink = mode === "search" && !onlySearch ? { href: pathname, label: "Matches" } : back;
+
   return (
     <div className="space-y-6">
+      {backLink && <BackLink href={backLink.href}>{backLink.label}</BackLink>}
       <header className="flex items-start gap-4">
         <div className="min-w-0 flex-1 space-y-2">
           <h1 className="font-display text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
@@ -214,17 +235,14 @@ export function MatchPicker({
             None of these — type it in
           </Button>
         ) : (
-          options.length > 0 && (
+          !onlySearch && (
             <Button
               type="button"
               variant="ghost"
               size="lg"
               className="h-12 w-full text-base"
               disabled={pending}
-              onClick={() => {
-                setMode("pick");
-                setSelected(selectedId);
-              }}
+              onClick={backToMatches}
             >
               Back to the matches
             </Button>
@@ -274,6 +292,7 @@ function OptionCard({ option, checked, onSelect }: { option: MatchOption; checke
       <input
         type="radio"
         name="medicine"
+        aria-label={matchOptionLabel(option)}
         value={option.id}
         checked={checked}
         onChange={() => onSelect(option.id)}

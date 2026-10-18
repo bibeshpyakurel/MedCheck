@@ -29,7 +29,7 @@ export default async function SignInPage({ searchParams }: PageProps<"/sign-in">
     <AppShell>
       <div className="mx-auto max-w-md">
         <PageHeader
-          back={{ href: "/", label: "Back" }}
+          back={{ href: "/", label: "Back", toPrevious: true }}
           title="Continue with email"
           description="We'll email you a sign-in code. No password needed."
         />

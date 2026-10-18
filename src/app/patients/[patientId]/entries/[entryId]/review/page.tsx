@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { requireUser } from "@/lib/auth";
 import { getFormulation } from "@/lib/catalog";
+import { entryLabel } from "@/lib/domain/fields";
 import type { Evidence, SourceDocumentKind } from "@/lib/domain/schema";
 import { catalogMatchLabel, recordTitle } from "@/lib/record-format";
 import { getEntry, getPatient, listEntries, signedPhotoUrl } from "@/lib/records";
@@ -46,7 +47,8 @@ const NOTICES: Record<string, { title: string; body: string }> = {
 export default async function ReviewPage({ params, searchParams }: PageProps<"/patients/[patientId]/entries/[entryId]/review">) {
   await requireUser();
   const { patientId, entryId } = await params;
-  const { notice } = await searchParams;
+  const { notice, from: fromParam } = await searchParams;
+  const from = fromParam === "entry" ? "entry" : null;
   const [patient, entry] = await Promise.all([getPatient(patientId), getEntry(entryId)]);
   if (!patient || !entry || entry.patientId !== patientId) notFound();
 
@@ -71,7 +73,11 @@ export default async function ReviewPage({ params, searchParams }: PageProps<"/p
       <RecordHeader patient={patient} current="medicines" />
       <div className="mx-auto max-w-3xl space-y-6">
         <div className="space-y-3">
-          <BackLink href={`/patients/${patientId}`}>{recordTitle(patient)}</BackLink>
+          {from === "entry" ? (
+            <BackLink href={`/patients/${patientId}/entries/${entry.id}`}>{entryLabel(entry.fields)}</BackLink>
+          ) : (
+            <BackLink href={`/patients/${patientId}`}>{recordTitle(patient)}</BackLink>
+          )}
           <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">Check the details</h1>
           <p className="max-w-2xl leading-relaxed text-muted-foreground">
             Look at each detail MedCheck read and compare it with {isDescription ? "what you said" : "the label"}. Pick one:
@@ -131,6 +137,7 @@ export default async function ReviewPage({ params, searchParams }: PageProps<"/p
           newRowEvidence={newRowEvidence}
           confirmAction={confirmReviewAction}
           saveAction={saveDraftAction}
+          from={from}
         />
       </div>
     </AppShell>

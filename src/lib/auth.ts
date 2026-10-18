@@ -1,14 +1,16 @@
 import "server-only";
 
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import { capturePath, emailLocalPart } from "@/lib/account";
-import { ensureSelfPatient, getCaregiver, upsertCaregiver } from "@/lib/records";
+import { isSelf } from "@/lib/record-format";
+import { ensureSelfPatient, getCaregiver, listPatients, upsertCaregiver } from "@/lib/records";
 import { createClient } from "@/lib/supabase/server";
 
 export type CurrentUser = { id: string; isAnonymous: boolean; email: string | null };
 
-/** What the ☰ menu shows about who is signed in. */
-export type Account = { isGuest: true } | { isGuest: false; label: string };
+/** What the page chrome knows about who is signed in. `patientId`: their own record, once it exists. */
+export type Account = ({ isGuest: true } | { isGuest: false; label: string }) & { patientId: string | null };
 
 /** The signed-in (possibly anonymous, i.e. guest) user, or null. Verifies the JWT. */
 export async function getCurrentUser(): Promise<CurrentUser | null> {
@@ -30,14 +32,15 @@ export async function requireUser(): Promise<CurrentUser> {
   return user;
 }
 
-/** The signed-in account for the page chrome, or null when signed out. */
-export async function getAccount(): Promise<Account | null> {
+/** The signed-in account for the page chrome, or null when signed out. Once per request. */
+export const getAccount = cache(async (): Promise<Account | null> => {
   const user = await getCurrentUser();
   if (!user) return null;
-  if (user.isAnonymous) return { isGuest: true };
-  const caregiver = await getCaregiver();
-  return { isGuest: false, label: caregiver?.displayName || user.email || "your account" };
-}
+  const [caregiver, patients] = await Promise.all([user.isAnonymous ? null : getCaregiver(), listPatients()]);
+  const patientId = (patients.find(isSelf) ?? patients[0])?.id ?? null;
+  if (user.isAnonymous) return { isGuest: true, patientId };
+  return { isGuest: false, label: caregiver?.displayName || user.email || "your account", patientId };
+});
 
 /**
  * The signed-in person's capture page (add a medicine to their own record), creating their record

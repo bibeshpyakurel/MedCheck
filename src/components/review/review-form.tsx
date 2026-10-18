@@ -25,7 +25,13 @@ import {
   type ReviewSource,
 } from "./review-status";
 
-type SubmitInput = { patientId: string; entryId: string; fields: EntryFields; document: DocumentDetails | null };
+type SubmitInput = {
+  patientId: string;
+  entryId: string;
+  fields: EntryFields;
+  document: DocumentDetails | null;
+  from: "entry" | null;
+};
 type SubmitAction = (input: SubmitInput) => Promise<{ error: string } | void>;
 
 const text = (v: string) => v;
@@ -112,6 +118,7 @@ export function ReviewForm({
   newRowEvidence,
   confirmAction,
   saveAction,
+  from = null,
 }: {
   patientId: string;
   entryId: string;
@@ -124,6 +131,8 @@ export function ReviewForm({
   newRowEvidence: Evidence;
   confirmAction: SubmitAction;
   saveAction: SubmitAction;
+  /** "entry": opened from the medicine's detail page; Confirm and Save for later return there. */
+  from?: "entry" | null;
 }) {
   const [fields, setFields] = useState(initialFields);
   const [doc, setDoc] = useState(initialDocument);
@@ -200,7 +209,7 @@ export function ReviewForm({
   function submit(action: SubmitAction) {
     setError(null);
     startTransition(async () => {
-      const result = await action({ patientId, entryId, fields, document: doc });
+      const result = await action({ patientId, entryId, fields, document: doc, from });
       if (result?.error) setError(result.error);
     });
   }

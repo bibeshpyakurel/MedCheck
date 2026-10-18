@@ -15,6 +15,7 @@ import { entryLabel, formatDose, formatStrength } from "@/lib/domain/fields";
 import type { Field, SourceDocumentKind } from "@/lib/domain/schema";
 import { sanitizeDosageTable } from "@/lib/openfda";
 import { catalogLabelSource, formatDocDate, recordTitle } from "@/lib/record-format";
+import { draftPath } from "@/lib/photo-flow";
 import { getEntry, getPatient, signedPhotoUrl } from "@/lib/records";
 import { isUuid } from "@/lib/uuid";
 
@@ -122,7 +123,7 @@ export default async function EntryLabelPage({ params, searchParams }: PageProps
                 <Button
                   className="h-11 shrink-0 px-4 text-base"
                   nativeButton={false}
-                  render={<Link href={`/patients/${patient.id}/entries/${entry.id}/review`} />}
+                  render={<Link href={draftPath(patient.id, entry, { fromEntry: true })} />}
                 >
                   Check details
                 </Button>
@@ -142,7 +143,7 @@ export default async function EntryLabelPage({ params, searchParams }: PageProps
                     variant="outline"
                     className="h-11 px-4"
                     nativeButton={false}
-                    render={<Link href={`/patients/${patient.id}/entries/${entry.id}/review`} />}
+                    render={<Link href={`/patients/${patient.id}/entries/${entry.id}/review?from=entry`} />}
                   >
                     <PencilIcon aria-hidden /> Check or change the details
                   </Button>

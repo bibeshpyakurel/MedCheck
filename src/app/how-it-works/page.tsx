@@ -1,7 +1,9 @@
 import { CameraIcon, ClipboardCheckIcon, PillIcon, Share2Icon } from "lucide-react";
 import type { Metadata } from "next";
 import { AppShell } from "@/components/app-shell";
+import { ExplainerFooter, explainerHome } from "@/components/explainer-footer";
 import { PageHeader } from "@/components/page-header";
+import { getAccount } from "@/lib/auth";
 
 export const metadata: Metadata = { title: "How MedCheck works" };
 
@@ -28,11 +30,13 @@ const STEPS = [
   },
 ];
 
-// Public and static: no session, no data access.
-export default function HowItWorksPage() {
+// Public: no data access beyond who is signed in, for the way back.
+export default async function HowItWorksPage() {
+  const account = await getAccount();
   return (
     <AppShell>
       <PageHeader
+        back={{ href: explainerHome(account).href, label: "Back", toPrevious: true }}
         title="How MedCheck works"
         description="MedCheck shows what your medicine labels say. It never calculates a dose or says a combination is safe."
       />
@@ -51,6 +55,7 @@ export default function HowItWorksPage() {
           </li>
         ))}
       </ol>
+      <ExplainerFooter account={account} />
     </AppShell>
   );
 }

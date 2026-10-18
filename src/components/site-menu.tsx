@@ -11,6 +11,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { useBackToClose } from "@/components/use-back-to-close";
 import type { Account } from "@/lib/auth";
 
+const recordLinks = (patientId: string) => [
+  { href: `/patients/${patientId}`, label: "My medicines" },
+  { href: `/patients/${patientId}/export`, label: "Medicine report" },
+];
 const ABOUT_LINKS = [
   { href: "/how-it-works", label: "How MedCheck works" },
   { href: "/why", label: "Why it matters" },
@@ -22,7 +26,7 @@ const THEMES = [
 ];
 
 /**
- * The header's ☰ menu: the explainer pages, kept off the home page so it stays short, account controls,
+ * The header's ☰ menu: the person's medicines and report, the explainer pages kept off the home page so it stays short, account controls,
  * and the appearance setting. Device Back closes it; its links replace the menu's history entry.
  */
 export function SiteMenu({ account = null }: { account?: Account | null }) {
@@ -47,7 +51,8 @@ export function SiteMenu({ account = null }: { account?: Account | null }) {
             <span className="sr-only">Menu</span>
           </SheetTitle>
         </SheetHeader>
-        <nav aria-label="Menu" className="flex flex-col gap-4 p-2">
+        <nav aria-label="Menu" className="flex flex-col gap-2 p-2 [&>ul+ul]:border-t [&>ul+ul]:pt-2">
+          {account?.patientId ? <MenuGroup links={recordLinks(account.patientId)} onNavigate={close} /> : null}
           <MenuGroup links={ABOUT_LINKS} onNavigate={close} />
         </nav>
         <AccountControls account={account} onNavigate={close} />

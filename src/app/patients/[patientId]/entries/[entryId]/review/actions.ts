@@ -1,8 +1,9 @@
 "use server";
 
-import { redirect } from "next/navigation";
+import { redirect, RedirectType } from "next/navigation";
 import { z } from "zod";
 import { validateReviewFields } from "@/components/review/validation";
+import { afterReviewPath } from "@/lib/add-flow";
 import type { DocumentDetails } from "@/lib/ai/extract-label";
 import { requireUser } from "@/lib/auth";
 import { isFullyReviewed } from "@/lib/domain/fields";
@@ -18,7 +19,16 @@ const detailsSchema = z.object({
   pharmacy: z.string().trim().max(200).nullable(),
 });
 
-type Input = { patientId: string; entryId: string; fields: EntryFields; document: DocumentDetailsInput | null };
+/** `from`: "entry" when the review was opened from the medicine's detail page, which it then returns to. */
+type Input = {
+  patientId: string;
+  entryId: string;
+  fields: EntryFields;
+  document: DocumentDetailsInput | null;
+  from: "entry" | null;
+};
+
+const fromOf = (input: Input) => (input.from === "entry" ? "entry" : null);
 
 async function loadOwned({ patientId, entryId }: Input) {
   await requireUser();
@@ -41,7 +51,7 @@ async function saveDocument(sourceDocumentId: string | undefined, document: Docu
   return null;
 }
 
-/** Saves progress without confirming, then returns to the record. */
+/** Saves progress without confirming, then returns to the detail page it came from, or the record. Replaces the review in history. */
 export async function saveDraftAction(input: Input): Promise<{ error: string } | void> {
   const entry = await loadOwned(input);
   const fields = validateReviewFields(input.fields);
@@ -49,10 +59,14 @@ export async function saveDraftAction(input: Input): Promise<{ error: string } |
   const docError = await saveDocument(entry.sourceDocument?.id, input.document);
   if (docError) return { error: docError };
   await updateEntryFields(entry.id, fields.fields);
-  redirect(`/patients/${input.patientId}`);
+  const to = afterReviewPath({ patientId: input.patientId, entryId: entry.id, from: fromOf(input), nextDraftId: null });
+  redirect(to, RedirectType.replace);
 }
 
-/** Confirms the entry (only when nothing is left `pending`), then opens the next draft or the record. */
+/**
+ * Confirms the entry (only when nothing is left `pending`), then returns to the detail page it came
+ * from, or opens the next draft, or the record. Replaces the review in history.
+ */
 export async function confirmReviewAction(input: Input): Promise<{ error: string } | void> {
   const entry = await loadOwned(input);
   const fields = validateReviewFields(input.fields);
@@ -63,5 +77,6 @@ export async function confirmReviewAction(input: Input): Promise<{ error: string
   await confirmEntry(entry.id, fields.fields);
 
   const next = (await listEntries(input.patientId, { status: "draft" })).find((e) => e.id !== entry.id);
-  redirect(next ? `/patients/${input.patientId}/entries/${next.id}/review` : `/patients/${input.patientId}`);
+  const to = afterReviewPath({ patientId: input.patientId, entryId: entry.id, from: fromOf(input), nextDraftId: next?.id ?? null });
+  redirect(to, RedirectType.replace);
 }
