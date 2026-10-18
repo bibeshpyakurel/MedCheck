@@ -79,6 +79,18 @@ describe("strengthIsTraceable — whole-run check of a stored strength against t
     expect(strengthIsTraceable(ing("Sodium Fluoride", 0.2, "mg", 1, "mL"), [], active("fluoride-rinse-ion-basis"))).toBe(false);
   });
 
+  it("F: counts an amount only right after its own ingredient's name", () => {
+    expect(strengthIsTraceable(ing("Acetaminophen", 30, "mg", 30, "mL"), ["Dextromethorphan Hydrobromide"], active("xl3-mgr-typo"))).toBe(false);
+    expect(strengthIsTraceable(ing("Simethicone", 266.6, "mg", 10, "mL"), ["Calcium Carbonate"], active("mylanta-all-family-emulsion"))).toBe(false);
+    expect(strengthIsTraceable(ing("Simethicone", 80, "mg", 10, "mL"), ["Calcium Carbonate"], active("mylanta-all-family-emulsion"))).toBe(true);
+    expect(strengthIsTraceable(ing("Acetaminophen", 0.325, "mg", 1, "softgel"), [], active("nighttime-softgel-dot-leaders"))).toBe(false);
+  });
+
+  it("F: requires the label's own per-quantity", () => {
+    expect(strengthIsTraceable(ing("Simethicone", 125, "mg", 1, "chewable tablet"), [], active("mylanta-gas-minis-3-tablet-dose"))).toBe(false);
+    expect(strengthIsTraceable(ing("Simethicone", 125, "mg", 3, "chewable tablet"), [], active("mylanta-gas-minis-3-tablet-dose"))).toBe(true);
+  });
+
   it("is false when the label prints no amount", () => {
     expect(strengthIsTraceable(ing("Lepidium Meyenii Root", 120, "mg", 1, "capsule"), [], active("jba-omelia-no-active-section"))).toBe(false);
   });

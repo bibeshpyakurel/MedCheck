@@ -44,20 +44,41 @@ export function parseNdcStrength(raw: string): StrengthResult {
 }
 
 /** What the label says each strength is "in": a volume ("in each 5 mL") or a unit ("in each caplet"). */
-export type LabelPer = { kind: "volume"; amount: number } | { kind: "count"; noun: string };
+export type LabelPer = { kind: "volume"; amount: number } | { kind: "count"; noun: string; amount?: number };
 
 const IN_EACH = /\(\s*(?:in\s+)?(?:each|per)\s+([^()]+?)\s*\)/gi;
+/** "Active Ingredients per 30mL", without parentheses. */
+const HEADING_PER = /\bingredients?\s*:?\s*(?:per|in each)\s+((\d+(?:\.\d+)?)\s*ml)\b/gi;
+
+function parsePerText(text: string): LabelPer | null {
+  const inner = text.split(/[=,;]/)[0].trim().toLowerCase();
+  const volume = inner.match(/^(\d+(?:\.\d+)?)\s*ml\b/);
+  if (volume) return { kind: "volume", amount: Number(volume[1]) };
+  if (/^[a-z][a-z -]*$/.test(inner)) return { kind: "count", noun: inner.replace(/s$/, "").trim() };
+  // "3 mini -tablet dose": several units per stated dose.
+  const counted = inner.match(/^(\d+)\s+([a-z][a-z -]*)$/);
+  if (counted && Number(counted[1]) > 1) return { kind: "count", noun: counted[2].replace(/s$/, "").trim(), amount: Number(counted[1]) };
+  // "teaspoonful 2.5 ml.": a measure word, then the volume.
+  const later = inner.match(/^[a-z ]{1,20}?\s(\d+(?:\.\d+)?)\s*ml\b\.?$/);
+  if (later) return { kind: "volume", amount: Number(later[1]) };
+  return null;
+}
+
+/** Each "(in each …)" / "(per …)" / "Active ingredients per 30 mL" with where it starts, in text order. */
+export function labelPerMarkers(text: string): { index: number; per: LabelPer }[] {
+  const markers: { index: number; per: LabelPer }[] = [];
+  for (const m of text.matchAll(IN_EACH)) {
+    const per = parsePerText(m[1]);
+    if (per) markers.push({ index: m.index!, per });
+  }
+  for (const m of text.matchAll(HEADING_PER)) markers.push({ index: m.index!, per: { kind: "volume", amount: Number(m[2]) } });
+  return markers.sort((a, b) => a.index - b.index);
+}
 
 /** Every distinct "(in each …)" / "(per …)" in the Active ingredient text, in order. */
 export function labelPers(activeIngredientText: string): LabelPer[] {
   const found: LabelPer[] = [];
-  for (const m of activeIngredientText.replace(/\s+/g, " ").matchAll(IN_EACH)) {
-    const inner = m[1].split(/[=,;]/)[0].trim().toLowerCase();
-    const volume = inner.match(/^(\d+(?:\.\d+)?)\s*ml\b/);
-    let per: LabelPer | null = null;
-    if (volume) per = { kind: "volume", amount: Number(volume[1]) };
-    else if (/^[a-z][a-z -]*$/.test(inner)) per = { kind: "count", noun: inner.replace(/s$/, "").trim() };
-    if (!per) continue;
+  for (const { per } of labelPerMarkers(activeIngredientText.replace(/\s+/g, " "))) {
     const key = JSON.stringify(per);
     if (!found.some((f) => JSON.stringify(f) === key)) found.push(per);
   }
