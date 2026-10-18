@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   databaseQuestion,
   doseQuestion,
+  familyQuestion,
   overlapQuestion,
   repeatQuestion,
   strengthQuestion,
@@ -51,6 +52,19 @@ describe("pharmacist questions", () => {
     expect(overlapQuestion(["A", "B", "C"], "acetaminophen")).toBe(
       "A, B and C all contain acetaminophen. Can they be used together, and what should I watch for?",
     );
+    expect(familyQuestion([{ product: "Advil", ingredients: ["ibuprofen"] }, { product: "Aleve", ingredients: ["naproxen"] }], "NSAIDs")).toBe(
+      "Advil contains ibuprofen and Aleve contains naproxen, and both are NSAIDs. Can they be used together, and what should I watch for?",
+    );
+    expect(
+      familyQuestion(
+        [
+          { product: "A", ingredients: ["ibuprofen"] },
+          { product: "B", ingredients: ["ibuprofen", "aspirin"] },
+          { product: "C", ingredients: ["naproxen"] },
+        ],
+        "NSAIDs",
+      ),
+    ).toBe("A contains ibuprofen, B contains ibuprofen and aspirin and C contains naproxen, and all are NSAIDs. Can they be used together, and what should I watch for?");
     expect(repeatQuestion("Calmora A", 2)).toBe(
       "Calmora A is in my list 2 times. Is this the same medicine, or are two of the same product being used?",
     );

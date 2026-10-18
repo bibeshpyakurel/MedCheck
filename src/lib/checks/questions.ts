@@ -42,6 +42,13 @@ export function overlapQuestion(products: string[], ingredient: string): string 
   return `${joinList(products)} ${both} contain ${ingredient}. Can they be used together, and what should I watch for?`;
 }
 
+/** Different ingredients of one family: "Advil contains ibuprofen and Aleve contains naproxen, and both are NSAIDs. …" */
+export function familyQuestion(products: { product: string; ingredients: string[] }[], familyName: string): string {
+  const both = products.length === 2 ? "both" : "all";
+  const contains = joinList(products.map((p) => `${p.product} contains ${joinList(p.ingredients)}`));
+  return `${contains}, and ${both} are ${familyName}. Can they be used together, and what should I watch for?`;
+}
+
 export function repeatQuestion(product: string, count: number): string {
   return `${product} is in my list ${count} times. Is this the same medicine, or are two of the same product being used?`;
 }
