@@ -5,6 +5,7 @@
 import { XIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { MedicineCard } from "@/components/medicine-card/medicine-card";
+import type { CardTab } from "@/components/medicine-card/medicine-card-tabs";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { Formulation } from "@/lib/domain/schema";
@@ -14,12 +15,17 @@ export function MedicineCardSheet({
   open,
   onOpenChange,
   footer,
+  actions,
+  defaultTab,
 }: {
   formulation: Formulation;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** The caller's actions (e.g. "Done"), pinned below the scrolling card. */
   footer?: ReactNode;
+  /** Under the card's status chip (Compare with my medicines). */
+  actions?: ReactNode;
+  defaultTab?: CardTab;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -35,7 +41,7 @@ export function MedicineCardSheet({
           </DialogClose>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5">
-          <MedicineCard formulation={formulation} showTitle={false} />
+          <MedicineCard formulation={formulation} showTitle={false} actions={actions} defaultTab={defaultTab} />
         </div>
         {footer && (
           <div className="flex shrink-0 flex-col-reverse gap-2 border-t bg-muted/50 px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:flex-row sm:justify-end">

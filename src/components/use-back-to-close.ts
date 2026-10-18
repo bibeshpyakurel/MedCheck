@@ -2,11 +2,22 @@
 
 import { useCallback, useEffect, useEffectEvent, useRef } from "react";
 
-let lastId = 0;
+// Ids only grow, also across reloads (a time base), so an entry stacked later always has a larger id
+// than the ones under it, and a stale entry from an earlier load is never mistaken for one above.
+let lastId = Date.now();
 
 /** Whether the current history entry is the one with this key (Next.js keeps it across back/forward). */
 export function onHistoryEntry(key: string, id: number): boolean {
   return (window.history.state as Record<string, unknown> | null)?.[key] === id;
+}
+
+/**
+ * After Back lands on `state`: an overlay stays open on its own entry or one stacked above it (a sheet
+ * with a second step, under a sheet opened on top), and closes once Back went below it.
+ */
+export function overlayStaysOpen(state: unknown, id: number): boolean {
+  const current = (state as Record<string, unknown> | null)?.medcheckOverlay;
+  return typeof current === "number" && current >= id;
 }
 
 /**
@@ -27,7 +38,7 @@ export function useBackToClose(open: boolean, onBack: () => void): () => void {
     const id = ++lastId;
     const onPopState = () => {
       // Back from something stacked on top of this overlay's entry: the overlay stays.
-      if (entry.current?.id !== id || onHistoryEntry("medcheckOverlay", id)) return;
+      if (entry.current?.id !== id || overlayStaysOpen(window.history.state, id)) return;
       entry.current = null;
       back();
     };

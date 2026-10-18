@@ -11,9 +11,11 @@ export const NOTHING_SHARED_LINE = "No shared active ingredient found in confirm
 
 type Ingredient = ProductComparison["ingredients"][number];
 
-export function IngredientComparison({ products }: { products: ComparedProduct[] }) {
+/** `diagramOnly`: just the Venn or grid, when the shared and family notes are shown elsewhere (the compare sheet's findings). */
+export function IngredientComparison({ products, diagramOnly = false }: { products: ComparedProduct[]; diagramOnly?: boolean }) {
   const c = compareProducts(products);
   if (c.products.length < 2) return null;
+  if (diagramOnly) return c.products.length === 2 ? <Venn comparison={c} /> : <Grid comparison={c} />;
   const nameOf = (id: string) => c.products.find((p) => p.id === id)?.name ?? "";
   const all = (n: number) => (n === 2 ? "both" : "all");
 

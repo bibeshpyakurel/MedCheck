@@ -155,6 +155,7 @@ export default async function EntryLabelPage({ params, searchParams }: PageProps
                     formulation={formulation}
                     patientId={patient.id}
                     justAdded={card === "new" && entry.status === "confirmed"}
+                    entryId={entry.status === "confirmed" ? entry.id : undefined}
                   />
                 )}
                 {entry.status === "confirmed" && (

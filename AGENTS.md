@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # MedCheck — rules for every agent
 
-Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` and `docs/superpowers/specs/2026-10-17-otc-catalog-design.md` (the OTC catalog, photo match and medicine card) and `docs/superpowers/specs/2026-10-17-photo-answers-design.md` (one photo → confirm pop-up → quick answers or a comparison) and `docs/superpowers/specs/2026-10-18-medication-dashboard-design.md` (the medicine card as a dashboard over the label's own words; the newest wins where they disagree) before changing behavior.
+Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` and `docs/superpowers/specs/2026-10-17-otc-catalog-design.md` (the OTC catalog, photo match and medicine card) and `docs/superpowers/specs/2026-10-17-photo-answers-design.md` (one photo → confirm pop-up → quick answers or a comparison) and `docs/superpowers/specs/2026-10-18-medication-dashboard-design.md` (the medicine card as a dashboard over the label's own words) and `docs/superpowers/specs/2026-10-18-compare-with-my-medicines-design.md` (compare a card's medicine with the person's saved medicines; the newest wins where they disagree) before changing behavior.
 
 ## Product boundaries (never cross)
 - Evidence, not advice. Never calculate a dose, volume or schedule; never infer a dose from age or weight; never say a combination is "safe"; never pick which product or amount is right.
@@ -26,6 +26,7 @@ Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` and `docs/superpower
 - `src/lib/domain/families.ts` — the reviewed ingredient families (NSAIDs, antihistamines, nasal decongestants, acid reducers, sleep aids): members are `normalizeIngredient()` names, `labelTerm` is how a label's warning names the family, `ownTerm` how a label names its own ingredient's family (Purpose line; NSAID footnote). Add a member only when catalog labels support it.
 - `src/lib/compare.ts` — `compareProducts()`: ingredients per product, shared ingredients and same-family pairs, each with the label's own quote (no quote → no family). `checks/family.ts` is the Medicines-page check over the same rules.
 - `src/components/compare/ingredient-comparison.tsx` — `IngredientComparison` ("Together"): a Venn for two medicines, a grid for three or more, plus shared/family callouts. Reuse it for any multi-medicine comparison.
+- `src/lib/compare-view.ts` — Compare with my medicines: `pickOptions()` / `summarize()` (the picker and its check-before-comparing summary), `subjectEntry()` (a photo's draft compares as its matched label, never saved), `comparisonView()` (cards, Together's products, findings with neutral `FINDING_LABELS`, `concentrationBars()`, unresolved reasons, checks run). Findings are `runChecks()`'s, unchanged. Server actions in `src/app/patients/[patientId]/compare-actions.ts`; UI in `src/components/compare/` (`CompareButton` in the medicine card's `actions`, `CompareSheet`, `CompareResults` reusing `WarningCard`).
 - `src/lib/supabase/{client,server,proxy}.ts` — Supabase clients. `createAdminClient()` (secret key) is only for catalog writes.
 - `src/lib/supabase/database.types.ts` — generated (`npm run db:types`); never hand-edit.
 - `src/lib/auth.ts` — `getCurrentUser()` / `requireUser()`.
@@ -47,7 +48,7 @@ Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` and `docs/superpower
 - `e2e/fake-gemini.mjs` — the e2e Gemini stand-in (via `GOOGLE_GENERATIVE_AI_BASE_URL`); it picks a canned read, with its `documentKind`, by the photo's width (`e2e/fake-gemini-scenarios.mjs`).
 - `src/components/already-gave-both.tsx` — the fixed "I already gave both" message; reuse it, never re-word it.
 - `src/components/back-link.tsx` — `BackLink` / `goBackTo()`: every "← …" link; goes back in history when the page before is its target (keeps scroll), else opens `href`.
-- `src/components/use-back-to-close.ts` — every overlay (sheet, dialog, popover) uses it, so device Back closes it; a link inside calls `release()` and navigates with `replace`.
+- `src/components/use-back-to-close.ts` — every overlay (sheet, dialog, popover) uses it, so device Back closes it; a link inside calls `release()` and navigates with `replace`. Overlays stack: one stays open while Back lands on its entry or one above it (`overlayStaysOpen()`), so a sheet with a second step can have another sheet on top.
 - `src/lib/add-flow.ts`, `src/components/records/add-flow-bar.tsx` — the add flow's steps and Cancel; add-a-medicine screens show `AddFlowBar` instead of `RecordHeader`.
 - `src/lib/page-lookup.ts` — record pages read their person/entry with `findPatient` / `findEntry` and title themselves with `patientMetadata` / `entryMetadata`, so a 404 is titled "Page not found".
 - Status colors: `finding`, `unresolved` tokens in `globals.css`.

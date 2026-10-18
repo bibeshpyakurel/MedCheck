@@ -249,7 +249,7 @@ export function PhotoAnswersDialog({
           {answers ? (
             <>
               <DialogDescription className="sr-only">Nothing is saved yet.</DialogDescription>
-              <AnswerResult answers={answers} />
+              <AnswerResult answers={answers} patientId={patientId} />
             </>
           ) : (
             items &&
