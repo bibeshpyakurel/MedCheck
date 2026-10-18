@@ -1,6 +1,7 @@
 import "server-only";
 
 import { catalogIngredientSchema, labelSectionsSchema, sourceLinkSchema, type Formulation } from "@/lib/domain/schema";
+import { sanitizeDosageTable } from "@/lib/openfda";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -19,7 +20,9 @@ export function rowToFormulation(row: FormulationRow): Formulation {
     directionsText: row.directions_text,
     max24hText: row.max_24h_text,
     warningsQuotes: row.warnings_quotes,
-    dosageTableHtml: row.dosage_table_html,
+    // Sanitized at ingest; again on the way out (table tags only), so client components such as the
+    // medicine card can render it without shipping the sanitizer to the browser.
+    dosageTableHtml: row.dosage_table_html ? sanitizeDosageTable(row.dosage_table_html) || null : null,
     source: row.source as Formulation["source"],
     openfdaSetId: row.openfda_set_id,
     labelEffectiveDate: row.label_effective_date,
