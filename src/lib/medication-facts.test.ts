@@ -59,3 +59,45 @@ describe("source", () => {
     });
   });
 });
+
+describe("uses", () => {
+  const texts = (g: { tiles: { text: string }[] }) => g.tiles.map((t) => t.text);
+
+  it("Advil: one list under its lead, then fever on its own", () => {
+    const u = medicationFacts(L.advil).uses;
+    expect(u.map((g) => g.lead?.text ?? null)).toEqual(["temporarily relieves minor aches and pains due to:", null]);
+    expect(texts(u[0])).toEqual(["headache", "toothache", "backache", "menstrual cramps", "the common cold", "muscular aches", "minor pain of arthritis"]);
+    expect(texts(u[1])).toEqual(["temporarily reduces fever"]);
+    expect(u[0].tiles.map((t) => t.icon)).toEqual(["zap", "activity", "activity", "activity", "snowflake", "activity", "activity"]);
+    expect(u[1].tiles[0].icon).toBe("thermometer");
+  });
+
+  it("Children's Tylenol: each colon starts a list; a leading list glyph is dropped", () => {
+    const u = medicationFacts(L.childrensTylenol).uses;
+    expect(u.map((g) => g.lead?.text)).toEqual(["temporarily:", "relieves minor aches and pains due to:"]);
+    expect(texts(u[0])).toEqual(["reduces fever"]);
+    expect(texts(u[1])).toEqual(["the common cold", "flu", "headache", "sore throat", "toothache"]);
+  });
+
+  it("Benadryl: a second lead starts a second list", () => {
+    const u = medicationFacts(L.benadrylLiquid).uses;
+    expect(u.map((g) => g.lead?.text)).toEqual([
+      "temporarily relieves these symptoms due to hay fever or other upper respiratory allergies:",
+      "temporarily relieves these symptoms due to the common cold:",
+    ]);
+    expect(texts(u[1])).toEqual(["runny nose", "sneezing"]);
+    expect(u[1].tiles.map((t) => t.icon)).toEqual(["wind", "wind"]);
+  });
+
+  it("a Uses bullet with no colon is one tile, verbatim (Pepcid)", () => {
+    const u = medicationFacts(L.pepcidAcMax).uses;
+    expect(u).toHaveLength(1);
+    expect(u[0].lead).toBeNull();
+    expect(texts(u[0])).toEqual(L.pepcidAcMax.labelSections.uses);
+    expect(u[0].tiles[0].icon).toBe("flame");
+  });
+
+  it("a label without Uses has no groups", () => {
+    expect(medicationFacts({ ...L.advil, labelSections: {} }).uses).toEqual([]);
+  });
+});

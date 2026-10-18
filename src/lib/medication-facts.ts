@@ -19,9 +19,15 @@ export const STATUS_TEXT: Record<StatusKind, string> = {
   fda_published: "FDA-published label · not hand-checked",
 };
 
+export type UseIcon = "zap" | "thermometer" | "snowflake" | "wind" | "moon" | "flame" | "activity" | "dot";
+export type UseTile = LabelLine & { icon: UseIcon };
+/** `lead` is the label's words before its list ("temporarily relieves minor aches and pains due to:"). */
+export type UseGroup = { lead: LabelLine | null; tiles: UseTile[] };
+
 export type MedicationFacts = {
   header: { name: string; ingredients: string[]; labeler: string | null; labelDate: string | null; dosageForm: string; status: StatusKind };
   hero: { ingredients: { name: string; amount: string; per: string | null }[]; purposes: LabelLine[] };
+  uses: UseGroup[];
   source: { kind: Formulation["source"]; setId: string | null; ndcs: string[]; links: SourceLink[] };
 };
 
@@ -63,6 +69,63 @@ function hero(f: Formulation): MedicationFacts["hero"] {
   };
 }
 
+// ---------------------------------------------------------------------------------------------
+// Uses
+
+/** Decorative icons by the tile's own words; first match wins, anything else is a neutral dot. */
+const USE_ICONS: [RegExp, UseIcon][] = [
+  [/headache/i, "zap"],
+  [/\bfever\b/i, "thermometer"],
+  [/\bcold\b|\bflu\b/i, "snowflake"],
+  [/sneez|runny nose|itch|watery eyes|nasal|congestion/i, "wind"],
+  [/sleep/i, "moon"],
+  [/heartburn|\bacid\b|indigestion|stomach/i, "flame"],
+  [/ache|\bpain|arthritis|cramps/i, "activity"],
+];
+
+/** A Uses bullet that opens a new statement rather than continuing a list. */
+const USE_VERB = /^(?:temporarily|relieves|reduces|helps|prevents|controls|for)\b/i;
+const LIST_GLYPH = /^[-•·*]\s*/;
+const firstWord = (s: string) => (s.trim().split(/\s+/)[0] ?? "").toLowerCase().replace(/[^a-z]/g, "");
+
+function useIcon(text: string): UseIcon {
+  return USE_ICONS.find(([re]) => re.test(text))?.[1] ?? "dot";
+}
+
+const useTile = (text: string, index: number): UseTile => ({ ...line(text, "uses", index), icon: useIcon(text) });
+
+/**
+ * A bullet with a colon starts a list: the words up to the colon are its lead, the rest its first tile.
+ * Following colon-less bullets join the list, unless they open a statement of their own (the lead's
+ * first word, or a Uses verb: "temporarily reduces fever"), which stands alone.
+ */
+function useGroups(f: Formulation): UseGroup[] {
+  const groups: UseGroup[] = [];
+  let open: { group: UseGroup; leadWord: string } | null = null;
+  for (const [index, raw] of (f.labelSections.uses ?? []).entries()) {
+    const colon = raw.indexOf(":");
+    if (colon > 0) {
+      const lead = raw.slice(0, colon + 1).trim();
+      const rest = raw.slice(colon + 1).trim().replace(LIST_GLYPH, "");
+      const group: UseGroup = { lead: line(lead, "uses", index), tiles: rest ? [useTile(rest, index)] : [] };
+      groups.push(group);
+      open = { group, leadWord: firstWord(lead) };
+      continue;
+    }
+    const text = raw.trim().replace(LIST_GLYPH, "");
+    if (!text) continue;
+    if (open && firstWord(text) !== open.leadWord && !USE_VERB.test(text)) {
+      open.group.tiles.push(useTile(text, index));
+      continue;
+    }
+    open = null;
+    const last = groups.at(-1);
+    if (last && last.lead === null) last.tiles.push(useTile(text, index));
+    else groups.push({ lead: null, tiles: [useTile(text, index)] });
+  }
+  return groups;
+}
+
 export function medicationFacts(f: Formulation): MedicationFacts {
   return {
     header: {
@@ -74,6 +137,7 @@ export function medicationFacts(f: Formulation): MedicationFacts {
       status: statusOf(f),
     },
     hero: hero(f),
+    uses: useGroups(f),
     source: { kind: f.source, setId: f.openfdaSetId, ndcs: f.ndcPackages, links: f.sourceLinks },
   };
 }
