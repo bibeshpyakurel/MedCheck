@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { allFixtureProducts, fixtureLabel, fixtureProducts } from "./__fixtures__";
-import { indexNdcProducts, joinLabel } from "./join";
+import { indexNdcProducts, joinLabel, withNdcOpenfda } from "./join";
 
 describe("joinLabel — FDA label ↔ NDC Directory products", () => {
   const index = indexNdcProducts(allFixtureProducts());
@@ -25,6 +25,23 @@ describe("joinLabel — FDA label ↔ NDC Directory products", () => {
     const joined = joinLabel(fixtureLabel("tylenol-extra-strength-tablet"), indexNdcProducts(products));
     expect(joined.method).toBe("package_ndc");
     expect(joined.products).toHaveLength(1);
+  });
+
+  it("fills a label's missing openfda block from its NDC products, so it joins by package NDC", () => {
+    const label = fixtureLabel("tylenol-extra-strength-tablet");
+    const products = fixtureProducts("tylenol-extra-strength-tablet").map((p) => ({ ...p, spl_id: "a-newer-spl-version" }));
+    label.openfda = {};
+    const filled = withNdcOpenfda(label, products);
+    expect(filled.openfda).toMatchObject({
+      product_type: ["HUMAN OTC DRUG"],
+      route: ["ORAL"],
+      brand_name: ["TYLENOL Extra Strength"],
+      manufacturer_name: ["Kenvue Brands LLC"],
+    });
+    expect(joinLabel(filled, indexNdcProducts(products))).toMatchObject({ method: "package_ndc" });
+    // A label that has its own openfda block is left alone.
+    const own = fixtureLabel("tylenol-extra-strength-tablet");
+    expect(withNdcOpenfda(own, products)).toBe(own);
   });
 
   it("reports no join when nothing matches", () => {

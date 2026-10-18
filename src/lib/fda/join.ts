@@ -34,3 +34,24 @@ export function joinLabel(label: FdaLabel, index: NdcIndex): { method: JoinMetho
   if (found.size > 0) return { method: "package_ndc", products: [...found] };
   return { method: "none", products: [] };
 }
+
+/**
+ * Some current labels come from openFDA with an empty `openfda` block (no product type, route, brand or
+ * NDCs), so a search on those fields never finds them. For such a label found through its NDC products,
+ * take those facts from the NDC Directory records. A label with its own block is returned unchanged.
+ */
+export function withNdcOpenfda(label: FdaLabel, products: NdcProduct[]): FdaLabel {
+  if (label.openfda && Object.keys(label.openfda).length > 0) return label;
+  const uniq = (values: (string | undefined)[]) => [...new Set(values.filter((v): v is string => !!v && v.trim() !== ""))];
+  return {
+    ...label,
+    openfda: {
+      product_type: uniq(products.map((p) => p.product_type)),
+      route: uniq(products.flatMap((p) => p.route ?? [])),
+      brand_name: uniq(products.map((p) => p.brand_name?.trim())),
+      generic_name: uniq(products.map((p) => p.generic_name?.trim())),
+      manufacturer_name: uniq(products.map((p) => p.labeler_name?.trim())),
+      package_ndc: uniq(products.flatMap((p) => (p.packaging ?? []).map((k) => k.package_ndc))),
+    },
+  };
+}
