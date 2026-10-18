@@ -4,6 +4,7 @@
 // rules here only decide where a bullet goes, and a bullet no rule places stays where the label put it.
 import { formatStrength } from "@/lib/domain/fields";
 import type { Formulation, LabelSectionKey, SourceLink } from "@/lib/domain/schema";
+import { ageGroups, ageOf } from "@/lib/quick-answers";
 
 export type LabelSource = LabelSectionKey | "directions_text" | "max_24h_text" | "warnings_quotes";
 /** Which raw field, and which bullet of it, a line came from. */
@@ -24,10 +25,17 @@ export type UseTile = LabelLine & { icon: UseIcon };
 /** `lead` is the label's words before its list ("temporarily relieves minor aches and pains due to:"). */
 export type UseGroup = { lead: LabelLine | null; tiles: UseTile[] };
 
+/** Label-order run of direction lines: general (`age` null), or one age line and the lines continuing it. */
+export type DirectionSegment = { age: string | null; lines: LabelLine[] };
+/** One form's directions ("Advil Caplets"); `heading` null holds lines every form shares. */
+export type DirectionBlock = { heading: LabelLine | null; segments: DirectionSegment[] };
+export type Directions = { blocks: DirectionBlock[]; max24h: LabelLine | null; dosageTableHtml: string | null };
+
 export type MedicationFacts = {
   header: { name: string; ingredients: string[]; labeler: string | null; labelDate: string | null; dosageForm: string; status: StatusKind };
   hero: { ingredients: { name: string; amount: string; per: string | null }[]; purposes: LabelLine[] };
   uses: UseGroup[];
+  directions: Directions;
   source: { kind: Formulation["source"]; setId: string | null; ndcs: string[]; links: SourceLink[] };
 };
 
@@ -126,6 +134,104 @@ function useGroups(f: Formulation): UseGroup[] {
   return groups;
 }
 
+// ---------------------------------------------------------------------------------------------
+// Directions
+
+const UNIT = String.raw`(?:gel ?caplets?|caplets?|tablets?|capsules?|softgels?|liqui-?caps?|gelcaps?|chewables?|lozenges?|teaspoons?(?:ful)?|tablespoons?(?:ful)?|tsp|tbsp|mL|drops?|doses?|packets?)`;
+const NUM = String.raw`(?:\d+(?:\.\d+)?|one|two|three|four|five|six)`;
+const HOURS = String.raw`(?:hours?|hrs?)`;
+
+/** Highlighted words, in priority order: a longer match keeps its range against later, shorter ones. */
+const MARK_PATTERNS: RegExp[] = [
+  new RegExp(String.raw`\b${NUM}\s*(?:${UNIT}|times)\s+(?:in|per|within)\s+(?:any\s+)?24\s*${HOURS}`, "gi"),
+  new RegExp(String.raw`\bevery\s+\d+(?:\s*(?:to|-|–)\s*\d+)?\s*${HOURS}`, "gi"),
+  new RegExp(String.raw`\b${NUM}\s*${UNIT}\b`, "gi"),
+  /\b(?:ask|consult) a (?:doctor|dentist|physician)\b/gi,
+];
+const DAILY_LIMIT = new RegExp(String.raw`\b24\s*${HOURS}`, "i");
+
+/** Character ranges of `text` to highlight: amounts, intervals, 24-hour limits, referrals. Sorted, disjoint. */
+export function markRanges(text: string): [number, number][] {
+  const ranges: [number, number][] = [];
+  for (const re of MARK_PATTERNS) {
+    for (const m of text.matchAll(re)) {
+      const start = m.index;
+      const end = start + m[0].length;
+      if (ranges.every(([s, e]) => end <= s || start >= e)) ranges.push([start, end]);
+    }
+  }
+  return ranges.sort((a, b) => a[0] - b[0]);
+}
+
+/** A line about the most in 24 hours (shown with a clock). */
+export function isDailyLimit(text: string): boolean {
+  return DAILY_LIMIT.test(text);
+}
+
+const squash = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/** "Advil Caplets": a short bullet opening with the brand's first word, with no number or colon. */
+function isFormHeading(text: string, brandName: string): boolean {
+  const brand = firstWord(brandName);
+  return brand !== "" && firstWord(text) === brand && !/[\d:]/.test(text) && text.trim().split(/\s+/).length <= 5;
+}
+
+/** The age card's heading: the line's own phrase before its colon, else "Adults" / "Children". */
+function ageLabel(text: string, age: "adults" | "children"): string {
+  const colon = text.indexOf(":");
+  if (colon > 0 && colon <= 60) return capitalize(text.slice(0, colon).trim());
+  return age === "adults" ? "Adults" : "Children";
+}
+
+/** Lines in label order: each age line opens a card its continuing lines join; other lines group as general. */
+function segmentsOf(lines: LabelLine[]): DirectionSegment[] {
+  const groups = ageGroups(lines.map((l) => l.text));
+  const out: DirectionSegment[] = [];
+  lines.forEach((l, i) => {
+    const age = ageOf(l.text);
+    const last = out.at(-1);
+    if (age) out.push({ age: ageLabel(l.text, age), lines: [l] });
+    else if (groups[i] !== "general" && last?.age) last.lines.push(l);
+    else if (last && last.age === null) last.lines.push(l);
+    else out.push({ age: null, lines: [l] });
+  });
+  return out;
+}
+
+function max24h(f: Formulation, lines: LabelLine[]): LabelLine | null {
+  const text = f.max24hText?.trim();
+  if (!text || lines.some((l) => squash(l.text).includes(squash(text)))) return null;
+  return { ...line(text, "max_24h_text", 0), marks: markRanges(text) };
+}
+
+function directions(f: Formulation): Directions {
+  const dosageTableHtml = f.dosageTableHtml;
+  const lines = sectionLines(f, "directions").map((l) => ({ ...l, marks: markRanges(l.text) }));
+  if (lines.length === 0) {
+    // Older rows, and labels whose directions were never split: the text as printed, one line, unmarked.
+    const text = f.directionsText?.trim();
+    const legacy = text && !dosageTableHtml ? [line(text, "directions_text", 0)] : [];
+    return {
+      blocks: legacy.length > 0 ? [{ heading: null, segments: [{ age: null, lines: legacy }] }] : [],
+      max24h: max24h(f, legacy),
+      dosageTableHtml,
+    };
+  }
+
+  const byForm = lines.filter((l) => isFormHeading(l.text, f.brandName)).length >= 2;
+  const chunks: { heading: LabelLine | null; lines: LabelLine[] }[] = [{ heading: null, lines: [] }];
+  for (const l of lines) {
+    if (byForm && isFormHeading(l.text, f.brandName)) chunks.push({ heading: { text: l.text, ref: l.ref }, lines: [] });
+    else chunks.at(-1)!.lines.push(l);
+  }
+  return {
+    blocks: chunks.filter((c) => c.heading || c.lines.length > 0).map((c) => ({ heading: c.heading, segments: segmentsOf(c.lines) })),
+    max24h: max24h(f, lines),
+    dosageTableHtml,
+  };
+}
+
 export function medicationFacts(f: Formulation): MedicationFacts {
   return {
     header: {
@@ -138,6 +244,7 @@ export function medicationFacts(f: Formulation): MedicationFacts {
     },
     hero: hero(f),
     uses: useGroups(f),
+    directions: directions(f),
     source: { kind: f.source, setId: f.openfdaSetId, ndcs: f.ndcPackages, links: f.sourceLinks },
   };
 }

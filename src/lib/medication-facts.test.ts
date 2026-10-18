@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { FICTIONAL_FORMULATIONS } from "@/data/fictional-formulations";
 import type { Formulation } from "@/lib/domain/schema";
 import labels from "./__fixtures__/quick-answers-labels.json";
-import { medicationFacts, resolveRef, STATUS_TEXT } from "./medication-facts";
+import { markRanges, medicationFacts, resolveRef, STATUS_TEXT } from "./medication-facts";
 
 // Real catalog rows (live import, October 2026), copied verbatim.
 const L = labels as unknown as Record<keyof typeof labels, Formulation>;
@@ -99,5 +99,77 @@ describe("uses", () => {
 
   it("a label without Uses has no groups", () => {
     expect(medicationFacts({ ...L.advil, labelSections: {} }).uses).toEqual([]);
+  });
+});
+
+describe("directions", () => {
+  const marked = (text: string) => markRanges(text).map(([s, e]) => text.slice(s, e));
+
+  it("Advil: one block per form, each with its age cards in label order", () => {
+    const d = medicationFacts(L.advil).directions;
+    expect(d.blocks.map((b) => b.heading?.text)).toEqual(["Advil Tablets", "Advil Caplets", "Advil Gel Caplets"]);
+    const tablets = d.blocks[0].segments;
+    expect(tablets.map((s) => s.age)).toEqual([null, "Adults and children 12 years and over", "Children under 12 years"]);
+    expect(tablets[1].lines.map((l) => l.text)).toEqual([
+      "adults and children 12 years and over: take 1 tablet every 4 to 6 hours while symptoms persist if pain or fever does not respond to 1 tablet, 2 tablets may be used",
+      "do not exceed 6 tablets in 24 hours, unless directed by a doctor",
+    ]);
+    // Already one of the directions lines, so not repeated.
+    expect(d.max24h).toBeNull();
+  });
+
+  it("Pepcid: a capitalized line ends the adults' card, and label order is kept", () => {
+    const s = medicationFacts(L.pepcidAcMax).directions.blocks[0].segments;
+    expect(s.map((x) => x.age)).toEqual(["Adults and children 12 years and over", null, "Children under 12 years"]);
+    expect(s[1].lines[0].text).toBe("Do not chew.");
+  });
+
+  it("Tylenol Extra Strength: directions live in the table; the 24-hour limit gets its own line", () => {
+    const d = medicationFacts(L.tylenolExtraStrength).directions;
+    expect(d.dosageTableHtml).toBe(L.tylenolExtraStrength.dosageTableHtml);
+    expect(d.max24h?.text).toBe("do not take more than 6 tablets in 24 hours");
+    expect(d.max24h?.ref).toEqual({ source: "max_24h_text", index: 0 });
+    expect(marked(d.max24h!.text)).toEqual(["6 tablets in 24 hours"]);
+  });
+
+  it("Children's Tylenol: no age cards of its own; the table is passed whole", () => {
+    const d = medicationFacts(L.childrensTylenol).directions;
+    expect(d.blocks).toHaveLength(1);
+    expect(d.blocks[0].segments.every((s) => s.age === null)).toBe(true);
+    expect(d.dosageTableHtml).toBe(L.childrensTylenol.dosageTableHtml);
+  });
+
+  it("a row without sections shows its directions text as one unmarked line", () => {
+    const d = medicationFacts(calmora).directions;
+    expect(d.blocks).toEqual([{ heading: null, segments: [{ age: null, lines: [{ text: calmora.directionsText, ref: { source: "directions_text", index: 0 } }] }] }]);
+  });
+
+  it("marks amounts, intervals, 24-hour limits and referrals, nothing else", () => {
+    expect(
+      marked("adults and children 12 years and over: take 1 tablet every 4 to 6 hours while symptoms persist if pain or fever does not respond to 1 tablet, 2 tablets may be used"),
+    ).toEqual(["1 tablet", "every 4 to 6 hours", "1 tablet", "2 tablets"]);
+    expect(marked("do not exceed 6 gel caplets in 24 hours, unless directed by a doctor")).toEqual(["6 gel caplets in 24 hours"]);
+    expect(marked("take 1 gel caplet every 4 to 6 hours")).toEqual(["1 gel caplet", "every 4 to 6 hours"]);
+    expect(marked("children under 12 years: ask a doctor")).toEqual(["ask a doctor"]);
+    expect(marked("repeat dose every 4 hours while symptoms last")).toEqual(["every 4 hours"]);
+    expect(marked("do not give more than 5 times in 24 hours")).toEqual(["5 times in 24 hours"]);
+    expect(marked("take only one dose (2 LiquiCaps) per day (24 hours)")).toEqual(["one dose", "2 LiquiCaps"]);
+    expect(marked("shake well before using")).toEqual([]);
+  });
+
+  it("marks are sorted, inside the text, and never overlap", () => {
+    for (const f of Object.values(L)) {
+      for (const b of medicationFacts(f).directions.blocks) {
+        for (const l of b.segments.flatMap((s) => s.lines)) {
+          const m = l.marks ?? [];
+          m.forEach(([s, e], i) => {
+            expect(s).toBeGreaterThanOrEqual(0);
+            expect(e).toBeLessThanOrEqual(l.text.length);
+            expect(s).toBeLessThan(e);
+            if (i > 0) expect(s).toBeGreaterThanOrEqual(m[i - 1][1]);
+          });
+        }
+      }
+    }
   });
 });
