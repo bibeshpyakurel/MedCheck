@@ -4,7 +4,9 @@ import { isReadable, rankCatalogMatches, searchTermsFor, type CatalogMatch, type
 import { searchFormulations } from "@/lib/catalog";
 import { withoutFictional } from "@/lib/photo-flow";
 
-const PER_TERM = 20;
+// search_formulations ranks a hand-checked row ("Tylenol Extra Strength (caplets)") after every exact-brand
+// copy (18 for Tylenol Extra Strength in the 2026-10-18 catalog); 40 keeps it among the candidates.
+const PER_TERM = 40;
 
 /**
  * Search by each term, merge, rank; top `limit` (default 40: enough rows for `matchChoices` to find

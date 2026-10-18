@@ -48,7 +48,7 @@ export function isReadable(read: PhotoRead): boolean {
 // Package words that many products share; searched alone they drown out the brand
 // ("Rolaids Extra Strength" ranked store-brand "Extra Strength" antacids first).
 const STRENGTH = /\b\d+(?:\.\d+)?\s*(?:mg|mcg|g|ml|%)(?=\W|$)/gi;
-const FORM = "liqui-?gels?|liquid ?gels?|tablets?|caplets?|capsules?|softgels?|gelcaps?|geltabs?|chewables?|liquid|suspension";
+const FORM = "liqui-?gels?|liquid ?gels?|tablets?|caplets?|capsules?|softgels?|gelcaps?|geltabs?|chewables?|liquid|oral|suspension";
 const PACKAGE_WORDS = new RegExp(
   `\\b(?:extra|maximum|max|regular|original|ultra|strength|fast|acting|rapid|relief|formula|advanced|plus|${FORM})\\b`,
   "gi",
@@ -141,7 +141,8 @@ function strengthAgreement(read: PhotoRead, f: Formulation): StrengthAgreement {
 //   ingredients  40 when the read names are exactly the label's set, else 30 × Jaccard overlap; 0 if none read
 //   strength     +30 agrees, 0 not_read, −40 disagrees
 //   brand        25 × Dice similarity of name tokens (read name vs brand, or vs generic name), form words left out
-//   dosage form  +8 same family (liquid / solid unit / same word), −8 when both known and different
+//   dosage form  +8 same family (liquid / solid unit / same word), +3 more for the same solid kind (caplet,
+//                tablet, capsule/liquid gel, chewable, gelcap), −8 when both known and different families
 //   reviewed     +2 for a hand-checked row: it wins when the substance (ingredients, strength, brand, form) ties
 // Ties break on formulation id, so the order never depends on the candidates' order.
 const STRENGTH_POINTS: Record<StrengthAgreement, number> = { agrees: 30, not_read: 0, disagrees: -40 };
@@ -186,10 +187,23 @@ function formFamily(form: string): string {
   return t;
 }
 
+/** The solid form a package or label names: caplets, liquid gels and chewables are different packages. */
+function solidKind(form: string): string | null {
+  const t = form.trim().toLowerCase();
+  if (/chew/.test(t)) return "chewable";
+  if (/gelcap|geltab/.test(t)) return "gelcap";
+  if (/liqui-?(?:gel|cap)|liquid ?gel|soft ?gel|capsule/.test(t)) return "capsule";
+  if (/caplet/.test(t)) return "caplet";
+  if (/tablet/.test(t)) return "tablet";
+  return null;
+}
+
 function formPoints(read: PhotoRead, f: Formulation): number {
   const form = text(read.dosageForm);
   if (!form || !text(f.dosageForm)) return 0;
-  return formFamily(form) === formFamily(f.dosageForm) ? 8 : -8;
+  if (formFamily(form) !== formFamily(f.dosageForm)) return -8;
+  const kind = solidKind(form);
+  return kind !== null && kind === solidKind(f.dosageForm) ? 11 : 8;
 }
 
 /** Candidates ranked best first. Deduplicated by formulation id. */
