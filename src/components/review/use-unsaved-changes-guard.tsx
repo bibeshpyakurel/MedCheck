@@ -122,16 +122,18 @@ export function useUnsavedChangesGuard(dirty: boolean): { dialog: ReactNode; dis
 
   async function discard() {
     const target = leaving;
+    // A tap while the dialog is already closing (after Keep editing) changes nothing.
+    if (!target) return;
     setLeaving(null);
     leaveFreely.current = true;
-    if (target?.kind === "back") {
+    if (target.kind === "back") {
       // The guard's entry is already gone: this Back goes where the person meant to go.
       window.history.back();
       return;
     }
     await dropEntry();
     setArmed(false);
-    if (target && !goBackTo(target.href)) router.push(target.href);
+    if (!goBackTo(target.href)) router.push(target.href);
   }
 
   function keepEditing() {

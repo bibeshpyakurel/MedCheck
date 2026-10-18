@@ -165,11 +165,8 @@ function ShareAction({
 export function ShareButton({ emailConfigured, ...props }: ShareProps & { emailConfigured: boolean }) {
   const mode = shareMode({ canShareFiles: useCanShareFiles(), emailConfigured });
   if (mode === "hidden") return null;
-  return mode === "share" ? (
-    <ShareAction {...props} label="Share" readyLabel="Tap to share PDF" icon={Share2Icon} />
-  ) : (
-    <ShareAction {...props} label="Download and email" readyLabel="Tap to share PDF" icon={Share2Icon} />
-  );
+  const label = mode === "share" ? "Share" : "Download and email";
+  return <ShareAction {...props} label={label} readyLabel="Tap to share PDF" icon={Share2Icon} />;
 }
 
 /**

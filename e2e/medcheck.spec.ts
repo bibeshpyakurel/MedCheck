@@ -209,6 +209,12 @@ test.describe("guest", () => {
     await expect(discard).toBeVisible();
     await expect(page).toHaveURL(/\/review(\?|$)/);
     await discard.getByRole("button", { name: "Keep editing" }).click();
+    await expect(discard).toBeHidden();
+    // The menu is still open: Back closes it, and asks nothing.
+    await page.goBack();
+    await expect(page.getByRole("navigation", { name: "Menu" })).toBeHidden();
+    await expect(discard).toBeHidden();
+    // Back again would leave the page: it asks.
     await page.goBack();
     await expect(discard).toBeVisible();
     // Back was heading to Add a medicine (the photo step was replaced by the review).
@@ -264,6 +270,8 @@ test.describe("guest", () => {
     await expect(help.locator('a[href="tel:18002221222"]')).toBeVisible();
     await help.getByRole("button", { name: "Close" }).click();
     await expect(help).toBeHidden();
+    // Closing steps back over Get help's history entry (device Back closes it); let that land.
+    await page.waitForFunction(() => !(history.state as { medcheckOverlay?: number } | null)?.medcheckOverlay);
   });
 
   test("a medicine that isn't there: the 404 page, titled Page not found, leads to My medicines", async () => {
