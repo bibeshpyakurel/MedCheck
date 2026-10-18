@@ -134,6 +134,14 @@ describe("mapLabel — strengths are the label's own (NDC values only confirm th
     expect(map(name)).toMatchObject({ ok: false, reason });
   });
 
+  it("keeps the label's own per-unit: per fl oz, per dose", () => {
+    const label = fixtureLabel("theraflu-syrup-count-strength");
+    label.active_ingredient = ["Active ingredient (in each fl oz) Acetaminophen 650 mg Dextromethorphan HBr 20 mg Guaifenesin 400 mg Phenylephrine HCl 10 mg"];
+    const r = mapLabel(label, index);
+    expect(r).toMatchObject({ ok: true });
+    if (r.ok) expect(r.formulation.activeIngredients.map((i) => formatStrength(i.strength))[0]).toBe("650 mg per fl oz");
+  });
+
   it("converts a percent only when the basis is stated or the NDC confirms it", () => {
     const label = fixtureLabel("fluoride-rinse-ion-basis");
     label.active_ingredient = ["Active ingredient Sodium fluoride 0.02% w/v"];

@@ -162,6 +162,24 @@ describe("labelSections — multi-product labels and Questions (Advil tablets/ca
     expect(s.inactive_ingredients?.join(" ")).not.toMatch(/Questions|1-800/);
   });
 
+  it("doesn't glue a whole item ending in 'you' onto the next one", () => {
+    expect(s.ask_doctor?.slice(0, 2)).toEqual([
+      "stomach bleeding warning applies to you",
+      "you have problems or serious side effects from taking pain relievers or fever reducers",
+    ]);
+  });
+
+  it("splits flattened ask-a-doctor-or-pharmacist and stop-use lists at monograph items", () => {
+    expect(s.ask_doctor_or_pharmacist).toEqual([
+      "you are under a doctor's care for any serious condition",
+      "taking aspirin for heart attack or stroke, because ibuprofen may decrease this benefit of aspirin",
+      "taking any other drug",
+    ]);
+    expect(s.stop_use).toContain("redness or swelling is present in the painful area");
+    expect(s.stop_use).toContain("any new symptoms appear");
+    expect(s.stop_use).toContain("vomit blood");
+  });
+
   it("uses each repeated block once and starts a bullet at each product sub-heading", () => {
     expect(s.inactive_ingredients).toHaveLength(6);
     expect(s.inactive_ingredients?.[0]).toBe("Advil Tablets");

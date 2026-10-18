@@ -22,7 +22,13 @@ export type Printed = {
   end: number;
 };
 
-const AMOUNT = /(\d[\d,]*(?:\.\d+)?|\.\d+)\s*(mg|mcg|µg|μg|g|%)(?![\p{L}\d])/giu;
+const AMOUNT = /(\d[\d,]*(?:\.\d+)?|\.\d+)\s*(milligrams?|micrograms?|grams?|mg|mcg|µg|μg|g|%)(?![\p{L}\d])/giu;
+const UNIT_WORDS: Record<string, PrintedUnit> = { milligram: "mg", microgram: "mcg", gram: "g", µg: "mcg", μg: "mcg" };
+
+/** Between a name and a parenthesized amount: a few words and maybe an apothecary amount ("10 gr"). */
+const GAP_BEFORE_PAREN = /^[\s,]*(?:[\p{L}-]+[\s,]+){0,3}(?:\d+(?:\.\d+)?\s*(?:gr|grains?)\s*)?$/iu;
+/** A parenthetical that restates the amount: "(648 mg)", "(equal to 4 mg nicotine)". */
+const PAREN_AMOUNT_PREFIX = /^\(\s*(?:equal to|equivalent to|as|providing|contains)?\s*$/i;
 
 function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -77,12 +83,19 @@ export function findPrinted(activeText: string, ndcName: string, otherNames: str
       AMOUNT.lastIndex = after;
       let a: RegExpExecArray | null;
       while ((a = AMOUNT.exec(text)) && a.index < limit) {
-        if (depth[a.index] > 0) continue;
+        if (depth[a.index] > depth[start]) {
+          // Only "(648 mg)" right after the name (or after "10 gr"), or "(equal to 4 mg …)".
+          const open = text.lastIndexOf("(", a.index);
+          if (depth[a.index] - depth[start] !== 1 || !GAP_BEFORE_PAREN.test(text.slice(after, open)) || !PAREN_AMOUNT_PREFIX.test(text.slice(open, a.index))) {
+            continue;
+          }
+        }
         const end = a.index + a[0].length;
         const rest = text.slice(end);
-        const unit = a[2].toLowerCase().replace(/[µμ]g/, "mcg") as PrintedUnit;
+        const word = a[2].toLowerCase().replace(/s$/, "");
+        const unit = (UNIT_WORDS[word] ?? word) as PrintedUnit;
         const perVolume = rest.match(/^\s*(?:\/|per|in each|in)\s*(\d+(?:\.\d+)?)\s*ml\b/i);
-        const basis = unit === "%" ? (rest.match(/^\s*(w\/v|w\/w)\b/i)?.[1].toLowerCase() as "w/v" | "w/w" | undefined) : undefined;
+        const basis = unit === "%" ? (rest.match(/^\s*\(?\s*(w\/v|w\/w)\b/i)?.[1].toLowerCase() as "w/v" | "w/w" | undefined) : undefined;
         const asBase = /^\s*\(\s*(?:as|equivalent to|equal to)\b/i.test(rest);
         return {
           amount: Number(a[1].replace(/,/g, "")),
@@ -107,6 +120,7 @@ function canonical(s: Strength): { kind: string; value: number } | null {
   const unit = s.perUnit ?? "";
   if (unit === "mL") return { kind: "mL", value: (s.amount * mg) / per };
   if (unit === "L") return { kind: "mL", value: (s.amount * mg) / (per * 1000) };
+  if (unit === "fl oz") return { kind: "mL", value: (s.amount * mg) / (per * 29.5735) }; // comparison only, never stored
   if (unit === "g") return { kind: "g", value: (s.amount * mg) / per };
   if (unit === "mg") return { kind: "g", value: (s.amount * mg) / (per / 1000) };
   return { kind: "count", value: (s.amount * mg) / per };

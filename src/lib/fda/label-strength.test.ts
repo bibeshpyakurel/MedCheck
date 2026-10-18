@@ -32,6 +32,22 @@ describe("findPrinted — the amount the label prints for an ingredient", () => 
     expect(findPrinted("Active ingredient Sodium fluoride 0.05% w/v", "SODIUM FLUORIDE", [])).toMatchObject({ amount: 0.05, unit: "%", basis: "w/v" });
   });
 
+  it("reads the metric amount after an apothecary one, and 'X (equal to 4 mg Y)'", () => {
+    expect(findPrinted("Active Ingredient (in each tablet) Calcium Carbonate 10 gr (648 mg)", "CALCIUM CARBONATE", [])).toMatchObject({ amount: 648, unit: "mg" });
+    expect(findPrinted("Active ingredient (in each chewing piece) Nicotine polacrilex (equal to 4 mg nicotine)", "NICOTINE", [])).toMatchObject({
+      amount: 4,
+      unit: "mg",
+    });
+  });
+
+  it("reads spelled-out units and a parenthesized basis", () => {
+    expect(findPrinted("Active ingredient (in each dose) Polyethylene Glycol 3350, USP 17 grams (cup filled to the line)", "POLYETHYLENE GLYCOL 3350", [])).toMatchObject({
+      amount: 17,
+      unit: "g",
+    });
+    expect(findPrinted("Active Ingredient Benzocaine 20.0% (w/w)", "BENZOCAINE", [])).toMatchObject({ amount: 20, unit: "%", basis: "w/w" });
+  });
+
   it("finds nothing when the label prints no amount", () => {
     expect(findPrinted(active("jba-omelia-no-active-section"), "LEPIDIUM MEYENII ROOT", [])).toBeNull();
     expect(findPrinted(active("placeholder-head-and-cold"), "ACETAMINOPHEN", [])).toBeNull();

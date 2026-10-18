@@ -156,10 +156,17 @@ const MONOGRAPH_ITEMS: Partial<Record<LabelSectionKey, string[]>> = {
     "trouble urinating", "a breathing problem", "cough that occurs with too much phlegm", "persistent or chronic cough",
     "kidney disease", "stomach bleeding warning applies to you", "a sodium-restricted diet",
   ],
+  ask_doctor_or_pharmacist: [
+    "taking aspirin for heart attack or stroke", "taking any other drug", "taking sedatives or tranquilizers",
+    "taking the blood thinning drug warfarin", "taking a prescription drug", "taking any other pain reliever",
+    "taking a diuretic",
+  ],
   stop_use: [
     "pain gets worse", "fever gets worse", "new symptoms occur", "redness or swelling is present", "symptoms do not get better",
     "nervousness, dizziness, or sleeplessness occur", "you get nervous, dizzy or sleepless", "cough lasts more than",
-    "pain or nasal congestion gets worse", "an allergic reaction occurs",
+    "pain or nasal congestion gets worse", "an allergic reaction occurs", "any new symptoms appear", "feel faint", "vomit blood",
+    "have bloody or black stools", "have stomach pain that does not get better", "chest pain", "trouble breathing",
+    "weakness in one part or side of body", "slurred speech", "leg swelling", "ringing in the ears or a loss of hearing occurs",
   ],
 };
 const monographRe = (key: LabelSectionKey) => {
@@ -175,7 +182,9 @@ const STORAGE_LINE = /^(?:store|keep (?:in|at|tightly|away from (?:heat|light|mo
 const NOT_STORAGE = /do not use if|tamper|seal|contains|sodium|calcium|phenylketonurics|\blot\b|\bexp\b|\bsee\b|retain|read all|carton|packet|blister/i;
 
 /** A piece that needs what follows it: "you have", "Symptoms may include:", "if your child takes", a subheading. */
-const LEAD_IN_END = /(?:^|\s)(?:if|takes?|you|have|has|are|is|includes?|of|to|with|the|a|an|and|or|than|for|such as|due to|following|your child)$/i;
+const LEAD_IN_END = /(?:^|\s)(?:if|takes?|includes?|of|with|the|a|an|and|or|than|for|such as|due to|following|your child)$/i;
+/** Short fragments that only open a sentence: "you have", "you are", "if you", "your child is". */
+const SHORT_LEAD_IN = /^(?:if )?(?:you|your child)(?: (?:have|are|has|is|take|get|are taking|have ever had))?$|^if$/i;
 
 // ---------------------------------------------------------------------------
 // Label text
@@ -407,7 +416,7 @@ export function splitSection(key: LabelSectionKey, text: string, options: SplitO
   const isLeadIn = (p: Piece) => {
     if (p.product) return false;
     const t = stripGlyphs(text.slice(p.a, p.b));
-    if (/:$/.test(t) || LEAD_IN_END.test(t)) return true;
+    if (/:$/.test(t) || LEAD_IN_END.test(t) || SHORT_LEAD_IN.test(t)) return true;
     const end = headingSpans.get(p.a);
     return end !== undefined && p.b <= end + 1 && !/[.!?]$/.test(t);
   };

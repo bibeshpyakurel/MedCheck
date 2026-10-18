@@ -8,7 +8,8 @@
 //          --prune                             delete imported rows (otc-…, unreviewed) this run no longer
 //                                              produces, except rows a saved entry references; with
 //                                              --dry-run it only prints what it would delete
-//          --no-spl                            skip DailyMed SPL XML (bullets from text heuristics only)
+//          --with-spl                          cut bullets at DailyMed SPL XML list items (one request per
+//                                              label, ~200/min, cached); without it: text heuristics
 //          --refresh                           re-download instead of using .cache/fda
 //
 // Downloads are untrusted data: cached under .cache/fda (gitignored), parsed only (JSON, XML).
@@ -43,7 +44,7 @@ const args = new Set(process.argv.slice(2));
 const dryRun = args.has("--dry-run");
 const refresh = args.has("--refresh");
 const withMedlinePlus = args.has("--with-medlineplus");
-const withSpl = !args.has("--no-spl");
+const withSpl = args.has("--with-spl");
 const doPrune = args.has("--prune");
 const SPL_CONCURRENCY = 4;
 
@@ -201,27 +202,26 @@ async function loadSpl(setIds: string[]): Promise<{ spl: Map<string, SplSections
       const file = path.join(CACHE, "spl", `${setId}.xml`);
       const marker = path.join(CACHE, "spl", `${setId}.missing`);
       let xml = (await readCached(file))?.toString("utf8") ?? null;
-      if (!xml && !(await readCached(marker))) {
+      let notFound = !xml && (await readCached(marker)) !== null;
+      for (let attempt = 1; !xml && !notFound && attempt <= 4; attempt++) {
         const res = await fetch(splUrl(setId), { signal: AbortSignal.timeout(60_000) }).catch(() => null);
         if (res?.ok) {
           xml = await res.text();
           await mkdir(path.dirname(file), { recursive: true });
           await writeFile(file, xml);
         } else if (res?.status === 404) {
+          notFound = true;
           await mkdir(path.dirname(marker), { recursive: true });
           await writeFile(marker, "");
         } else {
-          failed++;
+          await sleep(attempt * 5_000); // throttled or unreachable: back off
         }
         await sleep(150);
       }
-      if (xml) {
-        const parsed = parseSpl(xml);
-        if (parsed.setId === setId) spl.set(setId, parsed);
-        else failed++;
-      } else {
-        missing++;
-      }
+      const parsed = xml ? parseSpl(xml) : null;
+      if (parsed?.setId === setId) spl.set(setId, parsed);
+      else if (notFound) missing++;
+      else failed++;
       if (++done % 250 === 0) process.stdout.write(`\r  SPL XML: ${done}/${setIds.length}`);
     }
   };
@@ -416,7 +416,7 @@ async function main() {
   const reviewed = await reviewedNdcs();
   const index = indexNdcProducts(products);
 
-  let splStats = "skipped (--no-spl)";
+  let splStats = "not used (pass --with-spl)";
   let result = importLabels(labels, index, reviewed);
   if (withSpl) {
     // Fetch SPL XML only for labels that become rows (or would, but for a reviewed row), then map again.

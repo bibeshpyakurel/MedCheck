@@ -97,6 +97,8 @@ const REFINEMENTS: Record<string, Record<string, string>> = {
   granules: { packet: "packet" },
 };
 
+const DOSE_UNITS = new Set(["dose", "scoop", "capful", "sachet", "level scoop"]);
+
 /**
  * Narrow the NDC form with the label's own wording ("(in each caplet)" on a TABLET product → caplet).
  * Only when the label names exactly one unit and it belongs to the same family; otherwise the NDC form stands.
@@ -105,5 +107,8 @@ export function refineForm(base: FormInfo, labelNouns: string[]): FormInfo {
   const nouns = [...new Set(labelNouns)];
   if (nouns.length !== 1) return base;
   const narrowed = REFINEMENTS[base.form]?.[nouns[0]];
-  return narrowed ? { ...base, form: narrowed } : base;
+  if (narrowed) return { ...base, form: narrowed };
+  // "(in each dose)" on a powder: the strength is per dose, as the label says.
+  if ((base.form === "powder" || base.form === "granules") && DOSE_UNITS.has(nouns[0])) return { ...base, per: nouns[0] };
+  return base;
 }

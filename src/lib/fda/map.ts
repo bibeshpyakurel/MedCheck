@@ -95,15 +95,18 @@ function ndcStrength(s: NdcStrength, form: FormInfo): Strength | null {
  * per-quantity, or a percent with its stated w/v or w/w basis). A percent on the form's usual basis needs
  * the NDC value to confirm it. Null when the label gives an amount but no per-quantity (liquids, gels).
  */
-function labelStrength(p: Printed, form: FormInfo, volume: number | null): { strength: Strength; explicit: boolean } | null {
+function labelStrength(p: Printed, form: FormInfo, volume: number | null, nouns: string[]): { strength: Strength; explicit: boolean } | null {
   if (p.unit === "%") {
+    // A stated basis is the label's own; without one, the form's usual basis needs the NDC to agree.
     const basis = p.basis ?? (form.kind === "liquid" ? "w/v" : "w/w");
-    if ((basis === "w/v") !== (form.kind === "liquid")) return null; // w/v on a gel, w/w on a liquid: ambiguous
     const strength: Strength = { amount: round(p.amount * 10), unit: "mg", perAmount: 1, perUnit: basis === "w/v" ? "mL" : "g" };
     return { strength, explicit: p.basis !== null };
   }
   const per = p.perVolume ?? volume;
   if (per !== null) return { strength: { amount: p.amount, unit: p.unit, perAmount: per, perUnit: "mL" }, explicit: true };
+  if (form.kind !== "solid" && nouns.length === 1 && /^(?:fl\.? ?oz|fluid ounce)$/.test(nouns[0])) {
+    return { strength: { amount: p.amount, unit: p.unit, perAmount: 1, perUnit: "fl oz" }, explicit: true };
+  }
   if (form.kind === "solid") return { strength: { amount: p.amount, unit: p.unit, perAmount: 1, perUnit: form.per ?? form.form }, explicit: true };
   return null;
 }
@@ -114,9 +117,10 @@ function decideStrength(
   ndc: NdcStrength | null,
   form: FormInfo,
   volume: number | null,
+  nouns: string[],
 ): { strength: Strength; source: StrengthSource } | RejectReason {
   const fromNdc = ndc ? ndcStrength(ndc, form) : null;
-  const fromLabel = labelStrength(p, form, volume);
+  const fromLabel = labelStrength(p, form, volume, nouns);
   if (fromLabel) {
     if (fromNdc !== null && equivalent(fromNdc, fromLabel.strength)) return { strength: fromLabel.strength, source: "label_and_ndc" };
     if (fromLabel.explicit) return { strength: fromLabel.strength, source: "label" };
@@ -215,7 +219,7 @@ export function mapLabel(label: FdaLabel, index: NdcIndex, options: MapOptions =
       const others = ndcIngredients.map((x) => (x.name ?? "").trim()).filter((x) => x && x !== ndcName);
       const printed = findPrinted(activeText, ndcName, others);
       if (!printed) return reject("strength_not_on_label");
-      const decided = decideStrength(printed, parsed.ok ? parsed.value : null, form, volume);
+      const decided = decideStrength(printed, parsed.ok ? parsed.value : null, form, volume, nouns);
       if (typeof decided === "string") return reject(decided);
       if (!plausibleStrength(decided.strength)) return reject("implausible_strength");
       sources.push(decided.source);
