@@ -57,7 +57,11 @@ export async function startGoogle(formData: FormData): Promise<void> {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
-    options: { redirectTo: `${origin}/auth/callback` },
+    options: {
+      redirectTo: `${origin}/auth/callback`,
+      // Show Google's account chooser even when one account has already authorized MedCheck.
+      queryParams: { prompt: "select_account" },
+    },
   });
   if (error || !data.url) redirect(`${from}?error=google`);
   redirect(data.url);
