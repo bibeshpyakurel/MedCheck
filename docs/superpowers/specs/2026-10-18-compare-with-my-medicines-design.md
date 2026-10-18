@@ -31,7 +31,7 @@ It is hidden when the person has no other medicine on file. If their other medic
 
 ## 3. The flow (one sheet)
 
-A `Dialog`: a bottom sheet on phones, centered from `sm:`. It uses `useBackToClose()`, so device Back closes it. Two steps, and each step is a history entry, so Back from results returns to picking.
+A `Dialog`: a bottom sheet on phones, centered from `sm:`. It uses `useBackToClose()`, so device Back closes it. Two steps, and each step is a history entry, so Back from results returns to picking. An overlay stays open while Back lands on its own entry or one stacked above it (`overlayStaysOpen()`), so Back from a label opened over the results returns to the results.
 
 ### Step 1 — pick and review
 
@@ -50,8 +50,8 @@ A server action, `compareMedicinesAction({ patientId, subject, entryIds })`, run
 Layout, top to bottom:
 
 1. **Side-by-side cards.** Two medicines get a 2-column grid. Three or more get a horizontally scrolling row of cards on phones and a grid from `md:`. Each card shows: letter (A, B, C…), name, active ingredients, strength as printed (amount large, `per …` small), dosage form, source ("FDA label" + date / "Photo of a prescription label" / "Fictional demo label"), confirmation chip. Strengths are never added up.
-2. **Together.** `IngredientComparison` over the picked products. An entry without a catalog formulation is adapted from its confirmed fields (name, ingredients via `normalizeIngredient()`, no label sections). Its family notes then appear only when another product's label supplies the quote, which is the existing rule.
-3. **What the labels show.** One card per finding, from the `finding` runs. Titles are neutral:
+2. **Together.** `IngredientComparison` over the picked products, diagram only (`diagramOnly`: the Venn, or the grid for three or more). The shared and family notes are the finding cards below, so nothing is said twice. An entry without a catalog formulation is adapted from its confirmed fields (name, ingredients via `normalizeIngredient()`, no label sections). Its family notes then appear only when another product's label supplies the quote, which is the existing rule.
+3. **What the labels show.** One card per finding, from the `finding` runs, drawn with the Medicines page's `WarningCard` (same title, detail, label quote and evidence; `showVisual={false}`, since Together already draws the diagram), with a neutral label above the title. Titles are neutral:
 
    | Check | Title |
    |---|---|

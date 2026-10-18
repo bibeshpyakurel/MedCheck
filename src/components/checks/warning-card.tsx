@@ -28,7 +28,8 @@ const LINK = "inline-flex min-h-11 items-center gap-1 text-sm font-medium underl
  * evidence, where it isn't a repeat.
  *
  * `label` names the kind of finding above its title ("Shared ingredient identified"); `children` add to
- * the card under the label's warning (the compare sheet's question, bars and label links).
+ * the card under the label's warning (the compare sheet's question, bars and label links);
+ * `showVisual={false}` leaves out the overlap diagram when the page already draws one.
  */
 export function WarningCard({
   finding,
@@ -37,6 +38,7 @@ export function WarningCard({
   formulations,
   label,
   headingLevel: Heading = "h3",
+  showVisual = true,
   children,
 }: {
   finding: Finding;
@@ -46,10 +48,11 @@ export function WarningCard({
   formulations: Record<string, Formulation>;
   label?: string;
   headingLevel?: "h3" | "h4";
+  showVisual?: boolean;
   children?: ReactNode;
 }) {
   const headingId = `warning-${finding.id.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
-  const visual = overlapVisual(finding, entries);
+  const visual = showVisual ? overlapVisual(finding, entries) : null;
   return (
     <article
       aria-labelledby={headingId}

@@ -687,3 +687,64 @@ test("Continue with email: code sign-in, name in the menu, sign out", async ({ p
     await deleteTestUsers(created);
   }
 });
+
+// Compare with my medicines, from a saved medicine's card. Its own guest, so a failure elsewhere can't skip it.
+test.describe("compare with my medicines", () => {
+  test.describe.configure({ mode: "serial" });
+
+  let context: BrowserContext;
+  let page: Page;
+  let base: string;
+  let userId: string | null = null;
+
+  test.beforeAll(async ({ browser }, testInfo) => {
+    context = await browser.newContext(testInfo.project.use);
+    page = await context.newPage();
+    page.on("dialog", (dialog) => (dialog.type() === "beforeunload" ? dialog.accept() : dialog.dismiss()));
+    await page.goto("/");
+    await page.getByRole("button", { name: "Continue as a guest" }).click();
+    await page.waitForURL(RECORD_URL);
+    base = `/patients/${RECORD_URL.exec(new URL(page.url()).pathname)![1]}`;
+    userId = await sessionUserId(context);
+  });
+
+  test.afterAll(async () => {
+    if (userId) await deleteTestUsers([userId]);
+    await context.close();
+  });
+
+  test("a saved medicine's card → pick another → shared ingredient, a question to copy; Back returns to picking", async ({ browser }) => {
+    // Tylenol Extra Strength from its package photo, and a typed acetaminophen caplet from a prescription photo.
+    await readPackagePhoto(page, browser, base, "tylenolExtraStrength");
+    const confirm = page.getByRole("dialog", { name: "Is this Tylenol Extra Strength (caplets)?" });
+    await expect(confirm).toBeVisible({ timeout: 60_000 });
+    await confirm.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("dialog", { name: "Tylenol Extra Strength (caplets)" }).getByRole("button", { name: "Save to My medicines" }).click();
+    await page.waitForURL(new RegExp(`${base}$`));
+    await addMedicineByPhoto(page, browser, base, "Store pain relief caplets");
+
+    await page.getByRole("link", { name: /Tylenol Extra Strength \(caplets\)/ }).first().click();
+    await page.getByRole("button", { name: "View medicine card" }).click();
+    const card = page.getByRole("dialog", { name: "Tylenol Extra Strength (caplets)" });
+    await card.getByRole("button", { name: "Compare with my medicines" }).click();
+
+    const sheet = page.getByRole("dialog", { name: "Compare with my medicines" });
+    await expect(sheet).toContainText("Tylenol Extra Strength (caplets)");
+    const other = sheet.getByRole("checkbox", { name: /Store pain relief caplets/ });
+    await other.check();
+    await expect(sheet.getByRole("heading", { name: "Check before comparing" })).toBeVisible();
+    await sheet.getByRole("button", { name: "Compare 2 medicines" }).click();
+
+    await expect(sheet).toContainText("Shared ingredient identified");
+    await expect(sheet.getByRole("heading", { name: "Together" })).toBeVisible();
+    await expect(sheet.getByRole("button", { name: "Copy question" }).first()).toBeVisible();
+    await expect(sheet).toContainText("“None found” only means none in the confirmed fields. It doesn't mean safe.");
+    const text = (await sheet.textContent()) ?? "";
+    expect(text.replace(/It doesn't mean safe\.|It never says a combination is safe\./g, "")).not.toMatch(/\bsafe\b/i);
+
+    // Device Back: from the results to the picker, the pick kept.
+    await page.goBack();
+    await expect(sheet.getByRole("checkbox", { name: /Store pain relief caplets/ })).toBeChecked();
+    await expect(sheet.getByRole("button", { name: "Compare 2 medicines" })).toBeVisible();
+  });
+});

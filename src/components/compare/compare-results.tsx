@@ -34,7 +34,7 @@ export function CompareResults({ patientId, result, onLeave }: { patientId: stri
         <h3 id="compare-together" className={HEADING}>
           Together
         </h3>
-        <IngredientComparison products={view.products} />
+        <IngredientComparison products={view.products} diagramOnly />
       </section>
 
       <section aria-labelledby="compare-findings" className="space-y-3">
@@ -55,6 +55,7 @@ export function CompareResults({ patientId, result, onLeave }: { patientId: stri
               formulations={result.formulations}
               label={label}
               headingLevel="h4"
+              showVisual={false}
             >
               {bars && <ConcentrationBars bars={bars} />}
               <CopyQuestion question={finding.pharmacistQuestion} />
