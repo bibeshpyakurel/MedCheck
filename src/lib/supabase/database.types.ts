@@ -392,6 +392,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      formulation_search_text: {
+        Args: { brand_name: string; dosage_form: string; generic_name: string }
+        Returns: string
+      }
       search_formulations: {
         Args: { max_results?: number; query: string }
         Returns: {
