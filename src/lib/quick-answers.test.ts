@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Formulation } from "@/lib/domain/schema";
 import labels from "./__fixtures__/quick-answers-labels.json";
-import { type QuickAnswer, type QuickAnswerKey, quickAnswers, splitDirectionsByAge } from "./quick-answers";
+import { ageGroups, ageOf, type QuickAnswer, type QuickAnswerKey, quickAnswers, splitDirectionsByAge } from "./quick-answers";
 
 // Real catalog rows (live import, October 2026), copied verbatim.
 const L = labels as unknown as Record<keyof typeof labels, Formulation>;
@@ -501,5 +501,17 @@ describe("splitDirectionsByAge", () => {
 
   it("returns empty groups for no bullets", () => {
     expect(splitDirectionsByAge([])).toEqual({ general: [], adults: [], children: [] });
+  });
+});
+
+describe("ageOf / ageGroups", () => {
+  it("names the age group a line opens by the label's own phrase", () => {
+    expect(ageOf("adults and children 12 years and over: take 1 tablet every 4 to 6 hours")).toBe("adults");
+    expect(ageOf("children under 12 years: ask a doctor")).toBe("children");
+    expect(ageOf("shake well before using")).toBeNull();
+  });
+
+  it("a lowercase line continues the age line before it; a capitalized one doesn't", () => {
+    expect(ageGroups(["adults: take 1 tablet", "do not exceed 6 tablets in 24 hours", "Do not chew."])).toEqual(["adults", "adults", "general"]);
   });
 });

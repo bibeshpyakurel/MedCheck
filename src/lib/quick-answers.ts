@@ -93,7 +93,13 @@ const CHILD_ANYWHERE = /\bchildren\s+(?:under|\d)|\b(?:in|for|to)\s+children\b/i
 /** An age line that sends the reader elsewhere: nothing after it continues it. */
 const AGE_LINE_ENDS = /\b(?:ask|consult) a (?:doctor|dentist|physician)\b|\bdo not use\b(?! for more)|\bnot recommended\b/i;
 
-type AgeGroup = "general" | "adults" | "children";
+export type AgeGroup = "general" | "adults" | "children";
+
+/** The age group a direction bullet opens by its own phrase ("adults and children 12 years and over: …"), or null. */
+export function ageOf(bullet: string): "adults" | "children" | null {
+  const b = bullet.trim();
+  return ADULT_START.test(b) ? "adults" : CHILD_START.test(b) || CHILD_ANYWHERE.test(b) ? "children" : null;
+}
 
 /**
  * The age group of each direction bullet, by the label's own phrase. A bullet that opens with
@@ -102,11 +108,11 @@ type AgeGroup = "general" | "adults" | "children";
  * to under 12 years: take 1 tablet …" then "do not take more than 5 tablets in 24 hours"); after
  * "… ask a doctor" or "… do not use" it doesn't. Everything else is general.
  */
-function ageGroups(bullets: string[]): AgeGroup[] {
+export function ageGroups(bullets: string[]): AgeGroup[] {
   let open: AgeGroup = "general"; // the age line later lowercase lines continue, if any
   return bullets.map((bullet) => {
     const b = bullet.trim();
-    const age: AgeGroup | null = ADULT_START.test(b) ? "adults" : CHILD_START.test(b) || CHILD_ANYWHERE.test(b) ? "children" : null;
+    const age = ageOf(b);
     if (age) {
       open = AGE_LINE_ENDS.test(b) ? "general" : age;
       return age;
@@ -201,7 +207,7 @@ function dedupeGroups(groups: QuickAnswerGroup[]): QuickAnswerGroup[] {
 }
 
 /** A named warning that opens a block: "Liver warning", "Allergy alert:", "Stomach bleeding warning:". */
-const WARNING_HEAD = /^[A-Z][A-Za-z'’ /-]{0,40}?\b(?:warning|alert)s?\b/;
+export const WARNING_HEAD = /^[A-Z][A-Za-z'’ /-]{0,40}?\b(?:warning|alert)s?\b/;
 /** A list item cut from its sentence ("3 or more alcoholic drinks every day …"). */
 const isFragment = (s: string) => /^[a-z0-9]/.test(s.trim());
 const startsSentence = (s: string) => /^[A-Z]/.test(s.trim());
