@@ -54,7 +54,8 @@ export default async function RetakePage({ params }: PageProps<"/patients/[patie
             size="lg"
             className="h-12 w-full text-base"
             nativeButton={false}
-            render={<Link href={`/patients/${patientId}/entries/${entryId}/match?search=1`} />}
+            // Replace: once the medicine is saved, Back shouldn't return to "We couldn't read this label".
+            render={<Link href={`/patients/${patientId}/entries/${entryId}/match?search=1`} replace />}
           >
             <KeyboardIcon aria-hidden className="size-5" /> Type it in instead
           </Button>
