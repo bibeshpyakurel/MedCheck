@@ -388,7 +388,8 @@ test.describe("medicine package photo", () => {
     const card = page.getByRole("dialog", { name: "Tylenol Extra Strength (caplets)" });
     await expect(card).toBeVisible();
     await expect(card).toContainText("Acetaminophen 500 mg per caplet");
-    await expect(card.locator('a[href="tel:18002221222"]')).toBeVisible();
+    // Quick answers' "Took too much?" and the footer both carry Poison Control.
+    await expect(card.locator('a[href="tel:18002221222"]').first()).toBeVisible();
     await expect(card).toContainText("Step 3 of 3 · Saved");
     await card.getByRole("button", { name: "Done" }).click();
 
