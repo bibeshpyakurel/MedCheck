@@ -41,6 +41,12 @@ const geminiMedicationSchema = z.object({
     box_2d: box,
   }),
   max24h: text("The 24-hour maximum sentence, verbatim (e.g. 'do not give more than 5 times in 24 hours')"),
+  codes: z
+    .array(z.string())
+    .nullish()
+    .describe(
+      "Every NDC number and every number printed under a barcode for this product, exactly as printed (e.g. 'NDC 50580-449-10', '3 00450 44910 8'). Empty if none is fully readable.",
+    ),
 });
 
 /** What the photo shows, as Gemini judges it. The source document's `kind` is set from this. */
@@ -76,6 +82,8 @@ export type ExtractionResult = {
   documentKind: PhotoKind | null;
   document: DocumentDetails;
   medications: EntryFields[];
+  /** The NDC and barcode numbers printed for each medication, in `medications` order. */
+  productCodes: string[][];
   photoIssue: PhotoIssue | null;
 };
 
@@ -93,6 +101,7 @@ Rules:
 - For every value give box_2d [ymin, xmin, ymax, xmax] on a 0-1000 scale around the printed text, or null.
 - Return one medications item per distinct medication. For package photos, return every distinct product you can see; a product shown on several sides of one package (front, back, Drug Facts panel) is one product: return it once.
 - Return an empty list if no medication is visible.
+- codes: copy each NDC or barcode number digit by digit. Leave out any code with a digit you can't read; never guess a digit.
 - photoIssue describes the photo only (glare, blur, framing, light), never the medicine.`;
 
 // ---------------------------------------------------------------------------
@@ -136,12 +145,16 @@ export function toDocumentDetails(raw: GeminiLabel["document"]): DocumentDetails
   };
 }
 
-/** Gemini's answer → its kind (null when unsure), the document details, one EntryFields per medication, the photo issue. */
+/**
+ * Gemini's answer → its kind (null when unsure), the document details, one EntryFields per medication
+ * with its printed codes, the photo issue.
+ */
 export function toExtractionResult(raw: GeminiLabel, sourceDocumentId: string): ExtractionResult {
   return {
     documentKind: raw.documentKind,
     document: toDocumentDetails(raw.document),
     medications: raw.medications.map((m) => toEntryFields(m, sourceDocumentId)),
+    productCodes: raw.medications.map((m) => (m.codes ?? []).map((c) => c.trim()).filter(Boolean)),
     photoIssue: raw.photoIssue ?? null,
   };
 }

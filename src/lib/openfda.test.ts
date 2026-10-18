@@ -4,7 +4,7 @@ import childrens from "./__fixtures__/openfda-childrens-tylenol-160mg-5ml.json";
 import kit from "./__fixtures__/openfda-dayquil-nyquil-kit.json";
 import homeopathic from "./__fixtures__/openfda-homeopathic.json";
 import nyquil from "./__fixtures__/openfda-nyquil-37000-523-02.json";
-import { labelToFormulation, sanitizeDosageTable, type OpenFdaLabel } from "./openfda";
+import { labelToFormulation, packageNdcs, sanitizeDosageTable, type OpenFdaLabel } from "./openfda";
 
 const NYQUIL = nyquil as OpenFdaLabel;
 const CHILDRENS = childrens as OpenFdaLabel;
@@ -162,5 +162,16 @@ describe("sanitizeDosageTable", () => {
       "<table><tr><td><paragraph>take 2 caplets every 6 hours</paragraph><paragraph>do not take more than 6 caplets in 24 hours</paragraph></td></tr></table>",
     );
     expect(html).toContain("take 2 caplets every 6 hours<br>do not take more than 6 caplets in 24 hours");
+  });
+});
+
+describe("packageNdcs (NDC Directory products → the catalog's 11-digit package NDCs)", () => {
+  it("pads every package NDC to 5-4-2, once each, skipping unusable ones", () => {
+    const products = [
+      { product_ndc: "50580-449", packaging: [{ package_ndc: "50580-449-10" }, { package_ndc: "50580-449-10" }] },
+      { product_ndc: "67414-449", packaging: [{ package_ndc: "67414-449-00" }, { package_ndc: "junk" }, {}] },
+      { product_ndc: "0000-0000" },
+    ];
+    expect(packageNdcs(products)).toEqual(["50580044910", "67414044900"]);
   });
 });

@@ -219,3 +219,15 @@ export function rankCatalogMatches(read: PhotoRead, candidates: Formulation[]): 
 export function preselectMatch(matches: CatalogMatch[]): CatalogMatch | null {
   return matches.find((m) => m.strengthAgreement !== "disagrees" && m.related) ?? null;
 }
+
+/**
+ * The catalog label the NDC or barcode printed on the package points to, ranked against the read —
+ * or null when the read contradicts it (a strength that disagrees, or a name and ingredients that
+ * share nothing with it): one misread digit can point at another product. With nothing but the
+ * code read, the code stands.
+ */
+export function trustedCodeMatch(read: PhotoRead, formulation: Formulation): CatalogMatch | null {
+  const [match] = rankCatalogMatches(read, [formulation]);
+  if (match.strengthAgreement === "disagrees") return null;
+  return match.related || !isReadable(read) ? match : null;
+}

@@ -54,6 +54,12 @@ describe("photoNextPath (where a photo goes after Gemini reads it)", () => {
     );
   });
 
+  it("a package whose printed code matched a product goes to confirm, even with nothing else read", () => {
+    expect(photoNextPath({ ...at, kind: "otc_package", notice: null, fields: blank, codeMatched: true })).toBe(
+      "/patients/p-1/entries/e-1/match",
+    );
+  });
+
   it("a readable package goes to confirm even if Gemini noted a photo issue", () => {
     expect(photoNextPath({ ...at, kind: "otc_package", notice: null, fields: readable, photoIssue: "glare" })).toBe(
       "/patients/p-1/entries/e-1/match",
@@ -172,6 +178,7 @@ describe("toMatchOption", () => {
       dosageForm: "caplet",
       labelerName: "Kenvue",
       strengthDiffers: false,
+      matchedByCode: false,
     });
   });
   it("flags a strength that differs from what was read", () => {
@@ -202,8 +209,39 @@ describe("matchChoices", () => {
     expect(choices.options).toHaveLength(6);
   });
 
+  it("offers distinct products: copies of one product collapse before the 6 are picked", () => {
+    const copies = Array.from({ length: 4 }, (_, i) => match(formulation(`f-es-${i}`, "TYLENOL Extra Strength", s500, `Labeler ${i}`), "agrees"));
+    const others = Array.from({ length: 6 }, (_, i) => match(formulation(`f-${i}`, `Brand ${i}`, s500), "agrees"));
+    const choices = matchChoices([...copies, ...others]);
+    expect(choices.selectedId).toBe("f-es-0");
+    expect(choices.options.map((o) => o.id)).toEqual(["f-es-0", "f-0", "f-1", "f-2", "f-3", "f-4"]);
+  });
+
+  it("a code match stands for its product: other copies of it aren't offered again", () => {
+    const copies = Array.from({ length: 3 }, (_, i) => match(formulation(`f-es-${i}`, "TYLENOL Extra Strength", s500), "agrees"));
+    const choices = matchChoices([...copies, match(reg, "agrees")], copies[2]);
+    expect(choices.selectedId).toBe("f-es-2");
+    expect(choices.options.map((o) => o.id)).toEqual(["f-es-2", "f-reg"]);
+  });
+
   it("no matches → nothing to pick", () => {
     expect(matchChoices([])).toEqual({ selectedId: null, options: [] });
+  });
+
+  it("a code match goes first, pre-selected and marked, and isn't listed twice", () => {
+    const choices = matchChoices([match(reg, "agrees"), match(es, "agrees")], match(es, "agrees"));
+    expect(choices.selectedId).toBe("f-es");
+    expect(choices.options.map((o) => [o.id, o.matchedByCode])).toEqual([
+      ["f-es", true],
+      ["f-reg", false],
+    ]);
+  });
+
+  it("a code match alone is enough to offer and pre-select", () => {
+    expect(matchChoices([], match(es, "not_read", false))).toEqual({
+      selectedId: "f-es",
+      options: [toMatchOption(es, "not_read", true)],
+    });
   });
 });
 
@@ -253,13 +291,14 @@ describe("matchOptionLabel (what a screen reader says for a match)", () => {
         dosageForm: "CAPLET",
         labelerName: "Kenvue",
         strengthDiffers: false,
+        matchedByCode: false,
       }),
     ).toBe("Tylenol Extra Strength (caplets), Acetaminophen 500 mg per caplet");
   });
 
   it("is just the brand name when no ingredient is listed", () => {
     expect(
-      matchOptionLabel({ id: "x", brandName: "Calm Tea", ingredients: [], dosageForm: "", labelerName: null, strengthDiffers: false }),
+      matchOptionLabel({ id: "x", brandName: "Calm Tea", ingredients: [], dosageForm: "", labelerName: null, strengthDiffers: false, matchedByCode: false }),
     ).toBe("Calm Tea");
   });
 });
