@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useEffectEvent, useRef, useState, useTransition, type ReactNode } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { PhotoAnswersDialog } from "@/components/photo-answers/photo-answers-dialog";
+import { opensPhotoAnswers } from "@/lib/photo-answers";
 import type { PhotoReadResult } from "@/lib/photo-flow";
 import { cn } from "@/lib/utils";
 import type { PhotoSource } from "./capture-options";
@@ -45,12 +47,14 @@ const READ_FAILED = "We couldn't read the photo. Check your connection and try a
  * drafts go to `discardAction` when it finishes. What follows a successful read is `afterRead`.
  */
 export function PhotoCapture({
+  patientId,
   action,
   discardAction,
   children,
   otherWaysHref,
   source,
 }: {
+  patientId: string;
   action: PhotoAction;
   discardAction: (entryIds: string[]) => Promise<void>;
   children?: ReactNode;
@@ -65,10 +69,13 @@ export function PhotoCapture({
   const [preparing, setPreparing] = useState(false);
   const [reading, setReading] = useState(false);
   const [leaving, startLeaving] = useTransition();
+  // A package photo that was read: its pop-up, open or closed (closed: its drafts wait for review).
+  const [answers, setAnswers] = useState<{ sourceDocumentId: string; open: boolean } | null>(null);
   // Each read gets a number; Cancel bumps it, so a read that finishes afterwards is known to be cancelled.
   const attempt = useRef(0);
   const formRef = useRef<HTMLFormElement>(null);
   const router = useRouter();
+  const medicinesHref = `/patients/${patientId}`;
 
   useEffect(() => () => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -77,6 +84,7 @@ export function PhotoCapture({
   /** A new photo: shrink it, show it, and read it straight away. */
   async function onFile(file: File | undefined) {
     if (!file) return;
+    setAnswers(null);
     setError(null);
     setFailed(false);
     setPreparing(true);
@@ -134,12 +142,25 @@ export function PhotoCapture({
   }
 
   /**
-   * After a successful read: the one place that decides what comes next. It replaces this page in
-   * history with the action's `next` page (Back then skips the photo step); "Reading the photo…"
-   * stays up until that page arrives.
+   * After a successful read: the one place that decides what comes next. A medicine package with
+   * something read opens the photo pop-up over this page ("Is this …?"). Anything else replaces this
+   * page in history with the action's `next` page (Back then skips the photo step); "Reading the
+   * photo…" stays up until that page arrives.
    */
   function afterRead(result: PhotoReadResult) {
+    if (opensPhotoAnswers(result)) {
+      setReading(false);
+      setAnswers({ sourceDocumentId: result.sourceDocumentId, open: true });
+      return;
+    }
     startLeaving(() => router.replace(result.next));
+  }
+
+  /** Cancel or Don't save in the pop-up: what was read is gone; start again with no photo. */
+  function startOver() {
+    setAnswers(null);
+    setPhoto(null);
+    setPreviewUrl(null);
   }
 
   const pending = reading || leaving;
@@ -232,8 +253,24 @@ export function PhotoCapture({
           Cancel
         </Button>
       )}
+      {/* The pop-up was closed without Save or Don't save: what was read waits for review. */}
+      {answers && !answers.open && (
+        <div role="status" className="space-y-3 rounded-2xl border bg-surface p-4">
+          <p className="text-sm text-pretty">
+            <span className="font-medium">Not saved yet.</span> What MedCheck read from this photo is waiting for review on My medicines.
+          </p>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button type="button" className="h-11 px-4 text-base" onClick={() => setAnswers({ ...answers, open: true })}>
+              Check the medicines again
+            </Button>
+            <Button variant="outline" className="h-11 px-4 text-base" nativeButton={false} render={<Link href={medicinesHref} replace />}>
+              Go to My medicines
+            </Button>
+          </div>
+        </div>
+      )}
       {/* A new photo is read without a tap; this button only appears after a failed or cancelled read. */}
-      {photo && !busy && (
+      {photo && !busy && !answers && (
         <Button type="submit" size="lg" className="h-12 w-full text-base">
           {failed ? "Try again" : "Read this photo"}
         </Button>
@@ -242,6 +279,15 @@ export function PhotoCapture({
         <Button variant="outline" size="lg" className="h-12 w-full text-base" nativeButton={false} render={<Link href={otherWaysHref} />}>
           <ArrowLeftIcon aria-hidden /> Choose another way
         </Button>
+      )}
+      {answers?.open && (
+        <PhotoAnswersDialog
+          patientId={patientId}
+          sourceDocumentId={answers.sourceDocumentId}
+          photoUrl={previewUrl}
+          onClose={() => setAnswers({ ...answers, open: false })}
+          onDiscarded={startOver}
+        />
       )}
     </form>
   );

@@ -170,6 +170,33 @@ export async function getSourceDocument(id: string): Promise<SourceDocument | nu
   return data ? rowToDocument(data) : null;
 }
 
+/**
+ * Deletes a source document and its photo (only the user's own; RLS). Entries read from it lose the
+ * link (`on delete set null`), so callers delete it only once none are left.
+ */
+export async function deleteSourceDocument(doc: Pick<SourceDocument, "id" | "photoPath">): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("source_documents").delete().eq("id", doc.id);
+  if (error) throw error;
+  if (doc.photoPath) {
+    // The record is gone either way; a photo left behind is removed with the rest when a guest leaves.
+    const { error: photoError } = await supabase.storage.from(LABEL_PHOTOS_BUCKET).remove([doc.photoPath]);
+    if (photoError) console.error("Deleting a label photo failed", photoError);
+  }
+}
+
+/** The entries read from one source document (a photo), oldest first. */
+export async function listDocumentEntries(sourceDocumentId: string): Promise<MedicationEntry[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("medication_entries")
+    .select("*, source_documents(*)")
+    .eq("source_document_id", sourceDocumentId)
+    .order("created_at");
+  if (error) throw error;
+  return data.map(rowToEntry);
+}
+
 export async function createDraftEntry(input: {
   patientId: string;
   sourceDocumentId: string | null;

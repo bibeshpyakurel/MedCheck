@@ -3,7 +3,7 @@ import type { CatalogMatch } from "./catalog-match";
 import type { CatalogIngredient, Formulation, Strength } from "./domain/schema";
 import { distinctMatches } from "./match-groups";
 
-const s = (amount: number, unit: string, perAmount: number | null, perUnit: string | null): Strength => ({ amount, unit, perAmount, perUnit });
+const s = (amount: number, unit: Strength["unit"], perAmount: number | null, perUnit: string | null): Strength => ({ amount, unit, perAmount, perUnit });
 const ing = (name: string, strength: Strength, normalized = ""): CatalogIngredient => ({ name, normalized, strength });
 
 function row(id: string, brandName: string, dosageForm: string, activeIngredients: CatalogIngredient[], labelerName: string | null = null): Formulation {
@@ -113,13 +113,14 @@ describe("distinctMatches (one choice per product)", () => {
     expect(ids(distinctMatches(matches))).toEqual(["a", "c"]);
   });
 
-  it("keeps two rows apart when either strength can't be compared", () => {
+  it("compares strengths in other units by unit and value", () => {
     const matches = ranked(
-      row("a", "Lozenge", "lozenge", [ing("Menthol", s(5, "%", null, null))]),
-      row("b", "Lozenge", "lozenge", [ing("Menthol", s(5, "%", null, null))]),
-      row("c", "Lozenge", "lozenge", [ing("Menthol", s(5, "mg", 1, "lozenge"))]),
+      row("a", "Vitamin D3", "softgel", [ing("Cholecalciferol", s(1000, "unit", 1, "softgel"))]),
+      row("b", "Vitamin D3", "softgel", [ing("Cholecalciferol", s(1000, "unit", null, null))]),
+      row("c", "Vitamin D3", "softgel", [ing("Cholecalciferol", s(1000, "mcg", 1, "softgel"))]),
+      row("d", "Mouthwash", "liquid", [ing("Fluoride", s(1, "mg", 1, "L"))]),
+      row("e", "Mouthwash", "liquid", [ing("Fluoride", s(0.001, "mg", 1, "mL"))]),
     );
-    // Percentages are still the same value: a and b are one product; c is another.
-    expect(ids(distinctMatches(matches))).toEqual(["a", "c"]);
+    expect(ids(distinctMatches(matches))).toEqual(["a", "c", "d"]);
   });
 });

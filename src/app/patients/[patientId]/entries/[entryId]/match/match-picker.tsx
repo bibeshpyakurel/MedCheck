@@ -1,20 +1,19 @@
 "use client";
 
-import { ChevronDownIcon, LoaderCircleIcon, SearchIcon } from "lucide-react";
+import { ChevronDownIcon, LoaderCircleIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useEffectEvent, useId, useRef, useState, useTransition } from "react";
+import { useEffect, useEffectEvent, useId, useState, useTransition } from "react";
 import { BackLink, goBackTo } from "@/components/back-link";
+import { CatalogSearchPanel } from "@/components/match/catalog-search-panel";
+import { OptionCard } from "@/components/match/option-card";
+import { useCatalogSearch } from "@/components/match/use-catalog-search";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { matchOptionLabel, type MatchOption } from "@/lib/photo-flow";
+import type { MatchOption } from "@/lib/photo-flow";
 import { cn } from "@/lib/utils";
 
 type ActionResult = Promise<{ error: string; gone?: true } | void>;
-
-const SEARCH_DELAY_MS = 300;
 
 /**
  * "Is this the medicine?": the pre-selected FDA label (if any) with the other matches below, or
@@ -158,48 +157,7 @@ export function MatchPicker({
           )}
         </fieldset>
       ) : (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="medicine-name" className="text-base font-semibold">
-              Medicine name
-            </Label>
-            <div className="relative">
-              <SearchIcon aria-hidden className="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="medicine-name"
-                type="search"
-                autoComplete="off"
-                enterKeyHint="search"
-                value={search.query}
-                onChange={(e) => {
-                  setSelected(null);
-                  search.change(e.target.value);
-                }}
-                placeholder="e.g. Tylenol Extra Strength"
-                className="h-12 pl-11 text-base md:text-base"
-              />
-            </div>
-          </div>
-          <p role="status" className="min-h-5 text-sm text-muted-foreground">
-            {search.status === "searching" ? (
-              <span className="inline-flex items-center gap-2">
-                <LoaderCircleIcon aria-hidden className="size-4 animate-spin" /> Searching…
-              </span>
-            ) : search.status === "error" ? (
-              "Search isn't working right now. Try again in a moment."
-            ) : search.status === "done" && search.results.length === 0 ? (
-              `No medicines found for “${search.searched}”.`
-            ) : null}
-          </p>
-          {search.results.length > 0 && (
-            <fieldset className="space-y-2">
-              <legend className="sr-only">Search results from the FDA list</legend>
-              {search.results.map((o) => (
-                <OptionCard key={o.id} option={o} checked={selected === o.id} onSelect={setSelected} />
-              ))}
-            </fieldset>
-          )}
-        </div>
+        <CatalogSearchPanel search={search} selectedId={selected} onSelect={setSelected} inputId="medicine-name" />
       )}
 
       {error && (
@@ -272,96 +230,4 @@ export function MatchPicker({
       )}
     </div>
   );
-}
-
-/** One FDA label as a tap-sized radio card: brand, each ingredient with its strength, form, labeler. */
-function OptionCard({ option, checked, onSelect }: { option: MatchOption; checked: boolean; onSelect: (id: string) => void }) {
-  const meta = [option.dosageForm.toLowerCase(), option.labelerName].filter(Boolean).join(" · ");
-  return (
-    <label
-      className={cn(
-        "flex min-h-14 cursor-pointer items-start gap-3 rounded-xl border p-4 shadow-xs transition-[border-color,background-color] has-focus-visible:ring-3 has-focus-visible:ring-ring/50",
-        checked ? "border-primary bg-accent ring-1 ring-primary/30" : "bg-card hover:border-input hover:bg-muted/40",
-      )}
-    >
-      <input
-        type="radio"
-        name="medicine"
-        aria-label={matchOptionLabel(option)}
-        value={option.id}
-        checked={checked}
-        onChange={() => onSelect(option.id)}
-        className="mt-1 size-5 shrink-0 accent-primary"
-      />
-      <span className="min-w-0 flex-1 space-y-1">
-        <span className="block font-semibold text-pretty">{option.brandName}</span>
-        {option.ingredients.length > 0 && (
-          <span className="block space-y-0.5 text-sm nums">
-            {option.ingredients.map((i) => (
-              <span key={`${i.name}-${i.strength}`} className="block">
-                {i.name} {i.strength}
-              </span>
-            ))}
-          </span>
-        )}
-        {meta && <span className="block text-sm text-muted-foreground">{meta}</span>}
-        {option.matchedByCode && (
-          <span className="block text-sm font-medium text-primary">Matches the NDC printed on the package.</span>
-        )}
-        {option.strengthDiffers && (
-          <span className="block text-sm text-unresolved-foreground">Strength differs from what MedCheck read on the photo.</span>
-        )}
-      </span>
-    </label>
-  );
-}
-
-type SearchState = { status: "idle" | "searching" | "done" | "error"; results: MatchOption[]; searched: string };
-
-/** Debounced `GET /api/catalog/search`; a newer query cancels the one in flight. */
-function useCatalogSearch(initialQuery: string) {
-  const [query, setQuery] = useState(initialQuery);
-  const [state, setState] = useState<SearchState>({ status: "idle", results: [], searched: "" });
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const inFlight = useRef<AbortController | null>(null);
-
-  useEffect(
-    () => () => {
-      if (timer.current) clearTimeout(timer.current);
-      inFlight.current?.abort();
-    },
-    [],
-  );
-
-  async function run(raw: string) {
-    if (timer.current) clearTimeout(timer.current);
-    inFlight.current?.abort();
-    const q = raw.trim();
-    if (q.length < 2) {
-      setState({ status: "idle", results: [], searched: "" });
-      return;
-    }
-    const controller = new AbortController();
-    inFlight.current = controller;
-    setState((s) => ({ ...s, status: "searching" }));
-    try {
-      const response = await fetch(`/api/catalog/search?q=${encodeURIComponent(q)}`, { signal: controller.signal });
-      if (!response.ok) throw new Error(`Search failed: ${response.status}`);
-      const { options } = (await response.json()) as { options: MatchOption[] };
-      setState({ status: "done", results: options, searched: q });
-    } catch (error) {
-      if (!controller.signal.aborted) {
-        console.error(error);
-        setState({ status: "error", results: [], searched: q });
-      }
-    }
-  }
-
-  function change(value: string) {
-    setQuery(value);
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => void run(value), SEARCH_DELAY_MS);
-  }
-
-  return { query, change, run: (q: string) => void run(q), ...state };
 }
