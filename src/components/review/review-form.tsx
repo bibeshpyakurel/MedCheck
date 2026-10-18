@@ -12,6 +12,8 @@ import type { EntryFields, Evidence, IngredientFields } from "@/lib/domain/schem
 import { cn } from "@/lib/utils";
 import { DoseEditor, StrengthEditor, TextEditor } from "./editors";
 import { FieldRow } from "./field-row";
+import { hasUnsavedChanges } from "./unsaved";
+import { useUnsavedChangesGuard } from "./use-unsaved-changes-guard";
 import {
   confirmationSummary,
   groupFields,
@@ -139,6 +141,8 @@ export function ReviewForm({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const docId = useId();
+  const [loaded] = useState({ fields: initialFields, document: initialDocument });
+  const guard = useUnsavedChangesGuard(hasUnsavedChanges(loaded, { fields, document: doc }));
 
   const set = <K extends keyof EntryFields>(key: K) => (value: EntryFields[K]) => setFields((f) => ({ ...f, [key]: value }));
   // Stable React keys for ingredient rows, so removing one doesn't shift another row's edit state.
@@ -209,13 +213,19 @@ export function ReviewForm({
   function submit(action: SubmitAction) {
     setError(null);
     startTransition(async () => {
+      // Saving leaves the page on purpose: no "Discard your changes?" for that.
+      await guard.disarm();
       const result = await action({ patientId, entryId, fields, document: doc, from });
-      if (result?.error) setError(result.error);
+      if (result?.error) {
+        setError(result.error);
+        guard.rearm();
+      }
     });
   }
 
   return (
     <div className="space-y-6">
+      {guard.dialog}
       <ReviewGroup {...groupProps("medicine", 1)}>
         <div className="divide-y">
           <FieldRow
