@@ -3,6 +3,8 @@ import Link from "next/link";
 import { entrySourceHref, evidenceProvenance, officialLabelUrl } from "@/lib/checks/evidence-source";
 import { DOCUMENT_KIND_LABEL, type Provenance } from "@/lib/checks/shared";
 import type { Finding, FindingEvidence, Formulation, MedicationEntry } from "@/lib/domain/schema";
+import { OverlapVenn } from "@/components/warnings/overlap-venn";
+import { overlapVisual } from "@/lib/overlap-visual";
 import { formatDocDate } from "@/lib/record-format";
 
 function sourceOf(e: FindingEvidence, from: Provenance): string {
@@ -20,7 +22,9 @@ const LINK = "inline-flex min-h-11 items-center gap-1 text-sm font-medium underl
 
 /**
  * One warning in plain English: what was found (title + detail), the label's own warning when there
- * is one, and — one tap away — the exact label evidence with its sources.
+ * is one, and — one tap away — the exact label evidence with its sources. A shared ingredient leads
+ * with the overlap diagram, which shows each product's strength; its detail line moves under the
+ * evidence, where it isn't a repeat.
  */
 export function WarningCard({
   finding,
@@ -35,21 +39,35 @@ export function WarningCard({
   formulations: Record<string, Formulation>;
 }) {
   const headingId = `warning-${finding.id.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+  const visual = overlapVisual(finding, entries);
   return (
     <article
       aria-labelledby={headingId}
-      className="overflow-hidden rounded-2xl border border-l-4 border-finding/35 border-l-finding bg-card text-card-foreground"
+      className="overflow-hidden rounded-2xl border border-finding/40 bg-linear-to-b from-finding-surface/80 to-card to-60% text-card-foreground shadow-xs"
     >
       <div className="space-y-3 p-4 sm:p-5">
-        <div className="flex items-start gap-3">
-          <TriangleAlertIcon aria-hidden className="mt-0.5 size-5 shrink-0 text-finding" />
-          <div className="min-w-0">
-            <h3 id={headingId} className="text-base leading-snug font-semibold text-balance sm:text-lg">
+        {visual ? (
+          <>
+            <p className="flex items-center gap-2 text-xs font-semibold tracking-[0.08em] text-finding-foreground uppercase">
+              <TriangleAlertIcon aria-hidden className="size-4 text-finding" />
+              Shared ingredient
+            </p>
+            <OverlapVenn visual={visual} />
+            <h3 id={headingId} className="font-display text-lg leading-snug font-semibold text-balance sm:text-xl">
               {finding.title}
             </h3>
-            <p className="mt-1 leading-relaxed text-pretty text-muted-foreground">{finding.detail}</p>
+          </>
+        ) : (
+          <div className="flex items-start gap-3">
+            <TriangleAlertIcon aria-hidden className="mt-0.5 size-5 shrink-0 text-finding" />
+            <div className="min-w-0">
+              <h3 id={headingId} className="font-display text-base leading-snug font-semibold text-balance sm:text-lg">
+                {finding.title}
+              </h3>
+              <p className="mt-1 leading-relaxed text-pretty text-muted-foreground">{finding.detail}</p>
+            </div>
           </div>
-        </div>
+        )}
 
         {finding.labelWarningQuote && (
           <figure className="rounded-xl bg-finding-surface p-3.5 ring-1 ring-finding/25">
@@ -61,11 +79,12 @@ export function WarningCard({
 
       {finding.evidence.length > 0 && (
         <details className="group border-t">
-          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 px-4 text-sm font-medium focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:px-5 [&::-webkit-details-marker]:hidden">
+          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 px-4 text-sm font-medium transition-colors active:bg-finding-surface/60 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:px-5 [&::-webkit-details-marker]:hidden">
             See the label evidence
-            <ChevronDownIcon aria-hidden className="size-4 text-muted-foreground transition-transform group-open:rotate-180" />
+            <ChevronDownIcon aria-hidden className="size-4 text-muted-foreground transition-transform duration-200 group-open:rotate-180" />
           </summary>
-          <ul className="divide-y border-t bg-surface/50">
+          {visual && <p className="border-t bg-surface/50 px-4 pt-3 text-sm leading-relaxed text-pretty text-muted-foreground sm:px-5">{finding.detail}</p>}
+          <ul className={visual ? "divide-y bg-surface/50" : "divide-y border-t bg-surface/50"}>
             {finding.evidence.map((e, i) => {
               const entry = entries.get(e.entryId);
               const official = officialLabelUrl(entry?.formulationId ? formulations[entry.formulationId] : undefined);

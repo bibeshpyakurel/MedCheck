@@ -4,7 +4,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/app-shell";
+import { CountUp } from "@/components/count-up";
 import { WarningCard } from "@/components/checks/warning-card";
+import { WarningAurora } from "@/components/fx/warning-aurora";
 import { HistoryList } from "@/components/records/history-list";
 import { MedicationList } from "@/components/records/medication-list";
 import { RecordHeader } from "@/components/records/record-header";
@@ -16,6 +18,7 @@ import { type WarningsView, warningsView } from "@/lib/checks/warnings";
 import { entryLabel } from "@/lib/domain/fields";
 import type { Formulation, MedicationEntry } from "@/lib/domain/schema";
 import { DOCUMENT_KIND_LABELS, formatDocDate, INPUT_METHOD_LABELS, recordTitle } from "@/lib/record-format";
+import { overlappingIngredients } from "@/lib/overlap-visual";
 import { draftPath } from "@/lib/photo-flow";
 import { findPatient, NOT_FOUND_TITLE } from "@/lib/page-lookup";
 import { listEntries, listHistory } from "@/lib/records";
@@ -42,26 +45,37 @@ export default async function PatientRecordPage({ params }: PageProps<"/patients
   const drafts = entries.filter((e) => e.status === "draft");
   const formulations = await getFormulationsByIds(confirmed.flatMap((e) => (e.formulationId ? [e.formulationId] : [])));
   const view = warningsView(runChecks({ entries: confirmed, formulations }));
+  const overlapping = [...overlappingIngredients(view.warnings, new Map(confirmed.map((e) => [e.id, e])))];
   const base = `/patients/${patientId}`;
 
   return (
     <AppShell>
       <div className="mx-auto max-w-4xl">
-        <RecordHeader patient={patient} current="medicines" />
+        {/* The aurora sits behind the name and the title only, never behind cards or label text. */}
+        <div className="relative isolate -mx-4 -mt-5 px-4 pt-5 pb-1 sm:mx-0 sm:mt-0 sm:px-0 sm:pt-0">
+          <WarningAurora
+            patientId={patientId}
+            alert={view.warnings.length > 0}
+            className="-top-px h-60 [mask-image:linear-gradient(to_bottom,black_40%,transparent)] sm:-inset-x-6 sm:-top-12 sm:[mask-composite:intersect] sm:[mask-image:linear-gradient(to_right,transparent,black_20%,black_80%,transparent),linear-gradient(to_bottom,black_40%,transparent)]"
+          />
+          <RecordHeader patient={patient} current="medicines" />
 
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">{recordTitle(patient)}</h1>
-            <p className="mt-1 text-muted-foreground nums">
-              {confirmed.length} {confirmed.length === 1 ? "medicine" : "medicines"} on file
-            </p>
-          </div>
-          <Button size="lg" className="h-12 w-full px-4 text-base sm:h-11 sm:w-auto" nativeButton={false} render={<Link href={`${base}/add`} />}>
-            <PlusIcon aria-hidden /> Add a medicine
-          </Button>
-        </header>
+          <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">{recordTitle(patient)}</h1>
+              <p className="mt-1 text-muted-foreground nums">
+                <CountUp value={confirmed.length} id={patientId} /> {confirmed.length === 1 ? "medicine" : "medicines"} on file
+              </p>
+            </div>
+            {/* Phones add from the bottom bar. */}
+            <Button size="lg" className="hidden h-11 px-4 text-base sm:inline-flex" nativeButton={false} render={<Link href={`${base}/add`} />}>
+              <PlusIcon aria-hidden /> Add a medicine
+            </Button>
+          </header>
+        </div>
 
-        <div className="mt-6 space-y-8">
+        {/* Sections rise in one after another (40 ms apart), in CSS so they show without JS. */}
+        <div className="mt-6 space-y-8 *:animate-fade-up [&>*:nth-child(2)]:[animation-delay:40ms] [&>*:nth-child(3)]:[animation-delay:80ms] [&>*:nth-child(4)]:[animation-delay:120ms]">
           {drafts.length > 0 ? <NeedsReview drafts={drafts} /> : null}
 
           {confirmed.length > 0 ? (
@@ -75,7 +89,7 @@ export default async function PatientRecordPage({ params }: PageProps<"/patients
             {confirmed.length === 0 ? (
               <EmptyMedicines hasDrafts={drafts.length > 0} />
             ) : (
-              <MedicationList patientId={patientId} entries={confirmed} />
+              <MedicationList patientId={patientId} entries={confirmed} overlapping={overlapping} />
             )}
           </section>
 
@@ -139,7 +153,7 @@ function Disclosure({
 }) {
   return (
     <details className="group rounded-2xl border bg-card">
-      <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 rounded-2xl px-4 py-3 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none [&::-webkit-details-marker]:hidden">
+      <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 rounded-2xl px-4 py-3 transition-colors active:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none [&::-webkit-details-marker]:hidden">
         <Icon aria-hidden className="size-4 shrink-0 text-muted-foreground" />
         <span className="min-w-0 flex-1">
           <span className="block font-medium">{title}</span>
@@ -172,7 +186,7 @@ function NeedsReview({ drafts }: { drafts: MedicationEntry[] }) {
             <li key={d.id}>
               <Link
                 href={draftPath(d.patientId, d)}
-                className="group flex min-h-14 items-center gap-3 rounded-xl bg-card px-4 py-3 ring-1 ring-border transition-shadow hover:shadow-md focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                className="press group flex min-h-14 items-center gap-3 rounded-xl bg-card px-4 py-3 ring-1 ring-border hover:shadow-md focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
               >
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium">{entryLabel(d.fields)}</span>

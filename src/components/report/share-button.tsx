@@ -17,8 +17,26 @@ export function reportPdfUrl(patientId: string, timeZone: string | null): string
   return `/api/patients/${patientId}/report.pdf${query ? `?${query}` : ""}`;
 }
 
-/** One of the report page's four equal actions: icon over label, a large tap target. */
-export const ACTION_CLASS = "h-20 w-full flex-col gap-1.5 px-2 text-base [&_svg:not([class*='size-'])]:size-5";
+/** One of the report page's equal actions: icon over label, a large tap target; the label may wrap. */
+export const ACTION_CLASS =
+  "h-20 w-full flex-col gap-1.5 px-2 text-center text-sm leading-tight whitespace-normal sm:text-base [&_svg:not([class*='size-'])]:size-5";
+
+/** The main action, above the others: one wide row. */
+const FEATURED_CLASS = "h-14 w-full gap-2 text-base [&_svg:not([class*='size-'])]:size-5";
+
+/** The preview's address, with this browser's time zone so "generated at" reads locally. */
+function previewHref(patientId: string, timeZone: string | null): string {
+  return `/patients/${patientId}/export/preview${timeZone ? `?tz=${encodeURIComponent(timeZone)}` : ""}`;
+}
+
+/** Wraps the report thumbnail: a tap opens the preview. Out of the tab order; Preview report is the button for that. */
+export function PreviewLink({ patientId, className, children }: { patientId: string; className?: string; children: React.ReactNode }) {
+  return (
+    <Link href={previewHref(patientId, useTimeZone())} tabIndex={-1} aria-hidden className={className}>
+      {children}
+    </Link>
+  );
+}
 
 async function fetchReportFile(url: string): Promise<File> {
   const res = await fetch(url, { cache: "no-store" });
@@ -44,8 +62,7 @@ type ActionProps = { patientId: string; className?: string; disabled?: boolean }
 
 /** Opens the report preview inside MedCheck (with the way back to the report page and its actions). */
 export function PreviewButton({ patientId, className, disabled = false }: ActionProps) {
-  const timeZone = useTimeZone();
-  const href = `/patients/${patientId}/export/preview${timeZone ? `?tz=${encodeURIComponent(timeZone)}` : ""}`;
+  const href = previewHref(patientId, useTimeZone());
   return (
     <Button
       variant="outline"
@@ -104,7 +121,8 @@ function ShareAction({
   label,
   readyLabel,
   icon: Icon,
-}: ShareProps & { label: string; readyLabel: string; icon: LucideIcon }) {
+  featured = false,
+}: ShareProps & { label: string; readyLabel: string; icon: LucideIcon; featured?: boolean }) {
   const timeZone = useTimeZone();
   const [state, setState] = useState<ShareState>({ kind: "idle" });
 
@@ -144,7 +162,12 @@ function ShareAction({
 
   return (
     <div className={cn("flex flex-col", className)}>
-      <Button variant="outline" onClick={onClick} disabled={disabled || state.kind === "preparing"} className={ACTION_CLASS}>
+      <Button
+        variant={featured ? "default" : "outline"}
+        onClick={onClick}
+        disabled={disabled || state.kind === "preparing"}
+        className={featured ? FEATURED_CLASS : ACTION_CLASS}
+      >
         {state.kind === "preparing" ? <Loader2Icon aria-hidden className="animate-spin" /> : <Icon aria-hidden />}
         {state.kind === "ready" ? readyLabel : state.kind === "preparing" ? "Preparing…" : label}
       </Button>
@@ -162,11 +185,11 @@ function ShareAction({
  * and open a prefilled email, so it says "Download and email" — or isn't shown when "Send by email"
  * (`emailConfigured` false: your own email app) already does exactly that.
  */
-export function ShareButton({ emailConfigured, ...props }: ShareProps & { emailConfigured: boolean }) {
+export function ShareButton({ emailConfigured, featured = false, ...props }: ShareProps & { emailConfigured: boolean; featured?: boolean }) {
   const mode = shareMode({ canShareFiles: useCanShareFiles(), emailConfigured });
   if (mode === "hidden") return null;
   const label = mode === "share" ? "Share" : "Download and email";
-  return <ShareAction {...props} label={label} readyLabel="Tap to share PDF" icon={Share2Icon} />;
+  return <ShareAction {...props} featured={featured} label={label} readyLabel="Tap to share PDF" icon={Share2Icon} />;
 }
 
 /**

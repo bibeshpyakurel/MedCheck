@@ -13,10 +13,41 @@
   --shadow-md: 0 1px 2px 0 oklch(0.2 0.03 256 / 0.04), 0 4px 12px -2px oklch(0.2 0.03 256 / 0.08);
   --shadow-lg: 0 2px 4px 0 oklch(0.2 0.03 256 / 0.04), 0 12px 32px -8px oklch(0.2 0.03 256 / 0.14);
   --shadow-xl: 0 4px 8px 0 oklch(0.2 0.03 256 / 0.04), 0 24px 56px -12px oklch(0.2 0.03 256 / 0.2);
-  --animate-fade-up: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-fade-up: fade-up 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-shimmer: shimmer 1.4s ease-in-out infinite;
+  @keyframes shimmer {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(100%); }
+  }
   @keyframes fade-up {
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* The landing mark: two rings slide together, then the shared part lights up. CSS, so it runs before
+     hydration and ends overlapped even without JS; reduced motion jumps to the end. */
+  --animate-ring-left: ring-left 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
+  --animate-ring-right: ring-right 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
+  --animate-lens-in: lens-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) 1.1s both;
+  --animate-float: float 4s ease-in-out 1.8s infinite alternate;
+  @keyframes ring-left {
+    from { transform: translateX(-26px); }
+  }
+  @keyframes ring-right {
+    from { transform: translateX(26px); }
+  }
+  @keyframes lens-in {
+    from { opacity: 0; transform: scale(0.6); }
+  }
+  @keyframes float {
+    to { transform: translateY(-4px); }
+  }
+
+  /* The aurora behind the landing and the record header: slow drift of soft color fields. */
+  --animate-aurora: aurora 18s ease-in-out infinite alternate;
+  @keyframes aurora {
+    from { transform: translate3d(-4%, -2%, 0) scale(1); }
+    to { transform: translate3d(4%, 3%, 0) scale(1.08); }
   }
 }
 
@@ -67,6 +98,10 @@
   --color-surface: var(--surface);
   --color-ink: var(--ink);
   --color-ink-foreground: var(--ink-foreground);
+  --color-overlap: var(--overlap);
+  --color-overlap-glow: var(--overlap-glow);
+  --color-ring-a: var(--ring-a);
+  --color-ring-b: var(--ring-b);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -76,7 +111,9 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-:root {
+/* `.paper` re-declares the light tokens, so a report drawn on it is white paper in either theme. */
+:root,
+.paper {
   --radius: 0.625rem;
 
   /* Clinical neutrals: cool slate, near-white canvas, white surfaces. */
@@ -129,6 +166,22 @@
   --unresolved: oklch(0.54 0.14 286);
   --unresolved-foreground: oklch(0.38 0.11 286);
   --unresolved-surface: oklch(0.972 0.02 290);
+
+  /* The overlap system: two things, one shared region, amber. Amber is reserved for the shared
+     ingredient, so it isn't in the ingredient palette below — and neither are green ("safe") or
+     violet (unresolved). Every pair is ≥ 6:1 (WCAG AA). */
+  --overlap: var(--finding);
+  --overlap-glow: color-mix(in oklab, var(--finding) 55%, transparent);
+  --ring-a: var(--primary);
+  --ring-b: color-mix(in oklab, var(--foreground) 55%, var(--primary));
+  --ing-1: #0f5e55; --ing-1-bg: #e3f5f2;
+  --ing-2: #3341a8; --ing-2-bg: #eceeff;
+  --ing-3: #9a2d5c; --ing-3-bg: #fce9f1;
+  --ing-4: #145a85; --ing-4-bg: #e4f2fc;
+  --ing-5: #8a2a86; --ing-5-bg: #fbeaf9;
+  --ing-6: #0b5f6b; --ing-6-bg: #e0f7fa;
+  --ing-7: #2e4a73; --ing-7-bg: #e8eef7;
+  --ing-8: #3f4a55; --ing-8-bg: #eef1f4;
 }
 
 .dark {
@@ -179,6 +232,15 @@
   --unresolved: oklch(0.76 0.11 286);
   --unresolved-foreground: oklch(0.87 0.065 286);
   --unresolved-surface: oklch(0.26 0.045 286);
+
+  --ing-1: #8fe0d4; --ing-1-bg: #12302c;
+  --ing-2: #a9b4ff; --ing-2-bg: #1e2340;
+  --ing-3: #f5a3c7; --ing-3-bg: #3a1d2b;
+  --ing-4: #9fd8ff; --ing-4-bg: #13283a;
+  --ing-5: #f0a6e8; --ing-5-bg: #371c35;
+  --ing-6: #7fe3ee; --ing-6-bg: #0e2d33;
+  --ing-7: #b4c8e6; --ing-7-bg: #1c2636;
+  --ing-8: #d7dee4; --ing-8-bg: #20262c;
 }
 
 @layer base {
@@ -218,8 +280,61 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Room for the phone's bottom tab bar (4rem) and its raised Add button (1.5rem above it), so the footer
+   and the last card clear both. */
+@media (width < 40rem) {
+  body:has([data-bottom-bar]) [data-app-shell] {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* A medicine's title morphs from the list into its page (React <ViewTransition share="morph">). */
+::view-transition-group(.morph) {
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+::view-transition-group(root) {
+  animation-duration: 200ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* <details> open and close smoothly where the browser can animate to `auto` (Chrome 131+, Safari 18.4+);
+   elsewhere they snap, as before. The content stays in the page for find-in-page and print. */
+@supports selector(::details-content) {
+  @media (prefers-reduced-motion: no-preference) {
+    :root {
+      interpolate-size: allow-keywords;
+    }
+    details::details-content {
+      block-size: 0;
+      overflow-y: clip;
+      transition:
+        block-size 240ms cubic-bezier(0.22, 1, 0.36, 1),
+        content-visibility 240ms allow-discrete;
+    }
+    details[open]::details-content {
+      block-size: auto;
+    }
+  }
+}
+
+/* Tappable surfaces sink a little while pressed. */
+@utility press {
+  transition-property: transform, background-color, border-color, box-shadow, color, opacity;
+  transition-duration: 120ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  &:active { transform: scale(0.98); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
+    animation-delay: 0s !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

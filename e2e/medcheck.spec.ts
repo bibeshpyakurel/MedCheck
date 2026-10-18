@@ -187,10 +187,11 @@ test.describe("guest", () => {
 
     // The old checks list is gone: no Checks tab, no check counts, no pharmacist questions, never "safe".
     const main = page.getByRole("main");
-    await expect(page.getByRole("navigation", { name: "Record" }).getByRole("link")).toHaveText([
-      "Medicines",
-      "Medicine report",
-    ]);
+    // The two tabs (on phones, a bottom bar with Add between them).
+    const record = page.getByRole("navigation", { name: "Record" });
+    await expect(record.getByRole("link", { name: "Medicines", exact: true })).toBeVisible();
+    await expect(record.getByRole("link", { name: "Medicine report", exact: true })).toBeVisible();
+    await expect(record.getByRole("link", { name: /check/i })).toHaveCount(0);
     await expect(main).not.toContainText(/six checks|\d of 6 checks|pharmacist question|Ask a pharmacist|Copy question/i);
     await expect(main).not.toContainText(/\bsafe\b/i);
   });

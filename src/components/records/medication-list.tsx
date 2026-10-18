@@ -2,16 +2,29 @@
 
 import { ChevronRightIcon, DatabaseIcon, FileTextIcon, SearchIcon, XIcon } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState, ViewTransition } from "react";
+import { IngredientChip } from "@/components/ingredient-chip";
 import { Input } from "@/components/ui/input";
 import { entryLabel, formatStrength } from "@/lib/domain/fields";
 import type { MedicationEntry, SourceDocument } from "@/lib/domain/schema";
 import { groupBySource, matchesQuery } from "@/lib/medication-search";
-import { DOCUMENT_KIND_LABELS, formatDocDate } from "@/lib/record-format";
+import { DOCUMENT_KIND_LABELS, entryTitleTransition, formatDocDate } from "@/lib/record-format";
 
-/** Confirmed medicines grouped by the document they came from, with a client-side search. */
-export function MedicationList({ patientId, entries }: { patientId: string; entries: MedicationEntry[] }) {
+/**
+ * Confirmed medicines grouped by the document they came from, with a client-side search. `overlapping`
+ * holds the normalized names of ingredients the warnings say are shared; their chips are amber.
+ */
+export function MedicationList({
+  patientId,
+  entries,
+  overlapping = [],
+}: {
+  patientId: string;
+  entries: MedicationEntry[];
+  overlapping?: string[];
+}) {
   const [query, setQuery] = useState("");
+  const shared = useMemo(() => new Set(overlapping), [overlapping]);
   const visible = entries.filter((e) => matchesQuery(e, query));
   const groups = groupBySource(visible);
 
@@ -60,7 +73,7 @@ export function MedicationList({ patientId, entries }: { patientId: string; entr
               <ul className="divide-y">
                 {g.entries.map((e) => (
                   <li key={e.id}>
-                    <MedicineRow patientId={patientId} entry={e} />
+                    <MedicineRow patientId={patientId} entry={e} shared={shared} />
                   </li>
                 ))}
               </ul>
@@ -84,24 +97,30 @@ function SourceHeader({ document }: { document: SourceDocument | null }) {
   );
 }
 
-function MedicineRow({ patientId, entry }: { patientId: string; entry: MedicationEntry }) {
+function MedicineRow({ patientId, entry, shared }: { patientId: string; entry: MedicationEntry; shared: ReadonlySet<string> }) {
   const f = entry.fields;
   const fromDescription = entry.sourceDocument?.kind === "description" || entry.inputMethod === "voice" || entry.inputMethod === "typed";
   return (
+    // Prefetched in full so the medicine's page is ready in the same commit and its title can morph
+    // from this one (a dynamic route otherwise stops at the loading skeleton). Production only.
     <Link
       href={`/patients/${patientId}/entries/${entry.id}`}
-      className="group flex items-center gap-4 px-4 py-4 transition-colors hover:bg-muted/50 focus-visible:bg-muted/60 focus-visible:outline-none"
+      prefetch
+      className="group flex items-center gap-4 px-4 py-4 transition-colors hover:bg-muted/50 focus-visible:bg-muted/60 focus-visible:outline-none active:bg-muted/70"
     >
       <div className="min-w-0 flex-1">
-        <p className="font-semibold text-pretty">{entryLabel(f)}</p>
+        <ViewTransition name={entryTitleTransition(entry.id)} share="morph" default="none">
+          <p className="w-fit font-semibold text-pretty">{entryLabel(f)}</p>
+        </ViewTransition>
         {f.ingredients.length > 0 ? (
-          <ul className="mt-1 space-y-0.5 text-sm">
+          <ul className="mt-2 flex flex-wrap gap-1.5">
             {f.ingredients.map((i, idx) => (
-              <li key={idx}>
-                {i.name.value ?? <span className="text-muted-foreground">Ingredient unknown</span>}{" "}
-                <span className="text-muted-foreground nums">
-                  {i.strength.value ? formatStrength(i.strength.value) : "· strength unknown"}
-                </span>
+              <li key={idx} className="max-w-full">
+                {i.name.value ? (
+                  <IngredientChip name={i.name.value} strength={i.strength.value ? formatStrength(i.strength.value) : null} overlapping={shared} />
+                ) : (
+                  <span className="text-sm text-muted-foreground">Ingredient unknown</span>
+                )}
               </li>
             ))}
           </ul>
