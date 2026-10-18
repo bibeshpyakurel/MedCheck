@@ -19,3 +19,15 @@ export function nativeScanFormats(supported: readonly string[]): string[] {
 export function scanVideoConstraints(): MediaTrackConstraints {
   return { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } };
 }
+
+/** Why the live camera can't be used: blocked, a page without HTTPS, or a camera that didn't start. */
+export type CameraProblem = "denied" | "insecure" | "unavailable";
+
+/**
+ * From getUserMedia's error name (empty when there was no camera API at all). Phones only offer the
+ * camera on HTTPS pages, so an insecure page is named first: it is the fix that matters there.
+ */
+export function cameraProblem(errorName: string, secureContext: boolean): CameraProblem {
+  if (!secureContext) return "insecure";
+  return errorName === "NotAllowedError" || errorName === "SecurityError" ? "denied" : "unavailable";
+}

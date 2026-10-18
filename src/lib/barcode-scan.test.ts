@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { nativeScanFormats, SCAN_INTERVAL_MS, scanVideoConstraints } from "@/lib/barcode-scan";
+import { cameraProblem, nativeScanFormats, SCAN_INTERVAL_MS, scanVideoConstraints } from "@/lib/barcode-scan";
 
 describe("nativeScanFormats", () => {
   it("asks only for the drug-package formats the device supports", () => {
@@ -29,4 +29,23 @@ describe("scanVideoConstraints", () => {
 
 it("checks frames several times a second", () => {
   expect(SCAN_INTERVAL_MS).toBeLessThanOrEqual(120);
+});
+
+describe("cameraProblem", () => {
+  it("is a blocked permission when the person or the browser said no", () => {
+    expect(cameraProblem("NotAllowedError", true)).toBe("denied");
+    expect(cameraProblem("SecurityError", true)).toBe("denied");
+  });
+
+  it("is a page without HTTPS whatever the error, since phones only allow the camera there", () => {
+    expect(cameraProblem("NotAllowedError", false)).toBe("insecure");
+    expect(cameraProblem("", false)).toBe("insecure");
+  });
+
+  it("is a camera that didn't start for anything else (none found, busy in another app)", () => {
+    expect(cameraProblem("NotFoundError", true)).toBe("unavailable");
+    expect(cameraProblem("NotReadableError", true)).toBe("unavailable");
+    expect(cameraProblem("OverconstrainedError", true)).toBe("unavailable");
+    expect(cameraProblem("", true)).toBe("unavailable");
+  });
 });

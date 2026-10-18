@@ -71,7 +71,7 @@ The engine runs behind the scenes. Only `finding` results reach the UI and the r
   - **Continue as a guest** — Supabase anonymous sign-in; display name "Guest".
 - **Home** — after any sign-in, and from the logo, `/patients` and the 404 page: the Medicines tab `/patients/{id}` once anything is on file (confirmed or waiting for review), otherwise the capture page `/patients/{id}/add`.
 - **Capture** — three ways, on the **Know your drugs** page:
-  1. **Scan a barcode** (`/add/scan`, ZXing; a photo of the barcode or a typed NDC when the camera is blocked) → `findFormulationByCodes()` (catalog package NDCs, then openFDA by UPC) → "Is this the medicine?" with that one FDA label → one tap confirms it.
+  1. **Scan a barcode** (`/add/scan`): a full-screen live scanner opens at once and reads the barcode as soon as it's in view (the device's BarcodeDetector, else ZXing; a typed NDC always works, a photo of the barcode when the camera can't start) → `findFormulationByCodes()` (catalog package NDCs, then openFDA by UPC) → straight to that one FDA label's medicine card, as for one medicine in a photo, nothing saved → **Save to My medicines** (one tap confirms it) or **Scan another**. One medicine per scan.
   2. **Take a photo** of a label, prescription or discharge list → Gemini extraction with per-field bounding boxes → review. Gemini also copies any NDC or barcode number printed on a package, matched the same way.
   3. **Choose a photo** from the device → same as Take a photo.
 - **Review** — one row per field: label crop | AI value | **Matches** / **Edit** / **Can't tell** (→ unknown). If no box: show the whole photo. Nothing is saved as confirmed without a user action.

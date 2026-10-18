@@ -2,16 +2,16 @@
 
 import { BrowserMultiFormatReader, type IScannerControls } from "@zxing/browser";
 import { BarcodeFormat, DecodeHintType } from "@zxing/library";
-import { CameraOffIcon, ImageIcon, KeyboardIcon } from "lucide-react";
-import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { CameraIcon, CameraOffIcon, ImageIcon, KeyboardIcon, XIcon } from "lucide-react";
+import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { nativeScanFormats, SCAN_INTERVAL_MS, scanVideoConstraints } from "@/lib/barcode-scan";
+import { useBackToClose } from "@/components/use-back-to-close";
+import { cameraProblem, nativeScanFormats, SCAN_INTERVAL_MS, scanVideoConstraints, type CameraProblem } from "@/lib/barcode-scan";
 import { ndcLookupKeys } from "@/lib/ndc";
 import { cn } from "@/lib/utils";
-
-type CameraState = "starting" | "scanning" | "denied" | "unavailable";
 
 function createReader() {
   const hints = new Map<DecodeHintType, unknown>([
@@ -40,6 +40,18 @@ async function nativeDetector(): Promise<NativeDetector | null> {
   }
 }
 
+const errorName = (error: unknown) => (error instanceof Error ? error.name : "");
+
+/** The rear camera at HD; a camera that turns that request down gets one plain request for any camera. */
+async function openCamera(): Promise<MediaStream> {
+  try {
+    return await navigator.mediaDevices.getUserMedia({ audio: false, video: scanVideoConstraints() });
+  } catch (error) {
+    if (cameraProblem(errorName(error), true) === "denied") throw error;
+    return navigator.mediaDevices.getUserMedia({ audio: false, video: true });
+  }
+}
+
 /** Keep refocusing as the package moves closer, where the browser allows it (Chrome on Android). */
 async function focusContinuously(stream: MediaStream) {
   const [track] = stream.getVideoTracks();
@@ -49,39 +61,47 @@ async function focusContinuously(stream: MediaStream) {
 }
 
 /**
- * Reads a drug barcode live with the rear camera (UPC-A, EAN-13, GS1 DataMatrix, Code 128): hold
- * the package up and it's picked up on its own, no button. The device's own reader is used where
- * there is one (fast, native), else ZXing. An HD stream with continuous focus keeps small barcodes
- * sharp up close. A hit buzzes (where phones can) and flashes the frame. A photo of the barcode is
- * offered only when the camera is blocked or missing; a typed NDC always works. Stops the camera on
- * unmount.
+ * The full-screen live scanner, open from the moment the scan screen opens. It reads a drug barcode
+ * (UPC-A, EAN-13, GS1 DataMatrix, Code 128) with the rear camera as soon as one is in view, no
+ * button: the device's own reader where there is one, else ZXing; an HD stream with continuous
+ * focus keeps small barcodes sharp up close. A hit buzzes (where phones can), flashes the box and
+ * stays up while the parent looks the code up. A camera that can't start reports why
+ * (`onProblem`); ×, Escape or device Back close it (`onClose`). Stops the camera on unmount.
  */
-export function BarcodeScanner({ onDetected, initialCode = "" }: { onDetected: (text: string) => void; initialCode?: string }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const onDetectedRef = useRef(onDetected);
-  const [camera, setCamera] = useState<CameraState>("starting");
+export function BarcodeScanner({
+  onDetected,
+  onProblem,
+  onClose,
+  onType,
+}: {
+  onDetected: (code: string) => void;
+  onProblem: (problem: CameraProblem) => void;
+  onClose: () => void;
+  /** "Type the number instead": close, then focus the typed-number box. */
+  onType: () => void;
+}) {
+  // The dialog mounts its content after this component does, so the camera starts once the video is there.
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [hasVideo, setHasVideo] = useState(false);
+  const setVideo = useCallback((element: HTMLVideoElement | null) => {
+    videoRef.current = element;
+    setHasVideo(element !== null);
+  }, []);
+  const [live, setLive] = useState(false);
   const [found, setFound] = useState(false);
-  const [manual, setManual] = useState(initialCode);
-  const [manualError, setManualError] = useState<string | null>(null);
-  const [photoError, setPhotoError] = useState<string | null>(null);
-  const inputId = useId();
+  const handlers = useRef({ onDetected, onProblem });
+  useEffect(() => {
+    handlers.current = { onDetected, onProblem };
+  }, [onDetected, onProblem]);
+  useBackToClose(true, onClose);
 
   useEffect(() => {
-    onDetectedRef.current = onDetected;
-  }, [onDetected]);
-
-  useEffect(() => {
+    const video = videoRef.current;
+    if (!hasVideo || !video) return;
     let stream: MediaStream | null = null;
     let controls: IScannerControls | null = null;
     let timer = 0;
     let stopped = false;
-    const video = videoRef.current;
-
-    if (!video || !navigator.mediaDevices?.getUserMedia) {
-      // Effects may set state; this runs once when the browser has no camera API (or no HTTPS).
-      queueMicrotask(() => setCamera("unavailable"));
-      return;
-    }
 
     function stop() {
       stopped = true;
@@ -95,19 +115,22 @@ export function BarcodeScanner({ onDetected, initialCode = "" }: { onDetected: (
       stop();
       navigator.vibrate?.(60);
       setFound(true);
-      onDetectedRef.current(text);
+      handlers.current.onDetected(text);
     }
 
-    async function start() {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: scanVideoConstraints() });
-      } catch (error) {
-        if (stopped) return;
-        const name = error instanceof DOMException ? error.name : "";
-        setCamera(name === "NotAllowedError" || name === "SecurityError" ? "denied" : "unavailable");
+    async function start(video: HTMLVideoElement) {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        // No camera API: an http:// page on a phone, or a browser without one.
+        handlers.current.onProblem(cameraProblem("", window.isSecureContext));
         return;
       }
-      if (stopped || !video) return stream.getTracks().forEach((track) => track.stop());
+      try {
+        stream = await openCamera();
+      } catch (error) {
+        if (!stopped) handlers.current.onProblem(cameraProblem(errorName(error), window.isSecureContext));
+        return;
+      }
+      if (stopped) return stream.getTracks().forEach((track) => track.stop());
       void focusContinuously(stream);
 
       const detector = await nativeDetector();
@@ -115,7 +138,7 @@ export function BarcodeScanner({ onDetected, initialCode = "" }: { onDetected: (
       if (detector) {
         video.srcObject = stream;
         await video.play().catch(() => {});
-        setCamera("scanning");
+        setLive(true);
         const scan = async () => {
           if (stopped) return;
           if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
@@ -132,12 +155,104 @@ export function BarcodeScanner({ onDetected, initialCode = "" }: { onDetected: (
         if (result) detected(result.getText());
       });
       if (stopped) controls.stop();
-      else setCamera("scanning");
+      else setLive(true);
     }
 
-    void start();
+    void start(video);
     return stop;
-  }, []);
+  }, [hasVideo]);
+
+  return (
+    <Dialog
+      open
+      onOpenChange={(next) => {
+        if (!next) onClose();
+      }}
+    >
+      <DialogContent
+        showCloseButton={false}
+        className="top-0 left-0 flex h-dvh w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none bg-black p-0 text-white ring-0 sm:max-w-none data-open:zoom-in-100"
+      >
+        <video ref={setVideo} className="absolute inset-0 size-full object-cover" playsInline muted autoPlay aria-label="Camera preview" />
+
+        <div className="relative flex items-center gap-2 bg-gradient-to-b from-black/70 to-transparent px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-6">
+          <DialogTitle className="flex-1 font-display text-lg font-semibold text-white">Scan a barcode</DialogTitle>
+          <Button variant="ghost" size="icon" className="size-11 text-white hover:bg-white/15 hover:text-white" onClick={onClose}>
+            <XIcon aria-hidden className="size-6" />
+            <span className="sr-only">Close the scanner</span>
+          </Button>
+        </div>
+
+        {/* The box to hold the barcode in; everything around it is dimmed. */}
+        <div className="relative grid flex-1 place-items-center px-8">
+          <div
+            aria-hidden
+            className={cn(
+              "relative h-40 w-full max-w-sm rounded-2xl border-[3px] shadow-[0_0_0_9999px_rgb(0_0_0/0.45)] transition-colors duration-150",
+              found ? "border-primary bg-primary/25" : "border-white/90",
+            )}
+          >
+            {live && !found && (
+              <span className="absolute inset-x-3 h-0.5 animate-scan rounded-full bg-primary shadow-[0_0_10px_2px_color-mix(in_oklab,var(--primary)_55%,transparent)] motion-reduce:hidden" />
+            )}
+          </div>
+        </div>
+
+        <div className="relative space-y-3 bg-gradient-to-t from-black/80 to-transparent px-4 pt-8 pb-[max(1rem,env(safe-area-inset-bottom))] text-center">
+          <p role="status" className="text-base font-medium text-pretty">
+            {found ? "Got it. Looking it up…" : live ? "Hold the barcode inside the box. It scans by itself." : "Starting the camera…"}
+          </p>
+          <Button
+            variant="outline"
+            className="h-11 border-white/40 bg-white/10 px-4 text-base text-white hover:bg-white/20 hover:text-white"
+            disabled={found}
+            onClick={onType}
+          >
+            <KeyboardIcon aria-hidden /> Type the number instead
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+const PROBLEM_TEXT: Record<CameraProblem, { title: string; body: string }> = {
+  denied: {
+    title: "Camera access is blocked.",
+    body: "To scan, allow the camera for this site in your browser settings, then try again.",
+  },
+  insecure: {
+    title: "The camera needs a secure page.",
+    body: "Browsers only open the camera on https:// pages. Open MedCheck at its https:// address to scan.",
+  },
+  unavailable: {
+    title: "The camera didn't start.",
+    body: "Another app may be using it. Close that app, then try again.",
+  },
+};
+
+/**
+ * Under the scanner: open it again, or (when the camera couldn't start) why, and a photo of the
+ * barcode instead; a typed NDC or barcode number always works.
+ */
+export function CodeEntry({
+  onDetected,
+  onScan,
+  problem,
+  initialCode = "",
+  focusInput = false,
+}: {
+  onDetected: (code: string) => void;
+  /** Open the live scanner again. */
+  onScan: () => void;
+  problem: CameraProblem | null;
+  initialCode?: string;
+  focusInput?: boolean;
+}) {
+  const [manual, setManual] = useState(initialCode);
+  const [manualError, setManualError] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const inputId = useId();
 
   function submitManual(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -167,67 +282,43 @@ export function BarcodeScanner({ onDetected, initialCode = "" }: { onDetected: (
     }
   }
 
-  const cameraBlocked = camera === "denied" || camera === "unavailable";
-
   return (
     <div className="space-y-6">
-      {cameraBlocked ? (
-        <div role="status" className="flex gap-3 rounded-2xl border bg-surface p-5">
-          <CameraOffIcon aria-hidden className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
-          <div className="space-y-1">
-            <p className="font-medium">
-              {camera === "denied" ? "Camera access was blocked." : "No camera is available here."}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Take a photo of the barcode instead, or type the NDC printed on the package.
-              {camera === "denied" && " To scan live, allow camera access in your browser settings and reload."}
-            </p>
+      {problem ? (
+        <div className="space-y-3">
+          <div role="status" className="flex gap-3 rounded-2xl border bg-surface p-5">
+            <CameraOffIcon aria-hidden className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+            <div className="space-y-1">
+              <p className="font-medium">{PROBLEM_TEXT[problem].title}</p>
+              <p className="text-sm text-muted-foreground text-pretty">{PROBLEM_TEXT[problem].body}</p>
+            </div>
           </div>
-        </div>
-      ) : (
-        <div className="relative mx-auto aspect-[4/3] w-full max-w-md overflow-hidden rounded-2xl border bg-black shadow-lg">
-          <video ref={videoRef} className="size-full object-cover" playsInline muted autoPlay aria-label="Camera preview" />
-          <div
-            aria-hidden
-            className={cn(
-              "pointer-events-none absolute inset-x-8 top-1/2 h-24 -translate-y-1/2 rounded-xl border-2 shadow-[0_0_0_9999px_rgb(0_0_0/0.35)] transition-colors duration-150",
-              found ? "border-primary bg-primary/25" : "border-white/80",
-            )}
-          >
-            {camera === "scanning" && !found && (
-              <span className="absolute inset-x-2 h-0.5 animate-scan rounded-full bg-primary/90 shadow-[0_0_10px_2px_color-mix(in_oklab,var(--primary)_55%,transparent)] motion-reduce:hidden" />
-            )}
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button className="h-11 text-base sm:flex-1" onClick={onScan}>
+              <CameraIcon aria-hidden /> Try the camera again
+            </Button>
+            {/* Without a live camera, a photo of the barcode is the next quickest way. */}
+            <Button variant="outline" className="h-11 text-base sm:flex-1" nativeButton={false} render={<label htmlFor={`${inputId}-photo`} />}>
+              <ImageIcon aria-hidden /> Take a photo of the barcode
+            </Button>
+            <input
+              id={`${inputId}-photo`}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="sr-only"
+              onChange={(e) => {
+                void decodePhoto(e.target.files?.[0]);
+                e.target.value = "";
+              }}
+            />
           </div>
-          <p className="absolute inset-x-0 bottom-0 bg-black/60 px-3 py-2.5 text-center text-sm font-medium text-white backdrop-blur" aria-live="polite">
-            {found ? "Got it" : camera === "starting" ? "Starting camera…" : "Hold the barcode inside the box. It scans by itself."}
-          </p>
-        </div>
-      )}
-
-      {/* Without a live camera, a photo of the barcode is the next quickest way. */}
-      {cameraBlocked && (
-        <div className="space-y-2">
-          <Button
-            variant="outline"
-            className="h-11 w-full text-base"
-            nativeButton={false}
-            render={<label htmlFor={`${inputId}-photo`} />}
-          >
-            <ImageIcon aria-hidden /> Take a photo of the barcode
-          </Button>
-          <input
-            id={`${inputId}-photo`}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="sr-only"
-            onChange={(e) => {
-              void decodePhoto(e.target.files?.[0]);
-              e.target.value = "";
-            }}
-          />
           {photoError && <p className="text-sm text-destructive">{photoError}</p>}
         </div>
+      ) : (
+        <Button className="h-12 w-full text-base" onClick={onScan}>
+          <CameraIcon aria-hidden /> Scan with the camera
+        </Button>
       )}
 
       <form onSubmit={submitManual} className="space-y-2 rounded-2xl border bg-card p-4 shadow-xs" noValidate>
@@ -240,6 +331,7 @@ export function BarcodeScanner({ onDetected, initialCode = "" }: { onDetected: (
             value={manual}
             onChange={(e) => setManual(e.target.value)}
             placeholder="NDC or barcode number"
+            autoFocus={focusInput}
             autoComplete="off"
             autoCorrect="off"
             autoCapitalize="off"
