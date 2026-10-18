@@ -16,6 +16,7 @@ import { type WarningsView, warningsView } from "@/lib/checks/warnings";
 import { entryLabel } from "@/lib/domain/fields";
 import type { Formulation, MedicationEntry } from "@/lib/domain/schema";
 import { DOCUMENT_KIND_LABELS, formatDocDate, INPUT_METHOD_LABELS, recordTitle } from "@/lib/record-format";
+import { draftPath } from "@/lib/photo-flow";
 import { getPatient, listEntries, listHistory } from "@/lib/records";
 import { isUuid } from "@/lib/uuid";
 
@@ -61,7 +62,7 @@ export default async function PatientRecordPage({ params }: PageProps<"/patients
         </header>
 
         <div className="mt-6 space-y-8">
-          {drafts.length > 0 ? <NeedsReview base={base} drafts={drafts} /> : null}
+          {drafts.length > 0 ? <NeedsReview drafts={drafts} /> : null}
 
           {confirmed.length > 0 ? (
             <Warnings view={view} patientId={patientId} entries={confirmed} formulations={formulations} />
@@ -151,7 +152,7 @@ function Disclosure({
   );
 }
 
-function NeedsReview({ base, drafts }: { base: string; drafts: MedicationEntry[] }) {
+function NeedsReview({ drafts }: { drafts: MedicationEntry[] }) {
   return (
     <section aria-labelledby="review-heading" className="rounded-2xl border border-unresolved/35 bg-unresolved-surface/70 p-4 sm:p-5">
       <h2 id="review-heading" className="flex items-center gap-2 font-semibold text-unresolved-foreground">
@@ -170,7 +171,7 @@ function NeedsReview({ base, drafts }: { base: string; drafts: MedicationEntry[]
           return (
             <li key={d.id}>
               <Link
-                href={`${base}/entries/${d.id}/review`}
+                href={draftPath(d.patientId, d)}
                 className="group flex min-h-14 items-center gap-3 rounded-xl bg-card px-4 py-3 ring-1 ring-border transition-shadow hover:shadow-md focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
               >
                 <span className="min-w-0 flex-1">

@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { emptyEntryFields, formatStrength, isFullyReviewed, isUsable, suggestedField } from "./fields";
+import {
+  confirmedFieldsFromFormulation,
+  emptyEntryFields,
+  formatStrength,
+  isFullyReviewed,
+  isUsable,
+  suggestedField,
+} from "./fields";
+import type { Field, Formulation } from "./schema";
 
 describe("formatStrength", () => {
   it("formats liquid concentration", () => {
@@ -31,5 +39,71 @@ describe("field states", () => {
     expect(isFullyReviewed(fields)).toBe(true);
     fields.productName = suggestedField("Calmora", { kind: "none" });
     expect(isFullyReviewed(fields)).toBe(false);
+  });
+});
+
+describe("confirmedFieldsFromFormulation (the one-tap catalog confirm)", () => {
+  const label: Formulation = {
+    id: "f-1",
+    slug: "tylenol-extra-strength-500mg-caplet",
+    brandName: "Tylenol Extra Strength (caplets)",
+    genericName: "Acetaminophen",
+    dosageForm: "caplet",
+    isFictional: false,
+    ndcPackages: [],
+    activeIngredients: [
+      { name: "Acetaminophen", normalized: "acetaminophen", strength: { amount: 500, unit: "mg", perAmount: 1, perUnit: "caplet" } },
+    ],
+    directionsText: "adults and children 12 years and over: take 2 caplets every 6 hours while symptoms last",
+    max24hText: null,
+    warningsQuotes: [],
+    dosageTableHtml: null,
+    source: "openfda",
+    openfdaSetId: null,
+    labelEffectiveDate: null,
+    labelerName: null,
+    labelSections: {},
+    sourceLinks: [],
+    reviewed: true,
+  };
+  const fields = confirmedFieldsFromFormulation(label);
+
+  it("confirms every value the label has, with the label's value", () => {
+    expect(fields.productName).toEqual({
+      aiValue: "Tylenol Extra Strength (caplets)",
+      value: "Tylenol Extra Strength (caplets)",
+      state: "confirmed",
+      evidence: { kind: "database", formulationId: "f-1", text: "Tylenol Extra Strength (caplets)" },
+    });
+    expect(fields.dosageForm).toMatchObject({ value: "caplet", state: "confirmed" });
+    expect(fields.instructions).toMatchObject({ value: label.directionsText, state: "confirmed" });
+    expect(fields.ingredients).toEqual([
+      {
+        name: { aiValue: "Acetaminophen", value: "Acetaminophen", state: "confirmed", evidence: { kind: "database", formulationId: "f-1", text: "Acetaminophen" } },
+        strength: {
+          aiValue: label.activeIngredients[0].strength,
+          value: label.activeIngredients[0].strength,
+          state: "confirmed",
+          evidence: { kind: "database", formulationId: "f-1", text: "500 mg per caplet" },
+        },
+      },
+    ]);
+  });
+
+  it("leaves what the label doesn't say unknown, never confirmed", () => {
+    expect(fields.max24h).toMatchObject({ value: null, state: "unknown" });
+    // The catalog never carries a dose: it stays unknown with no evidence.
+    expect(fields.doseAsWritten).toEqual({ aiValue: null, value: null, state: "unknown", evidence: { kind: "none" } });
+  });
+
+  it("leaves nothing pending, so the entry can be confirmed", () => {
+    expect(isFullyReviewed(fields)).toBe(true);
+    const all: Field<unknown>[] = [fields.productName, fields.dosageForm, fields.instructions, fields.doseAsWritten, fields.max24h];
+    expect(all.every((f) => f.state === "confirmed" || f.state === "unknown")).toBe(true);
+  });
+
+  it("every confirmed value points at the label", () => {
+    const confirmed = [fields.productName, fields.dosageForm, fields.instructions, ...fields.ingredients.flatMap((i) => [i.name, i.strength])];
+    for (const f of confirmed) expect(f.evidence).toMatchObject({ kind: "database", formulationId: "f-1" });
   });
 });
