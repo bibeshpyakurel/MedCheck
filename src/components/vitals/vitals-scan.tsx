@@ -12,6 +12,7 @@ import type { VitalLens } from "vitallens";
 import { saveVitalReadingAction } from "@/app/patients/[patientId]/vitals/actions";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { startLens } from "@/components/vitals/start-lens";
 import { cameraProblem, type CameraProblem } from "@/lib/barcode-scan";
 import { cn } from "@/lib/utils";
 import { faceConfidence, faceInView, scanFailureMessage, scanHint, scanProgress } from "@/lib/vitals-scan";
@@ -128,10 +129,8 @@ export function VitalsScan({ patientId }: { patientId: string }) {
           if (readingFromResult(result)) latest = result;
           setFace(faceConfidence(result));
         });
-        await lens.setVideoStream(stream, video);
+        await startLens(lens, stream, video);
         if (stopped) return release();
-        await video.play().catch(() => {});
-        lens.startVideoStream();
       } catch (error) {
         console.warn("VitalLens couldn't start", error);
         if (!stopped) {
