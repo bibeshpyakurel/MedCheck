@@ -72,6 +72,14 @@ Not reproduced yet. A fresh guest on production lands on `/add` (empty record, 8
 - **Commits and branches:** the plan says `ui(WPx):`. The repo uses conventional commits and `feat/<name>` branches into `dev`, and `dev` **is production** (merging goes live). This worktree's branch is `bibeshpyakurel/ui-ux`. **[decision]**
 - **e2e:** `e2e/medcheck.spec.ts` finds tabs by link name inside `main` (`openTab`). Moving the tabs to a bottom bar means updating those helpers in the same change.
 
+## 11. Photo answers spec (merged to `dev` mid-build, PR #47)
+
+`docs/superpowers/specs/2026-10-17-photo-answers-design.md` is now the newest spec, and it wins. It rewrites the capture flow: auto-read on photo, no kind radio, a confirm pop-up (bottom sheet), an answer card, and a two-medicine Venn / 3+ grid comparison. It also adds an `ingredient_family` check. Other sessions are building it now (`feat/photo-read`, `feat/photo-sheets`, `feat/quick-answers`, `feat/ingredient-compare`).
+
+- **WP7 and WP8 are on hold** until `feat/photo-sheets` merges. They restyle the photo screen, the match step and the review, which that work replaces, so doing them now would only create conflicts. Afterwards, WP7's scan beam and status lines go onto the new "Reading the photo…" screen.
+- **WP4's Venn** is for saved warnings on the Medicines page; the spec's comparison Venn is for one photo. They should share a visual language: `--overlap`, `--ring-a/b`, `IngredientChip` and `src/lib/overlap-visual.ts` are there to reuse.
+- **`ingredient_family` findings** get the plain warning card (`overlapVisual` returns null for anything but `ingredient_overlap`).
+
 ## Decisions
 
 The user said "just work on it" without answering one by one (2026-10-17), so each one below is the recommended default. Each can be reversed in its own commit.
