@@ -1,6 +1,6 @@
 // The product end to end against the real app and Supabase: the three doors on the landing page, a
 // guest adding medicines by photo (typing what the label says), warnings, the report, Get help and
-// leaving, the one-tap medicine-package path, and an email sign-in. A photo is read as soon as it's
+// leaving, the medicine-package pop-up (confirm, card or comparison, Save / Don't save), and an email sign-in. A photo is read as soon as it's
 // chosen; Gemini is a local stand-in (e2e/fake-gemini.mjs) that reads a photo, and says what kind it
 // is, by its width; the default photo reads as nothing found (kind unsure, so a package).
 import { expect, test, type Browser, type BrowserContext, type Page } from "@playwright/test";
@@ -329,6 +329,13 @@ async function readPackagePhoto(
   await page.locator("label", { hasText: "Choose a photo" }).locator("input[type=file]").setInputFiles(await labelPhoto(browser, scenario));
 }
 
+/** How many medicines My medicines lists as confirmed ("3 medicines on file"). */
+async function medicinesOnFile(page: Page, base: string): Promise<number> {
+  await page.goto(base);
+  const text = await page.getByText(/\d+ medicines? on file/).textContent();
+  return Number(/\d+/.exec(text ?? "")?.[0]);
+}
+
 // `?card=new` opens the just-added card, then drops off the URL.
 const ENTRY_WITH_CARD = /\/entries\/[0-9a-f-]{36}(\?card=new)?$/;
 const GHOST_ID = "00000000-0000-4000-8000-000000000000";
@@ -358,45 +365,47 @@ test.describe("medicine package photo", () => {
     await context.close();
   });
 
-  test("photo → “Is this the medicine?” with the match pre-selected → Confirm → card → Done", async ({ browser }) => {
+  test("one medicine: the pop-up asks “Is this …?” → Continue → its card with Quick answers → Save → My medicines", async ({ browser }) => {
     await readPackagePhoto(page, browser, base, "tylenolExtraStrength");
-    await page.waitForURL(/\/entries\/[0-9a-f-]{36}\/match$/, { timeout: 60_000 });
-    await expect(page.getByRole("heading", { level: 1, name: "Is this the medicine?" })).toBeVisible();
+    // The pop-up opens over the photo screen; nothing navigates and nothing is saved yet.
+    const confirm = page.getByRole("dialog", { name: "Is this Tylenol Extra Strength (caplets)?" });
+    await expect(confirm).toBeVisible({ timeout: 60_000 });
+    await expect(page).toHaveURL(/\/add\/photo\?source=library$/);
+    await expect(confirm).toContainText("Acetaminophen 500 mg per caplet");
+    await expect(confirm).toContainText("Kenvue");
+    await expect(confirm).not.toContainText(/\bsafe\b|bottle/i);
 
-    const best = page.getByRole("radio", { name: /Tylenol Extra Strength \(caplets\)/ });
-    await expect(best).toBeChecked();
-    await expect(page.locator("label", { has: best })).toContainText("Acetaminophen 500 mg per caplet");
-    // Other labels are offered, not chosen. In the full catalog the hand-checked caplets win over the
-    // equally good unreviewed TYLENOL Extra Strength labels (capsules, gelcaps, tablets), listed below it.
-    await page.getByRole("button", { name: /Other matches/ }).click();
-    const others = page.getByRole("radio", { name: /^TYLENOL Extra Strength, Acetaminophen 500 mg per / });
+    // Other products are offered, not chosen, and each product once: the catalog's two TYLENOL Extra
+    // Strength gelcap rows are one choice.
+    await confirm.getByRole("button", { name: "Not this one?" }).click();
+    const others = confirm.getByRole("radio", { name: /^TYLENOL Extra Strength, Acetaminophen 500 mg per / });
     await expect(others.first()).toBeVisible();
     await expect(others.first()).not.toBeChecked();
-    await expect(page.getByRole("radio", { checked: true })).toHaveCount(1);
-    await expect(page.getByRole("main")).not.toContainText(/pharmacist|\bsafe\b/i);
-    await expect(page.getByText("Step 2 of 3 · Match")).toBeVisible();
+    await expect(confirm.getByRole("radio", { name: "TYLENOL Extra Strength, Acetaminophen 500 mg per gelcap" })).toHaveCount(1);
+    await expect(confirm.getByRole("radio", { checked: true })).toHaveCount(1);
+    expect(await confirm.getByRole("radio").count()).toBeLessThanOrEqual(6);
 
-    // "Type it in" has its own address; browser Back returns to the matches, still pre-selected.
-    await page.getByRole("button", { name: "None of these — type it in" }).click();
-    await page.waitForURL(/\/match\?search=1$/);
-    await expect(page.getByRole("link", { name: "Matches" })).toBeVisible();
-    await page.goBack();
-    await page.waitForURL(/\/match$/);
-    await expect(best).toBeChecked();
-
-    await page.getByRole("button", { name: "Confirm", exact: true }).click();
-    await page.waitForURL(ENTRY_WITH_CARD);
+    await confirm.getByRole("button", { name: "Continue" }).click();
     const card = page.getByRole("dialog", { name: "Tylenol Extra Strength (caplets)" });
-    await expect(card).toBeVisible();
-    await expect(card).toContainText("Acetaminophen 500 mg per caplet");
+    await expect(card.getByRole("heading", { name: "Quick answers" })).toBeVisible();
     // Quick answers' "Took too much?" and the footer both carry Poison Control.
     await expect(card.locator('a[href="tel:18002221222"]').first()).toBeVisible();
-    await expect(card).toContainText("Step 3 of 3 · Saved");
-    await card.getByRole("button", { name: "Done" }).click();
+    await expect(card).toContainText("Nothing is saved yet.");
+
+    // Device Back returns to the question; Continue again.
+    await page.goBack();
+    await expect(confirm).toBeVisible();
+    await confirm.getByRole("button", { name: "Continue" }).click();
+    await card.getByRole("button", { name: "Save to My medicines" }).click();
 
     await page.waitForURL(new RegExp(`${base}$`));
     await expect(page.getByText("1 medicine on file")).toBeVisible();
     await expect(page.getByRole("region", { name: /Waiting for your review/ })).toHaveCount(0);
+    // My medicines took the photo page's place: Back skips the finished photo.
+    await page.goBack();
+    await page.waitForURL(/\/add$/);
+    await page.goForward();
+    await page.waitForURL(new RegExp(`${base}$`));
     await page.getByRole("link", { name: /Tylenol Extra Strength \(caplets\)/ }).first().click();
     await expect(page.getByText("Confirmed", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("Photo", { exact: true }).first()).toBeVisible();
@@ -493,23 +502,103 @@ test.describe("medicine package photo", () => {
     await expect(waiting.getByRole("link", { name: /Check details/ })).toHaveAttribute("href", /\/review$/);
   });
 
-  test("a photo of two medicine packages is read at once → “Is this the medicine?”, one draft each", async ({ browser }) => {
+  test("two medicines: a row each → Continue → Together (nothing shared) and both cards → Save → both on My medicines", async ({ browser }) => {
+    const before = await medicinesOnFile(page, base);
     await readPackagePhoto(page, browser, base, "advilAndTylenol");
-    await page.waitForURL(/\/entries\/[0-9a-f-]{36}\/match$/, { timeout: 60_000 });
-    await expect(page.getByRole("heading", { level: 1, name: "Is this the medicine?" })).toBeVisible();
+    const confirm = page.getByRole("dialog", { name: "2 medicines in this photo" });
+    await expect(confirm).toBeVisible({ timeout: 60_000 });
+    const first = confirm.getByRole("region", { name: /Advil/ });
+    const second = confirm.getByRole("region", { name: /Tylenol Extra Strength/i });
+    await expect(first).toContainText("1 of 2");
+    await expect(second).toContainText("2 of 2");
+    await expect(first.getByRole("button", { name: "Remove from this photo" })).toBeVisible();
+    await expect(second.getByRole("button", { name: "None of these — type it in" })).toBeVisible();
+
+    await confirm.getByRole("button", { name: "Continue" }).click();
+    const result = page.getByRole("dialog", { name: "2 medicines from this photo" });
+    await expect(result.getByRole("heading", { name: "Together" })).toBeVisible();
+    await expect(result).toContainText("No shared active ingredient found in confirmed fields.");
+    await expect(result).not.toContainText(/\bsafe\b/i);
+    const cards = result.getByRole("heading", { level: 4 }).getByRole("button");
+    await expect(cards).toHaveCount(2);
+    await cards.filter({ hasText: /Tylenol/i }).click();
+    await expect(result.getByRole("heading", { name: "Quick answers" })).toBeVisible();
+
+    await result.getByRole("button", { name: "Save to My medicines" }).click();
+    await page.waitForURL(new RegExp(`${base}$`));
+    await expect(page.getByText(`${before + 2} medicines on file`)).toBeVisible();
+    await expect(page.getByRole("main").getByRole("link", { name: /Advil/ }).first()).toBeVisible();
+    const waiting = page.getByRole("region", { name: /Waiting for your review/ });
+    await expect(waiting.locator('a[href$="/match"]')).toHaveCount(0);
+  });
+
+  test("Remove from this photo: only the medicine kept is saved; the removed one is gone", async ({ browser }) => {
+    const before = await medicinesOnFile(page, base);
+    await readPackagePhoto(page, browser, base, "advilAndTylenol");
+    const confirm = page.getByRole("dialog", { name: "2 medicines in this photo" });
+    await expect(confirm).toBeVisible({ timeout: 60_000 });
+    await confirm.getByRole("region", { name: /Advil/ }).getByRole("button", { name: "Remove from this photo" }).click();
+    await expect(confirm.getByRole("region", { name: "Medicine 1 of 2, removed" })).toContainText("removed from this photo");
+    await confirm.getByRole("button", { name: "Continue" }).click();
+
+    // One medicine left: its card, not a comparison.
+    const card = page.getByRole("dialog", { name: /^TYLENOL Extra Strength|^Tylenol Extra Strength/ });
+    await expect(card.getByRole("heading", { name: "Quick answers" })).toBeVisible();
+    await expect(card.getByRole("heading", { name: "Together" })).toHaveCount(0);
+    await card.getByRole("button", { name: "Save to My medicines" }).click();
+    await page.waitForURL(new RegExp(`${base}$`));
+    await expect(page.getByText(`${before + 1} medicines on file`)).toBeVisible();
+    const waiting = page.getByRole("region", { name: /Waiting for your review/ });
+    await expect(waiting.locator('a[href$="/match"]')).toHaveCount(0);
+  });
+
+  test("Don't save: nothing is saved, and the photo screen starts again", async ({ browser }) => {
+    const before = await medicinesOnFile(page, base);
+    await readPackagePhoto(page, browser, base, "tylenolExtraStrength");
+    const confirm = page.getByRole("dialog", { name: "Is this Tylenol Extra Strength (caplets)?" });
+    await expect(confirm).toBeVisible({ timeout: 60_000 });
+    await confirm.getByRole("button", { name: "Continue" }).click();
+    const card = page.getByRole("dialog", { name: "Tylenol Extra Strength (caplets)" });
+    await card.getByRole("button", { name: "Don't save" }).click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(page).toHaveURL(/\/add\/photo\?source=library$/);
+    await expect(page.getByText("No photo yet")).toBeVisible();
+
+    expect(await medicinesOnFile(page, base)).toBe(before);
+    await expect(page.getByRole("region", { name: /Waiting for your review/ }).locator('a[href$="/match"]')).toHaveCount(0);
+  });
+
+  test("Cancel discards the read; closing the pop-up instead keeps it waiting for review", async ({ browser }) => {
+    await readPackagePhoto(page, browser, base, "tylenolExtraStrength");
+    const confirm = page.getByRole("dialog", { name: "Is this Tylenol Extra Strength (caplets)?" });
+    await expect(confirm).toBeVisible({ timeout: 60_000 });
+    await confirm.getByRole("button", { name: "Cancel" }).click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(page.getByText("No photo yet")).toBeVisible();
+
+    // Device Back (or ×) only closes it: the read waits, and the pop-up can open again.
+    await page.locator("label", { hasText: "Choose a photo" }).locator("input[type=file]").setInputFiles(await labelPhoto(browser, "tylenolExtraStrength"));
+    await expect(confirm).toBeVisible({ timeout: 60_000 });
+    await page.goBack();
+    await expect(confirm).toBeHidden();
+    await expect(page.getByRole("status").filter({ hasText: "Not saved yet." })).toBeVisible();
+    await page.getByRole("button", { name: "Check the medicines again" }).click();
+    await expect(confirm).toBeVisible();
+    await confirm.getByRole("button", { name: "Close" }).click();
+    await expect(confirm).toBeHidden();
 
     await page.goto(base);
-    const waiting = page.getByRole("region", { name: /Waiting for your review/ });
-    await expect(waiting.locator('a[href$="/match"]')).toHaveCount(2);
+    await expect(page.getByRole("region", { name: /Waiting for your review/ }).locator('a[href$="/match"]')).toHaveCount(1);
   });
 
   test("a package where only the printed NDC is legible still finds its FDA label, pre-selected", async ({ browser }) => {
     await readPackagePhoto(page, browser, base, "tylenolByCode");
-    await page.waitForURL(/\/entries\/[0-9a-f-]{36}\/match$/, { timeout: 60_000 });
-    const byCode = page.getByRole("radio", { name: /Tylenol Extra Strength \(caplets\)/ });
-    await expect(byCode).toBeChecked();
-    await expect(page.locator("label", { has: byCode })).toContainText("Matches the NDC printed on the package.");
-    await expect(page.locator("label", { has: byCode })).toContainText("Acetaminophen 500 mg per caplet");
+    const confirm = page.getByRole("dialog", { name: "Is this Tylenol Extra Strength (caplets)?" });
+    await expect(confirm).toBeVisible({ timeout: 60_000 });
+    await expect(confirm).toContainText("Matches the NDC printed on the package.");
+    await expect(confirm).toContainText("Acetaminophen 500 mg per caplet");
+    await confirm.getByRole("button", { name: "Cancel" }).click();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
   });
 
   test("the type-in search never offers fictional demo products", async () => {

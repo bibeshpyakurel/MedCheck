@@ -6,8 +6,11 @@ import { withoutFictional } from "@/lib/photo-flow";
 
 const PER_TERM = 20;
 
-/** Search by each term, merge, rank; top `limit` (default 6). Empty when the read isn't readable. */
-export async function findCatalogMatches(read: PhotoRead, limit = 6): Promise<CatalogMatch[]> {
+/**
+ * Search by each term, merge, rank; top `limit` (default 40: enough rows for `matchChoices` to find
+ * 6 distinct products among store-brand copies). Empty when the read isn't readable.
+ */
+export async function findCatalogMatches(read: PhotoRead, limit = 40): Promise<CatalogMatch[]> {
   if (!isReadable(read)) return [];
   // Generic ingredient terms match thousands of rows, so ask for more than the default per term.
   const results = await Promise.all(searchTermsFor(read).map((term) => searchFormulations(term, PER_TERM)));
