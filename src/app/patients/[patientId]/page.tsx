@@ -56,7 +56,7 @@ export default async function PatientRecordPage({ params }: PageProps<"/patients
           <WarningAurora
             patientId={patientId}
             alert={view.warnings.length > 0}
-            className="-top-px h-60 [mask-image:linear-gradient(to_bottom,black_40%,transparent)] sm:-inset-x-6 sm:-top-12"
+            className="-top-px h-60 [mask-image:linear-gradient(to_bottom,black_40%,transparent)] sm:-inset-x-6 sm:-top-12 sm:[mask-composite:intersect] sm:[mask-image:linear-gradient(to_right,transparent,black_20%,black_80%,transparent),linear-gradient(to_bottom,black_40%,transparent)]"
           />
           <RecordHeader patient={patient} current="medicines" />
 
