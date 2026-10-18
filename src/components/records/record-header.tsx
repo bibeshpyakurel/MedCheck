@@ -14,7 +14,7 @@ const SECTIONS: { id: RecordSection; label: string; icon: LucideIcon; href: (bas
 /**
  * The top of every record screen: whose record it is, small, and the two tabs, Medicines and
  * Medicine report. `current` is the tab this screen belongs to (adding or reviewing a medicine is
- * part of Medicines).
+ * part of Medicines). On phones the tabs are the bottom bar instead (BottomBar).
  */
 export function RecordHeader({ patient, current }: { patient: Patient; current: RecordSection }) {
   const base = `/patients/${patient.id}`;
@@ -24,7 +24,7 @@ export function RecordHeader({ patient, current }: { patient: Patient; current: 
         <PersonAvatar name={patient.displayName} className="size-7 text-xs" />
         <span className="truncate">{patient.displayName}</span>
       </p>
-      <nav aria-label="Record">
+      <nav aria-label="Record" className="hidden sm:block">
         <ul className="grid grid-cols-2 gap-1 rounded-xl bg-muted p-1 ring-1 ring-border/60 ring-inset sm:min-w-[22rem]">
           {SECTIONS.map(({ id, label, icon: Icon, href }) => {
             const active = id === current;

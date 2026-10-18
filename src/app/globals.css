@@ -247,6 +247,13 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Room for the phone's bottom tab bar, so the footer and the last card clear it. */
+@media (width < 40rem) {
+  body:has([data-bottom-bar]) [data-app-shell] {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+  }
+}
+
 /* Tappable surfaces sink a little while pressed. */
 @utility press {
   transition-property: transform, background-color, border-color, box-shadow, color, opacity;

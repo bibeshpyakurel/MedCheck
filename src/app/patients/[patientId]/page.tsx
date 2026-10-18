@@ -56,7 +56,8 @@ export default async function PatientRecordPage({ params }: PageProps<"/patients
               {confirmed.length} {confirmed.length === 1 ? "medicine" : "medicines"} on file
             </p>
           </div>
-          <Button size="lg" className="h-12 w-full px-4 text-base sm:h-11 sm:w-auto" nativeButton={false} render={<Link href={`${base}/add`} />}>
+          {/* Phones add from the bottom bar. */}
+          <Button size="lg" className="hidden h-11 px-4 text-base sm:inline-flex" nativeButton={false} render={<Link href={`${base}/add`} />}>
             <PlusIcon aria-hidden /> Add a medicine
           </Button>
         </header>

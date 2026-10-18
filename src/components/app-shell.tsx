@@ -21,7 +21,7 @@ export async function AppShell({
 }) {
   const account = await getAccount();
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div data-app-shell className="flex min-h-dvh flex-col">
       <GuestLeaveGuard isGuest={account?.isGuest === true} />
       <header className="sticky top-0 z-30 border-b border-border/70 bg-background/92 pt-[env(safe-area-inset-top)] backdrop-blur-xl supports-[backdrop-filter]:bg-background/85">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
