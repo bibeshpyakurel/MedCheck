@@ -381,14 +381,15 @@ test.describe("medicine package photo", () => {
     await expect(confirm).not.toContainText(/\bsafe\b|bottle/i);
 
     // Other products are offered, not chosen, and each product once: the catalog's two TYLENOL Extra
-    // Strength gelcap rows are one choice.
+    // Strength gelcap rows are one choice. The chosen one, shown above, isn't listed again.
     await confirm.getByRole("button", { name: "Not this one?" }).click();
     const others = confirm.getByRole("radio", { name: /^TYLENOL Extra Strength, Acetaminophen 500 mg per / });
     await expect(others.first()).toBeVisible();
     await expect(others.first()).not.toBeChecked();
     await expect(confirm.getByRole("radio", { name: "TYLENOL Extra Strength, Acetaminophen 500 mg per gelcap" })).toHaveCount(1);
-    await expect(confirm.getByRole("radio", { checked: true })).toHaveCount(1);
-    expect(await confirm.getByRole("radio").count()).toBeLessThanOrEqual(6);
+    await expect(confirm.getByRole("radio", { name: /^Tylenol Extra Strength \(caplets\),/ })).toHaveCount(0);
+    await expect(confirm.getByRole("radio", { checked: true })).toHaveCount(0);
+    expect(await confirm.getByRole("radio").count()).toBeLessThanOrEqual(5);
 
     await confirm.getByRole("button", { name: "Continue" }).click();
     const card = page.getByRole("dialog", { name: "Tylenol Extra Strength (caplets)" });

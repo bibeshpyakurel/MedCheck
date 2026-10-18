@@ -6,7 +6,7 @@ import { CatalogSearchPanel } from "@/components/match/catalog-search-panel";
 import { OptionCard, OptionDetails } from "@/components/match/option-card";
 import { useCatalogSearch } from "@/components/match/use-catalog-search";
 import { Button } from "@/components/ui/button";
-import type { ChoiceState, MedicineChoice as Choice, PhotoMatchItem } from "@/lib/photo-answers";
+import { otherMatches, type ChoiceState, type MedicineChoice as Choice, type PhotoMatchItem } from "@/lib/photo-answers";
 import { cn } from "@/lib/utils";
 
 /** "Is this Tylenol Extra Strength?" with the brand in bold; or the question when nothing is chosen. */
@@ -85,6 +85,8 @@ export function MedicineChoice({
   }
 
   const chosenId = choice?.kind === "label" ? choice.option.id : null;
+  // The chosen one is shown above; "Not this one?" lists the rest.
+  const others = otherMatches(item.options, chosenId);
   const typed = search.query.trim();
 
   return (
@@ -115,7 +117,7 @@ export function MedicineChoice({
               ))}
             </fieldset>
           ) : (
-            item.options.length > 1 && (
+            others.length > 0 && (
               <>
                 <button
                   type="button"
@@ -129,8 +131,8 @@ export function MedicineChoice({
                 </button>
                 <fieldset id={`${id}-others`} hidden={!showOthers} className="space-y-2">
                   <legend className="sr-only">Other matches from the FDA list</legend>
-                  {item.options.map((o) => (
-                    <OptionCard key={o.id} option={o} name={group} checked={chosenId === o.id} onSelect={() => choose({ kind: "label", option: o })} />
+                  {others.map((o) => (
+                    <OptionCard key={o.id} option={o} name={group} checked={false} onSelect={() => choose({ kind: "label", option: o })} />
                   ))}
                 </fieldset>
               </>
