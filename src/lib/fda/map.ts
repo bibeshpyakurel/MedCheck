@@ -24,6 +24,7 @@ import { joinLabel, type JoinMethod, type NdcIndex } from "./join";
 import { equivalent, findAllPrinted, labelCount, labelVolume as labelVolumeOf, strengthIsTraceable, type Printed } from "./label-strength";
 import { max24hText } from "./max24h";
 import { activeIngredientText, fieldTexts, isPlaceholder, labelSections } from "./sections";
+import type { Json } from "@/lib/supabase/database.types";
 import type { SplSections } from "./spl";
 import { labelPers, parseNdcStrength, type NdcStrength } from "./strength";
 import { IMPORT_ROUTES, type FdaLabel, type NdcProduct } from "./types";
@@ -304,6 +305,28 @@ export function mapLabel(label: FdaLabel, index: NdcIndex, options: MapOptions =
     mapped.push({ result: build(ordered, form.form, group, slug, brand, sources), first: ordered[0]?.strength.amount ?? 0 });
   });
   return mapped.sort((a, b) => a.first - b.first).map((m) => m.result);
+}
+
+/**
+ * Card text for a hand-checked seed row, from its representative label (`openfda_set_id`): the columns to
+ * update, and only these — never strengths, slug, NDCs, brand name or reviewed_at. `max_24h_text` only when
+ * the row has none.
+ */
+export function reviewedEnrichment(
+  label: FdaLabel,
+  index: NdcIndex,
+  row: { ingredientNames: string[]; max24hText: string | null },
+  options: MapOptions = {},
+): { label_sections: Json; labeler_name: string | null; source_links: Json; max_24h_text?: string | null } {
+  const { products } = joinLabel(label, index);
+  const directions = parseDirections({ ...label, dosage_and_administration: fieldTexts(label, "dosage_and_administration") });
+  const enrichment: ReturnType<typeof reviewedEnrichment> = {
+    label_sections: labelSections(label, { spl: options.spl ?? null, ingredientNames: row.ingredientNames }) as unknown as Json,
+    labeler_name: (products[0]?.labeler_name ?? label.openfda?.manufacturer_name?.[0] ?? "").trim() || null,
+    source_links: label.set_id ? ([{ label: "FDA label (DailyMed)", url: dailyMedUrl(label.set_id) }] as unknown as Json) : ([] as unknown as Json),
+  };
+  if (row.max24hText === null) enrichment.max_24h_text = max24hText(directions);
+  return enrichment;
 }
 
 /** Whole-run gate: every stored strength is the label's printed amount for that ingredient. */

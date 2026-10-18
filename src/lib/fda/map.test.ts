@@ -4,7 +4,7 @@ import { ndc11FromHyphenated } from "@/lib/ndc";
 import { formulationToRow } from "@/lib/openfda";
 import { allFixtureNames, allFixtureProducts, fixtureLabel, fixtureProducts, type FixtureName } from "./__fixtures__";
 import { indexNdcProducts } from "./join";
-import { importLabels, mapLabel, otcSlug, plausibleStrength, type MapResult } from "./map";
+import { importLabels, mapLabel, otcSlug, plausibleStrength, reviewedEnrichment, type MapResult } from "./map";
 
 const index = indexNdcProducts(allFixtureProducts());
 const mapOne = (...args: Parameters<typeof mapLabel>): MapResult => mapLabel(...args)[0];
@@ -210,6 +210,23 @@ describe("mapLabel — verifier findings (full-catalog scan)", () => {
     expect(out.map((f) => formatStrength(f.activeIngredients[0].strength))).toEqual(["2 mg per lozenge", "4 mg per lozenge"]);
     const [a, b] = out.map((f) => new Set(f.ndcPackages));
     expect([...a].some((n) => b.has(n))).toBe(false);
+  });
+});
+
+describe("reviewedEnrichment — card text for a hand-checked row", () => {
+  it("fills only sections, labeler, sources and a missing 24-hour limit from the row's label", () => {
+    const label = fixtureLabel("tylenol-extra-strength-caplet");
+    const e = reviewedEnrichment(label, index, { ingredientNames: ["Acetaminophen"], max24hText: null });
+    expect(Object.keys(e).sort()).toEqual(["label_sections", "labeler_name", "max_24h_text", "source_links"]);
+    expect(e.labeler_name).toBe("Kenvue Brands LLC");
+    expect(e.source_links).toEqual([{ label: "FDA label (DailyMed)", url: `https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=${label.set_id}` }]);
+    expect((e.label_sections as Record<string, string[]>).uses?.length).toBeGreaterThan(0);
+    expect(e.max_24h_text).toBeTruthy();
+  });
+
+  it("keeps the row's own 24-hour limit", () => {
+    const e = reviewedEnrichment(fixtureLabel("tylenol-extra-strength-caplet"), index, { ingredientNames: ["Acetaminophen"], max24hText: "as checked" });
+    expect("max_24h_text" in e).toBe(false);
   });
 });
 

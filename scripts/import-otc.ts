@@ -10,6 +10,8 @@
 //                                              --dry-run it only prints what it would delete
 //          --with-spl                          cut bullets at DailyMed SPL XML list items (one request per
 //                                              label, ~200/min, cached); without it: text heuristics
+//          --enrich-reviewed                   fill label_sections, labeler_name, source_links (and a missing
+//                                              max_24h_text) on hand-checked rows from their label; nothing else
 //          --refresh                           re-download instead of using .cache/fda
 //
 // Downloads are untrusted data: cached under .cache/fda (gitignored), parsed only (JSON, XML).
@@ -20,13 +22,14 @@ import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { unzipSync } from "fflate";
 import { formatStrength } from "@/lib/domain/fields";
-import { indexNdcProducts } from "@/lib/fda/join";
-import { importLabels, REJECT_REASONS, type ImportResult } from "@/lib/fda/map";
+import type { Strength } from "@/lib/domain/schema";
+import { indexNdcProducts, withNdcOpenfda } from "@/lib/fda/join";
+import { importLabels, REJECT_REASONS, reviewedEnrichment, type ImportResult } from "@/lib/fda/map";
 import { ingredientSetKey, medlinePlusLinks, medlinePlusQueryUrl } from "@/lib/fda/medlineplus";
 import { planPrune, type CatalogRowRef } from "@/lib/fda/prune";
 import { labelSourceTexts } from "@/lib/fda/sections";
 import { parseSpl, splUrl, type SplSections } from "@/lib/fda/spl";
-import type { FdaLabel, NdcProduct } from "@/lib/fda/types";
+import { IMPORT_ROUTES, type FdaLabel, type NdcProduct } from "@/lib/fda/types";
 import { formulationToRow, type CatalogFormulation } from "@/lib/openfda";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -46,7 +49,9 @@ const refresh = args.has("--refresh");
 const withMedlinePlus = args.has("--with-medlineplus");
 const withSpl = args.has("--with-spl");
 const doPrune = args.has("--prune");
-const SPL_CONCURRENCY = 4;
+const doEnrichReviewed = args.has("--enrich-reviewed");
+const SPL_CONCURRENCY = 2;
+const SPL_DELAY_MS = 400; // ~2 workers × 2.5 req/s; DailyMed throttles bursts (429, Retry-After 60)
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const sha = (text: string) => createHash("sha256").update(text).digest("hex").slice(0, 16);
@@ -113,6 +118,79 @@ async function loadLabels(): Promise<FdaLabel[]> {
     console.warn(`! label pages: ${labels.length} results, ${unique} unique set ids, API total ${first.total}`);
   }
   return labels;
+}
+
+/** JSON from DailyMed, cached; waits out 429 Retry-After. Parse-only. */
+let dailyMedPausedUntil = 0;
+async function dailyMedJson(file: string, url: string): Promise<unknown> {
+  const cached = await readCached(file);
+  if (cached) return JSON.parse(cached.toString("utf8"));
+  for (let attempt = 1; attempt <= 8; attempt++) {
+    while (Date.now() < dailyMedPausedUntil) await sleep(dailyMedPausedUntil - Date.now());
+    const res = await fetch(url, { signal: AbortSignal.timeout(60_000) }).catch(() => null);
+    if (res?.ok) {
+      const text = await res.text();
+      const data = JSON.parse(text);
+      await mkdir(path.dirname(file), { recursive: true });
+      await writeFile(file, text);
+      await sleep(300);
+      return data;
+    }
+    const retryAfter = Number(res?.headers.get("retry-after")) || 30;
+    dailyMedPausedUntil = Date.now() + retryAfter * 1000;
+  }
+  throw new Error(`DailyMed ${url} kept failing`);
+}
+
+/**
+ * Labels the search can't find: current labels whose openFDA `openfda` block is empty (no product type
+ * or route to search on) — e.g. P&G's NyQuil and DayQuil liquids, Vicks VapoCOOL drops. Driven from the
+ * NDC Directory: each oral OTC product whose SPL has no fetched label is looked up on DailyMed by NDC
+ * (→ set id), and those labels are fetched from openFDA by set id, 50 per request. Cached.
+ */
+async function loadMissingLabels(labels: FdaLabel[], products: NdcProduct[]): Promise<{ added: FdaLabel[]; spls: number; lookups: number }> {
+  const haveIds = new Set(labels.map((l) => l.id));
+  const haveSets = new Set(labels.map((l) => l.set_id));
+  const routes = new Set<string>(IMPORT_ROUTES);
+  const bySpl = new Map<string, NdcProduct[]>();
+  for (const p of products) {
+    if (!p.spl_id || haveIds.has(p.spl_id) || p.finished === false || (p.dosage_form ?? "").toUpperCase() === "KIT") continue;
+    if (!(p.route ?? []).some((r) => routes.has(r))) continue;
+    if ((p.active_ingredients ?? []).some((i) => /\[(?:hp|kp)_/.test(i.strength ?? ""))) continue;
+    bySpl.set(p.spl_id, [...(bySpl.get(p.spl_id) ?? []), p]);
+  }
+  const productsBySet = new Map<string, NdcProduct[]>();
+  let lookups = 0;
+  for (const group of bySpl.values()) {
+    const ndc = group[0].product_ndc ?? "";
+    if (!/^\d{4,5}-\d{3,4}$/.test(ndc)) continue;
+    const url = `https://dailymed.nlm.nih.gov/dailymed/services/v2/spls.json?ndc=${ndc}`;
+    const data = (await dailyMedJson(path.join(CACHE, "dailymed-ndc", `${ndc}.json`), url).catch(() => null)) as {
+      data?: { setid?: unknown; title?: unknown }[];
+    } | null;
+    if (++lookups % 100 === 0) process.stdout.write(`\r  missing labels: DailyMed ${lookups}/${bySpl.size}`);
+    for (const d of data?.data ?? []) {
+      if (typeof d.setid !== "string" || !/^[0-9a-f-]{36}$/.test(d.setid) || /\bKIT\s*\[/i.test(String(d.title ?? ""))) continue;
+      productsBySet.set(d.setid, [...new Set([...(productsBySet.get(d.setid) ?? []), ...group])]);
+    }
+  }
+  process.stdout.write("\n");
+  const setIds = [...productsBySet.keys()].filter((s) => !haveSets.has(s)).sort();
+  const added: FdaLabel[] = [];
+  for (let i = 0; i < setIds.length; i += 50) {
+    const batch = setIds.slice(i, i + 50);
+    const search = `set_id:(${batch.map((s) => `"${s}"`).join(" OR ")})`;
+    const url = `${LABEL_ENDPOINT}?${new URLSearchParams({ search, limit: "100" })}`;
+    const file = path.join(CACHE, "labels-by-set", `${sha(search)}.json`);
+    const { data, fetched } = await cachedJson(file, url).catch(() => ({ data: { results: [] } as unknown, fetched: false }));
+    if (fetched) await sleep(500);
+    for (const label of ((data as LabelPage).results as FdaLabel[] | undefined) ?? []) {
+      if (!label.set_id || haveSets.has(label.set_id)) continue;
+      haveSets.add(label.set_id);
+      added.push(withNdcOpenfda(label, productsBySet.get(label.set_id) ?? []));
+    }
+  }
+  return { added, spls: bySpl.size, lookups };
 }
 
 /** Only the NDC Directory fields the mapper reads, for HUMAN OTC DRUG products. */
@@ -197,26 +275,35 @@ async function loadSpl(setIds: string[]): Promise<{ spl: Map<string, SplSections
   let failed = 0;
   let done = 0;
   const queue = [...setIds];
+  // DailyMed answers 429 with Retry-After (60 s): every worker waits it out, then the same document is retried.
+  let pausedUntil = 0;
   const worker = async () => {
     for (let setId = queue.shift(); setId; setId = queue.shift()) {
       const file = path.join(CACHE, "spl", `${setId}.xml`);
       const marker = path.join(CACHE, "spl", `${setId}.missing`);
       let xml = (await readCached(file))?.toString("utf8") ?? null;
       let notFound = !xml && (await readCached(marker)) !== null;
-      for (let attempt = 1; !xml && !notFound && attempt <= 4; attempt++) {
+      for (let attempt = 1; !xml && !notFound && attempt <= 8; attempt++) {
+        while (Date.now() < pausedUntil) await sleep(pausedUntil - Date.now());
         const res = await fetch(splUrl(setId), { signal: AbortSignal.timeout(60_000) }).catch(() => null);
         if (res?.ok) {
-          xml = await res.text();
-          await mkdir(path.dirname(file), { recursive: true });
-          await writeFile(file, xml);
+          const body = await res.text();
+          if (body.includes("<document")) {
+            xml = body;
+            await mkdir(path.dirname(file), { recursive: true });
+            await writeFile(file, xml);
+          }
         } else if (res?.status === 404) {
           notFound = true;
           await mkdir(path.dirname(marker), { recursive: true });
           await writeFile(marker, "");
         } else {
-          await sleep(attempt * 5_000); // throttled or unreachable: back off
+          const retryAfter = Number(res?.headers.get("retry-after")) || 30;
+          pausedUntil = Math.max(pausedUntil, Date.now() + retryAfter * 1000);
+          if (res?.status === 429) attempt--; // throttling isn't a failure of this document
+          process.stdout.write(`\n  SPL XML: ${res ? `HTTP ${res.status}` : "network error"}, pausing ${retryAfter}s\n`);
         }
-        await sleep(150);
+        await sleep(SPL_DELAY_MS);
       }
       const parsed = xml ? parseSpl(xml) : null;
       if (parsed?.setId === setId) spl.set(setId, parsed);
@@ -310,7 +397,16 @@ const SAMPLES: [string, (r: CatalogFormulation) => boolean][] = [
 
 /** Rows the verifiers flagged; the report shows what each is now. */
 const FLAGGED = [
+  // first verification round
   "cf0987a3", "d0eff659", "e696038c", "4f7125aa", "04a78a5c", "581f81a0", "a39c772b", "90b5c3d8", "12a38e29", "ae63fe31",
+  // A: several strengths on one label
+  "89f60eb1", "529cef2d", "fdee1637", "7b70162e", "a3ca2479", "b2f4506b", "ebab2c3a", "04e70311", "abc0e348", "b5ce28f8",
+  "31e71ee7", "34918a5a", "c23ad304", "d6120f56", "51ec068b", "9fb0c938", "ad9026f4", "73122009",
+  // B–E, G: scale, per-dose, emulsion, typo, Reye's
+  "029e6215", "04f9134e", "39ad6cc9", "805dc611", "82f447f6", "6ae6a0cb", "d353b75f", "478f104a", "5045b945", "c6db9af2",
+  "19118884", "a70f113d", "dff79e0b", "033bccc6",
+  // I: labels with no openfda block; K, M; joined bullets (Advil PM, Tylenol PM, Motrin IB)
+  "efe4e649", "1d5e9cd9", "fc9a6f7e", "efb982d4", "1d5fee81", "354906d1", "8be45c2a", "f061d6b1", "405afdb4", "ce58105b", "d21129f8",
 ];
 const ADVIL = "1a665e64-9f30-be37-4a83-38789f1f1e89";
 
@@ -375,13 +471,22 @@ async function report(labels: FdaLabel[], products: number, exportDate: string, 
   console.log(`rows with a dosing table: ${rows.filter((r) => r.dosageTableHtml).length}; with a 24-h limit: ${rows.filter((r) => r.max24hText).length}`);
   console.log(`rows with a MedlinePlus link: ${rows.filter((r) => r.sourceLinks.some((l) => l.label.startsWith("MedlinePlus"))).length}`);
 
-  console.log("flagged rows now:");
-  for (const prefix of FLAGGED) {
-    const setId = labels.find((l) => l.set_id?.startsWith(prefix))?.set_id ?? prefix;
-    const status = result.status.get(setId) ?? "not in this run";
-    const row = rows.find((r) => r.openfdaSetId === setId);
-    const strengths = row ? row.activeIngredients.map((i) => `${i.name} ${formatStrength(i.strength)}`).join(" + ") : "";
-    console.log(`  otc-${setId}: ${status === "row" ? `row — ${strengths}` : `rejected: ${status}`}`);
+  console.log("flagged labels — live now → this run:");
+  const flaggedSets = FLAGGED.map((prefix) => labels.find((l) => l.set_id?.startsWith(prefix))?.set_id ?? prefix);
+  const liveClient = supabase(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
+  const liveRows = liveClient
+    ? ((await liveClient.from("formulations").select("slug, openfda_set_id, active_ingredients, ndc_packages").in("openfda_set_id", flaggedSets)).data ?? [])
+    : [];
+  const fmt = (ings: { name: string; strength: Strength }[]) => ings.map((i) => `${i.name} ${formatStrength(i.strength)}`).join(" + ");
+  for (const setId of flaggedSets) {
+    const before = liveRows.filter((r) => r.openfda_set_id === setId);
+    const now = rows.filter((r) => r.openfdaSetId === setId);
+    const status = result.status.get(setId) ?? "label not fetched";
+    console.log(`  ${setId}`);
+    console.log(
+      `    live: ${before.length ? before.map((r) => `${r.slug.replace(setId, "…")} ${fmt(r.active_ingredients as unknown as { name: string; strength: Strength }[])} [${r.ndc_packages.length} NDCs]`).join(" | ") : "no row"}`,
+    );
+    console.log(`    now:  ${now.length ? now.map((r) => `${r.slug.replace(setId, "…")} ${r.brandName}: ${fmt(r.activeIngredients)} [${r.ndcPackages.length} NDCs]`).join(" | ") : `no row (${status})`}`);
   }
 
   console.log("sample rows:");
@@ -407,25 +512,83 @@ async function report(labels: FdaLabel[], products: number, exportDate: string, 
   console.log(`estimated JSON size of rows: ${(bytes / 1e6).toFixed(1)} MB (${Math.round(bytes / Math.max(1, rows.length))} bytes/row)`);
 }
 
+/**
+ * Hand-checked seed rows get the card text the import gives every other row, from the label the seed took
+ * them from (`openfda_set_id`). Only label_sections, labeler_name, source_links and a missing max_24h_text
+ * change; strengths, slug, NDCs, brand name and reviewed_at are never touched. Fictional rows are skipped.
+ */
+async function enrichReviewed(labels: FdaLabel[], index: ReturnType<typeof indexNdcProducts>, spl: Map<string, SplSections> | undefined) {
+  const client = supabase(dryRun ? process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY : process.env.SUPABASE_SECRET_KEY);
+  if (!client) throw new Error("--enrich-reviewed needs Supabase env (.env.local)");
+  const { data, error } = await client
+    .from("formulations")
+    .select("id, slug, openfda_set_id, is_fictional, active_ingredients, dosage_form, max_24h_text")
+    .not("reviewed_at", "is", null)
+    .order("slug");
+  if (error) throw error;
+  const bySet = new Map(labels.map((l) => [l.set_id, l]));
+  console.log(`enrich reviewed rows${dryRun ? " (dry run: nothing written)" : ""}:`);
+  for (const row of data) {
+    if (row.is_fictional || !row.openfda_set_id) {
+      console.log(`  ${row.slug}: skipped (${row.is_fictional ? "fictional" : "no label"})`);
+      continue;
+    }
+    let label = bySet.get(row.openfda_set_id);
+    if (!label) {
+      const search = `set_id:"${row.openfda_set_id}"`;
+      const { data: page } = await cachedJson(path.join(CACHE, "labels-by-set", `${sha(search)}.json`), `${LABEL_ENDPOINT}?${new URLSearchParams({ search, limit: "1" })}`).catch(
+        () => ({ data: { results: [] } as unknown }),
+      );
+      label = (((page as LabelPage).results as FdaLabel[] | undefined) ?? [])[0];
+    }
+    if (!label) {
+      console.log(`  ${row.slug}: label ${row.openfda_set_id} not found on openFDA — unchanged`);
+      continue;
+    }
+    const ingredients = row.active_ingredients as unknown as CatalogFormulation["activeIngredients"];
+    const update = reviewedEnrichment(label, index, { ingredientNames: ingredients.map((i) => i.name), max24hText: row.max_24h_text }, { spl: spl?.get(row.openfda_set_id) });
+    if (withMedlinePlus) {
+      const probe = { activeIngredients: ingredients, dosageForm: row.dosage_form, openfdaSetId: row.openfda_set_id, sourceLinks: update.source_links } as unknown as CatalogFormulation;
+      await addMedlinePlus([probe], [label]);
+      update.source_links = probe.sourceLinks as unknown as typeof update.source_links;
+    }
+    const sections = update.label_sections as Record<string, string[]>;
+    const links = update.source_links as unknown as { label: string }[];
+    console.log(
+      `  ${row.slug}: ${Object.keys(sections).length} sections (${Object.values(sections).flat().length} bullets) | labeler ${update.labeler_name} | sources: ${links.map((l) => l.label).join(", ")}${"max_24h_text" in update ? ` | 24-h: ${update.max_24h_text}` : ""}`,
+    );
+    if (!dryRun) {
+      const { error: e } = await client.from("formulations").update(update).eq("id", row.id).not("reviewed_at", "is", null);
+      if (e) throw new Error(`enrich ${row.slug}: ${e.message}`);
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------
 
 async function main() {
   console.log("Loading FDA data (cache: .cache/fda)…");
   const labels = await loadLabels();
   const { products, exportDate } = await loadNdcProducts();
+  const missing = await loadMissingLabels(labels, products);
+  labels.push(...missing.added);
+  console.log(`  labels added from the NDC Directory (empty openfda block): ${missing.added.length} (from ${missing.spls} unmatched SPLs, ${missing.lookups} DailyMed lookups)`);
   const reviewed = await reviewedNdcs();
   const index = indexNdcProducts(products);
 
   let splStats = "not used (pass --with-spl)";
+  let splMap: Map<string, SplSections> | undefined;
   let result = importLabels(labels, index, reviewed);
   if (withSpl) {
     // Fetch SPL XML only for labels that become rows (or would, but for a reviewed row), then map again.
     const candidates = [...result.rows, ...result.skippedForReviewed].map((r) => r.openfdaSetId!).filter(Boolean);
     const { spl, missing, failed } = await loadSpl(candidates);
+    splMap = spl;
     splStats = `${spl.size} of ${candidates.length} candidate labels have a matching SPL document; ${missing} not on DailyMed, ${failed} failed (text heuristics used for those)`;
     result = importLabels(labels, index, reviewed, { spl });
   }
   if (withMedlinePlus) await addMedlinePlus(result.rows, labels);
+  if (doEnrichReviewed) await enrichReviewed(labels, index, withSpl ? splMap : undefined);
   else console.log("  MedlinePlus links: skipped (pass --with-medlineplus)");
   await report(labels, products.length, exportDate, result, splStats);
 
