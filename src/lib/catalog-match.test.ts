@@ -264,4 +264,14 @@ describe("searchTermsFor", () => {
   it("is empty for an unreadable read", () => {
     expect(searchTermsFor(read(null, null, []))).toEqual([]);
   });
+  it("adds the brand alone, without strength, marketing or form words, right after the read", () => {
+    expect(searchTermsFor(read("Rolaids Extra Strength", null, []))).toEqual(["Rolaids Extra Strength", "Rolaids"]);
+    expect(searchTermsFor(read("Zantac 360 Maximum Strength", null, []))).toEqual(["Zantac 360 Maximum Strength", "Zantac 360"]);
+    expect(searchTermsFor(read("Pepcid AC 10 mg Original Strength", null, []))).toEqual(["Pepcid AC 10 mg Original Strength", "Pepcid AC"]);
+    expect(searchTermsFor(read("Advil Liqui-Gels", null, []))).toEqual(["Advil Liqui-Gels", "Advil"]);
+  });
+  it("adds no brand-only term when nothing is left or nothing changes", () => {
+    expect(searchTermsFor(read("Extra Strength", null, []))).toEqual(["Extra Strength"]);
+    expect(searchTermsFor(read("Claritin", null, []))).toEqual(["Claritin"]);
+  });
 });

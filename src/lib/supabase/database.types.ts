@@ -393,7 +393,12 @@ export type Database = {
     }
     Functions: {
       formulation_search_text: {
-        Args: { brand_name: string; dosage_form: string; generic_name: string }
+        Args: {
+          brand_name: string
+          dosage_form: string
+          generic_name: string
+          labeler_name: string
+        }
         Returns: string
       }
       search_formulations: {
