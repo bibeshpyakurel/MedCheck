@@ -1,0 +1,1662 @@
+{
+  "_about": "openFDA names for US oral/sublingual/buccal OTC active ingredients, used by ingredients.test.ts. ndcActiveIngredientCounts: drug/ndc.json?search=product_type:\"HUMAN OTC DRUG\" AND route:\"<ROUTE>\" AND NOT marketing_category:\"UNAPPROVED HOMEOPATHIC\"&count=active_ingredients.name.exact&limit=1000. labelSpellings: \"<name as printed> <amount> <unit>\" read from drug/label.json active_ingredient text (up to 100 OTC labels per substance_name, top 140 oral names), one example per distinct spelling.",
+  "openfdaLastUpdated": "2026-10-16",
+  "ndcActiveIngredientCounts": {
+    "ORAL": [
+      {
+        "term": "ACETAMINOPHEN",
+        "count": 2901
+      },
+      {
+        "term": "DEXTROMETHORPHAN HYDROBROMIDE",
+        "count": 1929
+      },
+      {
+        "term": "GUAIFENESIN",
+        "count": 1438
+      },
+      {
+        "term": "PHENYLEPHRINE HYDROCHLORIDE",
+        "count": 1205
+      },
+      {
+        "term": "IBUPROFEN",
+        "count": 979
+      },
+      {
+        "term": "DIPHENHYDRAMINE HYDROCHLORIDE",
+        "count": 906
+      },
+      {
+        "term": "ASPIRIN",
+        "count": 703
+      },
+      {
+        "term": "CALCIUM CARBONATE",
+        "count": 673
+      },
+      {
+        "term": "MENTHOL",
+        "count": 606
+      },
+      {
+        "term": "NICOTINE",
+        "count": 549
+      },
+      {
+        "term": "DOXYLAMINE SUCCINATE",
+        "count": 441
+      },
+      {
+        "term": "CETIRIZINE HYDROCHLORIDE",
+        "count": 421
+      },
+      {
+        "term": "LORATADINE",
+        "count": 415
+      },
+      {
+        "term": "DIMETHICONE",
+        "count": 373
+      },
+      {
+        "term": "CAFFEINE",
+        "count": 356
+      },
+      {
+        "term": "DOCUSATE SODIUM",
+        "count": 323
+      },
+      {
+        "term": "SODIUM FLUORIDE",
+        "count": 308
+      },
+      {
+        "term": "MAGNESIUM HYDROXIDE",
+        "count": 297
+      },
+      {
+        "term": "NAPROXEN SODIUM",
+        "count": 281
+      },
+      {
+        "term": "CHLORPHENIRAMINE MALEATE",
+        "count": 272
+      },
+      {
+        "term": "PSEUDOEPHEDRINE HYDROCHLORIDE",
+        "count": 271
+      },
+      {
+        "term": "BISMUTH SUBSALICYLATE",
+        "count": 246
+      },
+      {
+        "term": "SENNOSIDES",
+        "count": 246
+      },
+      {
+        "term": "FEXOFENADINE HYDROCHLORIDE",
+        "count": 244
+      },
+      {
+        "term": "FAMOTIDINE",
+        "count": 214
+      },
+      {
+        "term": "LOPERAMIDE HYDROCHLORIDE",
+        "count": 196
+      },
+      {
+        "term": "BENZOCAINE",
+        "count": 146
+      },
+      {
+        "term": "EUCALYPTOL",
+        "count": 138
+      },
+      {
+        "term": "METHYL SALICYLATE",
+        "count": 138
+      },
+      {
+        "term": "THYMOL",
+        "count": 138
+      },
+      {
+        "term": "ALUMINUM HYDROXIDE",
+        "count": 136
+      },
+      {
+        "term": "OMEPRAZOLE",
+        "count": 119
+      },
+      {
+        "term": "SODIUM BICARBONATE",
+        "count": 104
+      },
+      {
+        "term": "POLYETHYLENE GLYCOL 3350",
+        "count": 103
+      },
+      {
+        "term": "BISACODYL",
+        "count": 94
+      },
+      {
+        "term": "DIMETHICONE, UNSPECIFIED",
+        "count": 88
+      },
+      {
+        "term": "MECLIZINE HYDROCHLORIDE",
+        "count": 88
+      },
+      {
+        "term": "PYRILAMINE MALEATE",
+        "count": 88
+      },
+      {
+        "term": "MAGNESIUM CITRATE",
+        "count": 81
+      },
+      {
+        "term": "CETYLPYRIDINIUM CHLORIDE",
+        "count": 75
+      },
+      {
+        "term": "OMEPRAZOLE MAGNESIUM",
+        "count": 74
+      },
+      {
+        "term": "PHENAZOPYRIDINE HYDROCHLORIDE",
+        "count": 67
+      },
+      {
+        "term": "MENTHOL, UNSPECIFIED FORM",
+        "count": 63
+      },
+      {
+        "term": "LEVONORGESTREL",
+        "count": 59
+      },
+      {
+        "term": "BROMPHENIRAMINE MALEATE",
+        "count": 57
+      },
+      {
+        "term": "ESOMEPRAZOLE MAGNESIUM",
+        "count": 55
+      },
+      {
+        "term": "PECTIN",
+        "count": 52
+      },
+      {
+        "term": "PSEUDOEPHEDRINE SULFATE",
+        "count": 49
+      },
+      {
+        "term": "DIPHENHYDRAMINE CITRATE",
+        "count": 46
+      },
+      {
+        "term": "PHENOL",
+        "count": 44
+      },
+      {
+        "term": "LANSOPRAZOLE",
+        "count": 41
+      },
+      {
+        "term": "LEVOCETIRIZINE DIHYDROCHLORIDE",
+        "count": 40
+      },
+      {
+        "term": "PHENYLEPHRINE BITARTRATE",
+        "count": 39
+      },
+      {
+        "term": "POTASSIUM NITRATE",
+        "count": 39
+      },
+      {
+        "term": "PSYLLIUM HUSK",
+        "count": 39
+      },
+      {
+        "term": "TRIPROLIDINE HYDROCHLORIDE",
+        "count": 38
+      },
+      {
+        "term": "ANHYDROUS CITRIC ACID",
+        "count": 36
+      },
+      {
+        "term": "ESOMEPRAZOLE",
+        "count": 36
+      },
+      {
+        "term": "MAGNESIUM SULFATE HEPTAHYDRATE",
+        "count": 36
+      },
+      {
+        "term": "CALCIUM POLYCARBOPHIL",
+        "count": 35
+      },
+      {
+        "term": "MAGNESIUM CARBONATE",
+        "count": 35
+      },
+      {
+        "term": "DIMENHYDRINATE",
+        "count": 33
+      },
+      {
+        "term": "STANNOUS FLUORIDE",
+        "count": 33
+      },
+      {
+        "term": "MINERAL OIL",
+        "count": 32
+      },
+      {
+        "term": "CASTOR OIL",
+        "count": 29
+      },
+      {
+        "term": "SENNOSIDES A AND B",
+        "count": 28
+      },
+      {
+        "term": "ESOMEPRAZOLE MAGNESIUM DIHYDRATE",
+        "count": 27
+      },
+      {
+        "term": "PAMABROM",
+        "count": 27
+      },
+      {
+        "term": "SODIUM MONOFLUOROPHOSPHATE",
+        "count": 26
+      },
+      {
+        "term": "ZINC CHLORIDE",
+        "count": 26
+      },
+      {
+        "term": "DEXBROMPHENIRAMINE MALEATE",
+        "count": 22
+      },
+      {
+        "term": "MAGNESIUM OXIDE",
+        "count": 21
+      },
+      {
+        "term": "LEVOMENTHOL",
+        "count": 20
+      },
+      {
+        "term": "METHENAMINE",
+        "count": 20
+      },
+      {
+        "term": "SODIUM SALICYLATE",
+        "count": 20
+      },
+      {
+        "term": "DEXTROMETHORPHAN",
+        "count": 18
+      },
+      {
+        "term": "HYDROGEN PEROXIDE",
+        "count": 18
+      },
+      {
+        "term": "MAGNESIUM SULFATE, UNSPECIFIED",
+        "count": 18
+      },
+      {
+        "term": "METHYLCELLULOSE (4000 MPA.S)",
+        "count": 18
+      },
+      {
+        "term": "PHOSPHORIC ACID",
+        "count": 18
+      },
+      {
+        "term": "PYRANTEL PAMOATE",
+        "count": 18
+      },
+      {
+        "term": "SILICON DIOXIDE",
+        "count": 18
+      },
+      {
+        "term": "FRUCTOSE",
+        "count": 17
+      },
+      {
+        "term": "CITRIC ACID MONOHYDRATE",
+        "count": 16
+      },
+      {
+        "term": "BENZALKONIUM CHLORIDE",
+        "count": 15
+      },
+      {
+        "term": "DEXTROSE, UNSPECIFIED FORM",
+        "count": 15
+      },
+      {
+        "term": "LEVOTHYROXINE",
+        "count": 15
+      },
+      {
+        "term": "LIOTHYRONINE",
+        "count": 15
+      },
+      {
+        "term": "CODEINE PHOSPHATE",
+        "count": 14
+      },
+      {
+        "term": "SODIUM CHLORIDE",
+        "count": 14
+      },
+      {
+        "term": ".ALPHA.-TOCOPHEROL ACETATE",
+        "count": 13
+      },
+      {
+        "term": "CHLOPHEDIANOL HYDROCHLORIDE",
+        "count": 11
+      },
+      {
+        "term": "DIPHENHYDRAMINE HCL",
+        "count": 11
+      },
+      {
+        "term": "CIMETIDINE",
+        "count": 10
+      },
+      {
+        "term": "GLYCERIN",
+        "count": 10
+      },
+      {
+        "term": "AMINO ACIDS",
+        "count": 9
+      },
+      {
+        "term": "BARLEY MALT",
+        "count": 9
+      },
+      {
+        "term": "GINGER",
+        "count": 9
+      },
+      {
+        "term": "TRISODIUM CITRATE DIHYDRATE",
+        "count": 9
+      },
+      {
+        "term": "DIPHENHYDRAMINE",
+        "count": 8
+      },
+      {
+        "term": "MAGNESIUM SALICYLATE",
+        "count": 7
+      },
+      {
+        "term": "ESOMEPRAZOLE MAGNESIUM TRIHYDRATE",
+        "count": 6
+      },
+      {
+        "term": "ACTIVATED CHARCOAL",
+        "count": 5
+      },
+      {
+        "term": "CALCIUM",
+        "count": 5
+      },
+      {
+        "term": "DEXCHLORPHENIRAMINE MALEATE",
+        "count": 5
+      },
+      {
+        "term": "DOCUSATE CALCIUM",
+        "count": 5
+      },
+      {
+        "term": "FORSYTHIA SUSPENSA FRUIT",
+        "count": 5
+      },
+      {
+        "term": "HEXYLRESORCINOL",
+        "count": 5
+      },
+      {
+        "term": "POTASSIUM IODIDE",
+        "count": 5
+      },
+      {
+        "term": "RANITIDINE HYDROCHLORIDE",
+        "count": 5
+      },
+      {
+        "term": "ARSENIC TRIOXIDE",
+        "count": 4
+      },
+      {
+        "term": "BANANA",
+        "count": 4
+      },
+      {
+        "term": "CHICKEN BONE",
+        "count": 4
+      },
+      {
+        "term": "CINNAMON",
+        "count": 4
+      },
+      {
+        "term": "GINKGO BILOBA LEAF",
+        "count": 4
+      },
+      {
+        "term": "LICORICE",
+        "count": 4
+      },
+      {
+        "term": "LONICERA HYPOGLAUCA FLOWER",
+        "count": 4
+      },
+      {
+        "term": "NORGESTREL",
+        "count": 4
+      },
+      {
+        "term": "PAEONIA LACTIFLORA ROOT",
+        "count": 4
+      },
+      {
+        "term": "PHENYLEPHRINE",
+        "count": 4
+      },
+      {
+        "term": "PHOSPHATIDYL SERINE",
+        "count": 4
+      },
+      {
+        "term": "SODIUM PERBORATE MONOHYDRATE",
+        "count": 4
+      },
+      {
+        "term": "SODIUM PYROPHOSPHATE",
+        "count": 4
+      },
+      {
+        "term": "TURMERIC",
+        "count": 4
+      },
+      {
+        "term": "ASCORBIC ACID",
+        "count": 3
+      },
+      {
+        "term": "BICARBONATE ION",
+        "count": 3
+      },
+      {
+        "term": "CHOLINE SALICYLATE",
+        "count": 3
+      },
+      {
+        "term": "DYCLONINE HYDROCHLORIDE",
+        "count": 3
+      },
+      {
+        "term": "EPHEDRINE SULFATE",
+        "count": 3
+      },
+      {
+        "term": "GLUCOSAMINE SULFATE POTASSIUM CHLORIDE",
+        "count": 3
+      },
+      {
+        "term": "HYDRATED SILICA",
+        "count": 3
+      },
+      {
+        "term": "IBUPROFEN SODIUM",
+        "count": 3
+      },
+      {
+        "term": "JUJUBE FRUIT",
+        "count": 3
+      },
+      {
+        "term": "LYCOPODIUM CLAVATUM SPORE",
+        "count": 3
+      },
+      {
+        "term": "NATTOKINASE",
+        "count": 3
+      },
+      {
+        "term": "OXYGEN",
+        "count": 3
+      },
+      {
+        "term": "PANAX GINSENG ROOT OIL",
+        "count": 3
+      },
+      {
+        "term": "REISHI",
+        "count": 3
+      },
+      {
+        "term": "RUTIN",
+        "count": 3
+      },
+      {
+        "term": ".ALPHA.-TOCOPHEROL",
+        "count": 2
+      },
+      {
+        "term": "AGRIMONIA EUPATORIA",
+        "count": 2
+      },
+      {
+        "term": "ALLANTOIN",
+        "count": 2
+      },
+      {
+        "term": "ARNICA MONTANA WHOLE",
+        "count": 2
+      },
+      {
+        "term": "BETA CAROTENE",
+        "count": 2
+      },
+      {
+        "term": "BISMUTH SUBGALLATE",
+        "count": 2
+      },
+      {
+        "term": "CHONDROITIN SULFATE (BOVINE)",
+        "count": 2
+      },
+      {
+        "term": "DEXTROSE",
+        "count": 2
+      },
+      {
+        "term": "EGG SHELL MEMBRANE",
+        "count": 2
+      },
+      {
+        "term": "EPHEDRINE HYDROCHLORIDE",
+        "count": 2
+      },
+      {
+        "term": "FERROUS SULFATE",
+        "count": 2
+      },
+      {
+        "term": "FU LING",
+        "count": 2
+      },
+      {
+        "term": "GOLDENSEAL",
+        "count": 2
+      },
+      {
+        "term": "HIPPOPHAE RHAMNOIDES WHOLE",
+        "count": 2
+      },
+      {
+        "term": "HOUTTUYNIA CORDATA TOP",
+        "count": 2
+      },
+      {
+        "term": "INULIN",
+        "count": 2
+      },
+      {
+        "term": "LAMINARIA JAPONICA",
+        "count": 2
+      },
+      {
+        "term": "LEPIDIUM MEYENII ROOT",
+        "count": 2
+      },
+      {
+        "term": "LIRIOPE SPICATA TUBER",
+        "count": 2
+      },
+      {
+        "term": "LONICERA CAPRIFOLIUM FLOWER",
+        "count": 2
+      },
+      {
+        "term": "MAGNESIUM",
+        "count": 2
+      },
+      {
+        "term": "MAGNESIUM SULFATE, UNSPECIFIED FORM",
+        "count": 2
+      },
+      {
+        "term": "MANGIFERA INDICA LEAF",
+        "count": 2
+      },
+      {
+        "term": "MARITIME PINE",
+        "count": 2
+      },
+      {
+        "term": "MATRICARIA CHAMOMILLA WHOLE",
+        "count": 2
+      },
+      {
+        "term": "METHYLCELLULOSE (4000 CPS)",
+        "count": 2
+      },
+      {
+        "term": "MORUS ALBA LEAF",
+        "count": 2
+      },
+      {
+        "term": "NUTMEG",
+        "count": 2
+      },
+      {
+        "term": "OPHIOPOGON JAPONICUS WHOLE",
+        "count": 2
+      },
+      {
+        "term": "ORLISTAT",
+        "count": 2
+      },
+      {
+        "term": "PHENIRAMINE MALEATE",
+        "count": 2
+      },
+      {
+        "term": "PHOSPHORUS",
+        "count": 2
+      },
+      {
+        "term": "POTASSIUM",
+        "count": 2
+      },
+      {
+        "term": "POVIDONE-IODINE",
+        "count": 2
+      },
+      {
+        "term": "REHMANNIA GLUTINOSA ROOT",
+        "count": 2
+      },
+      {
+        "term": "SCHISANDRA CHINENSIS SEED",
+        "count": 2
+      },
+      {
+        "term": "SCUTELLARIA BAICALENSIS ROOT",
+        "count": 2
+      },
+      {
+        "term": "SILODRATE",
+        "count": 2
+      },
+      {
+        "term": "STRYCHNOS IGNATII SEED",
+        "count": 2
+      },
+      {
+        "term": "STRYCHNOS NUX-VOMICA SEED",
+        "count": 2
+      },
+      {
+        "term": "YEAST",
+        "count": 2
+      },
+      {
+        "term": "ZINC",
+        "count": 2
+      },
+      {
+        "term": "ZINC OXIDE",
+        "count": 2
+      },
+      {
+        "term": ".BETA.-SITOSTEROL",
+        "count": 1
+      },
+      {
+        "term": "3500 MW)",
+        "count": 1
+      },
+      {
+        "term": "ACONITUM NAPELLUS",
+        "count": 1
+      },
+      {
+        "term": "AKEBIA STEM",
+        "count": 1
+      },
+      {
+        "term": "ALISMA PLANTAGO-AQUATICA ROOT",
+        "count": 1
+      },
+      {
+        "term": "ALLICIN",
+        "count": 1
+      },
+      {
+        "term": "ALLIUM SATIVUM WHOLE",
+        "count": 1
+      },
+      {
+        "term": "ALUMINUM CHLORIDE",
+        "count": 1
+      },
+      {
+        "term": "ALUMINUM PHOSPHATE",
+        "count": 1
+      },
+      {
+        "term": "ANGELICA GIGAS ROOT",
+        "count": 1
+      },
+      {
+        "term": "ANOECTOCHILUS ROXBURGHII WHOLE",
+        "count": 1
+      },
+      {
+        "term": "ARABICA COFFEE BEAN",
+        "count": 1
+      },
+      {
+        "term": "ASIAN GINSENG",
+        "count": 1
+      },
+      {
+        "term": "ASTRAGALUS GUMMIFER ROOT",
+        "count": 1
+      },
+      {
+        "term": "ATRACTYLODES MACROCEPHALA ROOT",
+        "count": 1
+      },
+      {
+        "term": "AVENA SATIVA FLOWERING TOP",
+        "count": 1
+      },
+      {
+        "term": "BABESIA MICROTI",
+        "count": 1
+      },
+      {
+        "term": "BAPTISIA TINCTORIA ROOT",
+        "count": 1
+      },
+      {
+        "term": "BIOTIN",
+        "count": 1
+      },
+      {
+        "term": "BISMUTH",
+        "count": 1
+      },
+      {
+        "term": "BLACK PEPPER",
+        "count": 1
+      },
+      {
+        "term": "BORRELIA BURGDORFERI",
+        "count": 1
+      },
+      {
+        "term": "BRYONIA ALBA ROOT",
+        "count": 1
+      },
+      {
+        "term": "CAIRINA MOSCHATA HEART/LIVER AUTOLYSATE",
+        "count": 1
+      },
+      {
+        "term": "CALCIUM CATION",
+        "count": 1
+      },
+      {
+        "term": "CALCIUM SULFIDE",
+        "count": 1
+      },
+      {
+        "term": "CARBAMIDE PEROXIDE",
+        "count": 1
+      },
+      {
+        "term": "CARICA PAPAYA WHOLE",
+        "count": 1
+      },
+      {
+        "term": "CENTELLA ASIATICA TRITERPENOIDS",
+        "count": 1
+      },
+      {
+        "term": "CHELIDONIUM MAJUS WHOLE",
+        "count": 1
+      },
+      {
+        "term": "CHINESE CINNAMON",
+        "count": 1
+      },
+      {
+        "term": "CHLORCYCLIZINE HYDROCHLORIDE",
+        "count": 1
+      },
+      {
+        "term": "CHLORHEXIDINE DIGLUCONATE",
+        "count": 1
+      },
+      {
+        "term": "COLCHICUM AUTUMNALE BULB",
+        "count": 1
+      },
+      {
+        "term": "COPTIS JAPONICA ROOT",
+        "count": 1
+      },
+      {
+        "term": "CURCUMA AROMATICA ROOT",
+        "count": 1
+      },
+      {
+        "term": "DEACETYLBISACODYL",
+        "count": 1
+      },
+      {
+        "term": "DEXTROMETHORPHAN HYDROCHLORIDE",
+        "count": 1
+      },
+      {
+        "term": "DIMETHICONE 410",
+        "count": 1
+      },
+      {
+        "term": "ECHINACEA ANGUSTIFOLIA WHOLE",
+        "count": 1
+      },
+      {
+        "term": "EHRLICHIA CANIS",
+        "count": 1
+      },
+      {
+        "term": "EQUISETUM ARVENSE TOP",
+        "count": 1
+      },
+      {
+        "term": "EURYCOMA LONGIFOLIA ROOT",
+        "count": 1
+      },
+      {
+        "term": "EURYCOMA LONGIFOLIA WHOLE",
+        "count": 1
+      },
+      {
+        "term": "FENBENDAZOLE",
+        "count": 1
+      },
+      {
+        "term": "FEVERFEW",
+        "count": 1
+      },
+      {
+        "term": "FIBRAUREA TINCTORIA WHOLE",
+        "count": 1
+      },
+      {
+        "term": "FLUORIDE ION",
+        "count": 1
+      },
+      {
+        "term": "FLURBIPROFEN",
+        "count": 1
+      },
+      {
+        "term": "FOLIC ACID",
+        "count": 1
+      },
+      {
+        "term": "GARDENIA JASMINOIDES FRUIT",
+        "count": 1
+      },
+      {
+        "term": "GELSEMIUM SEMPERVIRENS ROOT",
+        "count": 1
+      },
+      {
+        "term": "HAWTHORN LEAF WITH FLOWER",
+        "count": 1
+      },
+      {
+        "term": "HEPATITIS B VIRUS",
+        "count": 1
+      },
+      {
+        "term": "HYDROLYSED BOVINE COLLAGEN (ENZYMATIC",
+        "count": 1
+      },
+      {
+        "term": "INDIAN FRANKINCENSE",
+        "count": 1
+      },
+      {
+        "term": "KAEMPFEROL",
+        "count": 1
+      },
+      {
+        "term": "KALMIA LATIFOLIA LEAF",
+        "count": 1
+      },
+      {
+        "term": "LEDUM PALUSTRE TWIG",
+        "count": 1
+      },
+      {
+        "term": "LIGUSTICUM SINENSE SUBSP. CHUANXIONG ROOT",
+        "count": 1
+      },
+      {
+        "term": "MARINE COLLAGEN, SOLUBLE",
+        "count": 1
+      },
+      {
+        "term": "MECLIZINE DIHYDROCHLORIDE",
+        "count": 1
+      },
+      {
+        "term": "MENAQUINONE-7",
+        "count": 1
+      },
+      {
+        "term": "MERCURIUS SOLUBILIS",
+        "count": 1
+      },
+      {
+        "term": "METRONIDAZOLE",
+        "count": 1
+      },
+      {
+        "term": "MOMORDICA CHARANTIA STEM",
+        "count": 1
+      },
+      {
+        "term": "NEISSERIA MENINGITIDIS",
+        "count": 1
+      },
+      {
+        "term": "NELUMBO NUCIFERA SEED",
+        "count": 1
+      },
+      {
+        "term": "NIACIN",
+        "count": 1
+      },
+      {
+        "term": "NITRIC ACID",
+        "count": 1
+      },
+      {
+        "term": "OAT",
+        "count": 1
+      },
+      {
+        "term": "OSTREA EDULIS SHELL",
+        "count": 1
+      },
+      {
+        "term": "PANCRELIPASE",
+        "count": 1
+      },
+      {
+        "term": "PANTOTHENIC ACID",
+        "count": 1
+      },
+      {
+        "term": "PENTOXYVERINE CITRATE",
+        "count": 1
+      },
+      {
+        "term": "PERILLA FRUTESCENS LEAF",
+        "count": 1
+      },
+      {
+        "term": "PERILLA FRUTESCENS WHOLE",
+        "count": 1
+      },
+      {
+        "term": "PHELLODENDRON CHINENSIS BARK",
+        "count": 1
+      },
+      {
+        "term": "PIPER SARMENTOSUM WHOLE",
+        "count": 1
+      },
+      {
+        "term": "PLANTAGO SEED",
+        "count": 1
+      },
+      {
+        "term": "PLATYCODON GRANDIFLORUM ROOT",
+        "count": 1
+      },
+      {
+        "term": "PLATYCODON GRANDIFLORUS WHOLE",
+        "count": 1
+      },
+      {
+        "term": "POLICRESULEN",
+        "count": 1
+      },
+      {
+        "term": "POLYETHYLENE GLYCOL 3500",
+        "count": 1
+      },
+      {
+        "term": "PONCIRUS TRIFOLIATA FRUIT",
+        "count": 1
+      },
+      {
+        "term": "POTASSIUM BICARBONATE",
+        "count": 1
+      },
+      {
+        "term": "POTASSIUM DICHROMATE",
+        "count": 1
+      },
+      {
+        "term": "POTASSIUM PHOSPHATE, DIBASIC",
+        "count": 1
+      },
+      {
+        "term": "POTASSIUM SULFATE",
+        "count": 1
+      },
+      {
+        "term": "PROPYPHENAZONE",
+        "count": 1
+      },
+      {
+        "term": "PUERARIA MONTANA VAR. LOBATA WHOLE",
+        "count": 1
+      },
+      {
+        "term": "PULSATILLA PRATENSIS WHOLE",
+        "count": 1
+      },
+      {
+        "term": "PULSATILLA VULGARIS WHOLE",
+        "count": 1
+      },
+      {
+        "term": "PYRIDOXINE",
+        "count": 1
+      },
+      {
+        "term": "PYRIDOXINE HYDROCHLORIDE",
+        "count": 1
+      },
+      {
+        "term": "QUERCETIN",
+        "count": 1
+      },
+      {
+        "term": "REYNOUTRIA JAPONICA ROOT",
+        "count": 1
+      },
+      {
+        "term": "RHEUM PALMATUM ROOT",
+        "count": 1
+      },
+      {
+        "term": "RHUBARB",
+        "count": 1
+      },
+      {
+        "term": "RIBOFLAVIN",
+        "count": 1
+      },
+      {
+        "term": "RICE GERM",
+        "count": 1
+      },
+      {
+        "term": "SALIX ALBA BARK",
+        "count": 1
+      },
+      {
+        "term": "SAPOSHNIKOVIA DIVARICATA ROOT",
+        "count": 1
+      },
+      {
+        "term": "SAW PALMETTO",
+        "count": 1
+      },
+      {
+        "term": "SENNA ALATA LEAF",
+        "count": 1
+      },
+      {
+        "term": "SENNA PODS",
+        "count": 1
+      },
+      {
+        "term": "SEPIA OFFICINALIS JUICE",
+        "count": 1
+      },
+      {
+        "term": "SHIITAKE MUSHROOM",
+        "count": 1
+      },
+      {
+        "term": "SIGESBECKIA ORIENTALIS WHOLE",
+        "count": 1
+      },
+      {
+        "term": "SILICA",
+        "count": 1
+      },
+      {
+        "term": "SODIUM",
+        "count": 1
+      },
+      {
+        "term": "SODIUM CARBONATE",
+        "count": 1
+      },
+      {
+        "term": "SODIUM PHOSPHATE, DIBASIC",
+        "count": 1
+      },
+      {
+        "term": "SODIUM PHOSPHATE, MONOBASIC, UNSPECIFIED FORM",
+        "count": 1
+      },
+      {
+        "term": "SOYBEAN LECITHIN",
+        "count": 1
+      },
+      {
+        "term": "STEM BROMELAIN",
+        "count": 1
+      },
+      {
+        "term": "TANGERINE",
+        "count": 1
+      },
+      {
+        "term": "TARAXACUM PALUSTRE ROOT",
+        "count": 1
+      },
+      {
+        "term": "THIAMINE",
+        "count": 1
+      },
+      {
+        "term": "THUJA OCCIDENTALIS LEAFY TWIG",
+        "count": 1
+      },
+      {
+        "term": "TITANIUM DIOXIDE",
+        "count": 1
+      },
+      {
+        "term": "TOXICODENDRON PUBESCENS LEAF",
+        "count": 1
+      },
+      {
+        "term": "UBIQUINOL",
+        "count": 1
+      },
+      {
+        "term": "VALERIAN",
+        "count": 1
+      },
+      {
+        "term": "VITAMIN D",
+        "count": 1
+      },
+      {
+        "term": "WATER",
+        "count": 1
+      },
+      {
+        "term": "WOLFIPORIA COCOS WHOLE",
+        "count": 1
+      },
+      {
+        "term": "ZINC CATION",
+        "count": 1
+      },
+      {
+        "term": "ZINGIBER OFFICINALE WHOLE",
+        "count": 1
+      }
+    ],
+    "SUBLINGUAL": [
+      {
+        "term": "LAPINE S-100 IMMUNE GLOBULIN",
+        "count": 6
+      },
+      {
+        "term": "ARABICA COFFEE BEAN",
+        "count": 1
+      },
+      {
+        "term": "IPOMOEA PURGA ROOT",
+        "count": 1
+      },
+      {
+        "term": "MAGNESIUM",
+        "count": 1
+      },
+      {
+        "term": "PALLADIUM",
+        "count": 1
+      },
+      {
+        "term": "PASSIFLORA INCARNATA FLOWERING TOP",
+        "count": 1
+      },
+      {
+        "term": "PHOSPHORIC ACID",
+        "count": 1
+      },
+      {
+        "term": "STRYCHNOS IGNATII SEED",
+        "count": 1
+      },
+      {
+        "term": "TELLURIUM",
+        "count": 1
+      }
+    ],
+    "BUCCAL": [
+      {
+        "term": "NICOTINE",
+        "count": 65
+      },
+      {
+        "term": "HYDROGEN PEROXIDE",
+        "count": 3
+      },
+      {
+        "term": "CETYLPYRIDINIUM CHLORIDE",
+        "count": 2
+      },
+      {
+        "term": "BENZOCAINE",
+        "count": 1
+      },
+      {
+        "term": "PANTHENOL",
+        "count": 1
+      }
+    ]
+  },
+  "labelSpellings": {
+    "ACETAMINOPHEN": [
+      "Acetaminophen 500 mg",
+      "Acetaminophen USP 650 mg",
+      "Acetaminophen, USP 250 mg"
+    ],
+    "ACTIVATED CHARCOAL": [
+      "Activated charcoal, USP 25 g"
+    ],
+    "ALUMINUM HYDROXIDE": [
+      "Aluminum hydroxide 400 mg",
+      "Aluminum hydroxide dried gel 200 mg"
+    ],
+    "ANHYDROUS CITRIC ACID": [
+      "Anhydrous citric acid 1000 mg"
+    ],
+    "ASCORBIC ACID": [
+      "Ascorbic acid 200 mg"
+    ],
+    "ASPIRIN": [
+      "Aspirin 81 mg",
+      "Aspirin USP 250 mg"
+    ],
+    "BENZOCAINE": [
+      "Benzocaine 15 mg"
+    ],
+    "BISACODYL": [
+      "Bisacodyl 5 mg",
+      "Bisacodyl USP 5 mg",
+      "Bisacodyl, USP 5 mg"
+    ],
+    "BISMUTH SUBSALICYLATE": [
+      "Bismuth subsalicylate 262 mg"
+    ],
+    "BROMPHENIRAMINE MALEATE": [
+      "Brompheniramine maleate 2 mg",
+      "Brompheniramine maleate, USP 2 mg",
+      "Brompheniramine melate 4 mg"
+    ],
+    "CAFFEINE": [
+      "Caffeine 65 mg",
+      "Caffeine USP 65 mg"
+    ],
+    "CALCIUM CARBONATE": [
+      "Calcium carbonate 750 mg",
+      "Calcium Carbonate USP 750 mg"
+    ],
+    "CALCIUM POLYCARBOPHIL": [
+      "Calcium polycarbophil 625 mg"
+    ],
+    "CETIRIZINE HYDROCHLORIDE": [
+      "Cetirizine HCI 5 mg",
+      "Cetirizine HCI USP 10 mg",
+      "Cetirizine HCl 10 mg",
+      "Cetirizine HCl USP 10 mg",
+      "Cetirizine HCl, USP 10 mg",
+      "Cetirizine Hydrochloride 10 mg",
+      "Cetirizine hydrochloride USP 10 mg",
+      "Cetirizine hydrochloride, USP 5 mg"
+    ],
+    "CHLOPHEDIANOL HYDROCHLORIDE": [
+      "Chlophedianol HCI 12.5 mg",
+      "Chlophedianol HCl 12.5 mg",
+      "Chlophedianol Hydrochloride 12.5 mg"
+    ],
+    "CHLORPHENIRAMINE MALEATE": [
+      "Chlorpheniramine maleate 2 mg",
+      "Chlorpheniramine maleate, USP 2 mg"
+    ],
+    "CIMETIDINE": [
+      "Cimetidine 200 mg"
+    ],
+    "CITRIC ACID MONOHYDRATE": [
+      "Citric Acid 75 mg"
+    ],
+    "CODEINE PHOSPHATE": [
+      "Codeine Phosphate 10 mg",
+      "Codeine Phosphate USP 10 mg",
+      "Codeine Phosphate, USP 10 mg"
+    ],
+    "DEXBROMPHENIRAMINE MALEATE": [
+      "Dexbrompheniramine Maleate 1 mg",
+      "Dexbrompheniramine Maleate, USP 2 mg"
+    ],
+    "DEXCHLORPHENIRAMINE MALEATE": [
+      "Dexchlorpheniramine Maleate 1 mg"
+    ],
+    "DEXTROMETHORPHAN HYDROBROMIDE": [
+      "Dextromethorphan HBr 10 mg",
+      "Dextromethorphan HBr, USP 20 mg",
+      "Dextromethorphan hydrobromide 10 mg",
+      "Dextromethorphan Hydrobromide USP 30 mg",
+      "Dextromethorphan polistirex equivalent to 30 mg"
+    ],
+    "DIMENHYDRINATE": [
+      "Dimenhydrinate 50 mg"
+    ],
+    "DIPHENHYDRAMINE": [
+      "Diphenhydramine HCl USP 25 mg"
+    ],
+    "DIPHENHYDRAMINE CITRATE": [
+      "Diphenhydramine citrate 38 mg",
+      "Diphenhydramine citrate USP 38 mg"
+    ],
+    "DIPHENHYDRAMINE HCL": [
+      "Diphenhydramine HCl 25 mg",
+      "Diphenhydramine HCl, USP 12.5 mg"
+    ],
+    "DIPHENHYDRAMINE HYDROCHLORIDE": [
+      "Diphenhydramine 25 mg",
+      "Diphenhydramine HCl 25 mg",
+      "Diphenhydramine hydrochloride 25 mg",
+      "Diphenhydramine Hydrochloride USP 25 mg"
+    ],
+    "DOCUSATE CALCIUM": [
+      "Docusate Calcium 240 mg"
+    ],
+    "DOCUSATE SODIUM": [
+      "Docusate sodium 50 mg",
+      "Docusate Sodium USP 100 mg"
+    ],
+    "DOXYLAMINE SUCCINATE": [
+      "Doxylamine succinate 12.5 mg",
+      "Doxylamine succinate USP 6.25 mg",
+      "Doxylamine succinate, USP 12.5 mg"
+    ],
+    "DYCLONINE HYDROCHLORIDE": [
+      "Dyclonine hydrochloride 3 mg"
+    ],
+    "EPHEDRINE SULFATE": [
+      "Ephedrine sulfate 25 mg"
+    ],
+    "ESOMEPRAZOLE": [
+      "Esomeprazole 20 mg"
+    ],
+    "ESOMEPRAZOLE MAGNESIUM": [
+      "Esomeprazole 20 mg"
+    ],
+    "ESOMEPRAZOLE MAGNESIUM DIHYDRATE": [
+      "Esomeprazole 20 mg"
+    ],
+    "ESOMEPRAZOLE MAGNESIUM TRIHYDRATE": [
+      "Esomeprazole 20 mg"
+    ],
+    "FAMOTIDINE": [
+      "Famotidine 10 mg",
+      "Famotidine USP 10 mg",
+      "Famotidine, USP 10 mg"
+    ],
+    "FEXOFENADINE HYDROCHLORIDE": [
+      "Fexofenadine HCI 30 mg",
+      "Fexofenadine HCl 180 mg",
+      "Fexofenadine HCl USP 180 mg",
+      "Fexofenadine HCl, USP 60 mg",
+      "Fexofenadine hydrochloride USP 180 mg"
+    ],
+    "GINGER": [
+      "Ginger 1.90 g"
+    ],
+    "GLYCERIN": [
+      "Glycerin 1 g"
+    ],
+    "GUAIFENESIN": [
+      "Guaifenesin 200 mg",
+      "Guaifenesin USP 600 mg",
+      "Guaifenesin, USP 200 mg"
+    ],
+    "HEXYLRESORCINOL": [
+      "Hexylresorcinol 2 mg"
+    ],
+    "IBUPROFEN": [
+      "Ibuprofen 200 mg",
+      "ibuprofen equal to 200 mg",
+      "Ibuprofen Tablet USP 200 mg",
+      "Ibuprofen USP 200 mg",
+      "Ibuprofen, USP 100 mg"
+    ],
+    "IBUPROFEN SODIUM": [
+      "Ibuprofen 200 mg"
+    ],
+    "LANSOPRAZOLE": [
+      "Lansoprazole 15 mg",
+      "Lansoprazole USP 15 mg"
+    ],
+    "LEVOCETIRIZINE DIHYDROCHLORIDE": [
+      "Levocetirizine dihydrochloride 5 mg",
+      "Levocetirizine dihydrochloride USP 5 mg"
+    ],
+    "LEVONORGESTREL": [
+      "Levonorgestrel 1.5 mg",
+      "Levonorgestrel USP 1.5 mg",
+      "Levonorgestrel, USP 1.5 mg"
+    ],
+    "LOPERAMIDE HYDROCHLORIDE": [
+      "Loperamide HCI 2 mg",
+      "Loperamide HCl 2 mg",
+      "Loperamide HCl USP 2 mg",
+      "Loperamide HCl, USP 2 mg",
+      "Loperamide Hydrochloride 2 mg",
+      "Loperamide Hydrochloride USP 2 mg"
+    ],
+    "LORATADINE": [
+      "Loratadine 10 mg",
+      "Loratadine USP 5 mg",
+      "Loratadine, USP 10 mg"
+    ],
+    "MAGNESIUM CARBONATE": [
+      "Magnesium carbonate 105 mg"
+    ],
+    "MAGNESIUM CITRATE": [
+      "Magnesium citrate 1.745 g"
+    ],
+    "MAGNESIUM HYDROXIDE": [
+      "Magnesium hydroxide 1200 mg",
+      "Magnesium hydroxide USP 135 mg"
+    ],
+    "MAGNESIUM OXIDE": [
+      "Magnesium Oxide 400 mg"
+    ],
+    "MAGNESIUM SALICYLATE": [
+      "Magnesium salicylate tetrahydrate 580 mg"
+    ],
+    "MECLIZINE HYDROCHLORIDE": [
+      "Meclizine HCI 25 mg",
+      "Meclizine HCl 25 mg",
+      "Meclizine HCl, USP 25 mg",
+      "Meclizine Hydrochloride 25 mg"
+    ],
+    "MENTHOL": [
+      "Menthol 5.8 mg"
+    ],
+    "METHENAMINE": [
+      "Methenamine 162 mg"
+    ],
+    "METHYLCELLULOSE (4000 MPA.S)": [
+      "Methylcellulose 500 mg"
+    ],
+    "METHYL SALICYLATE": [
+      "Methyl Salicylate 57.6 mg"
+    ],
+    "NAPROXEN SODIUM": [
+      "Naproxen sodium 220 mg",
+      "Naproxen sodium USP 220 mg"
+    ],
+    "NICOTINE": [
+      "Nicotine 21 mg",
+      "Nicotine polacrilex 4 mg",
+      "Nicotine polacrilex USP 4 mg"
+    ],
+    "NORGESTREL": [
+      "Norgestrel 0.075 mg"
+    ],
+    "OMEPRAZOLE": [
+      "Omeprazole 20 mg",
+      "Omeprazole delayed-release capsule 20 mg",
+      "Omeprazole Delayed-Release Tablet 20 mg",
+      "Omeprazole USP 20 mg",
+      "Omeprazole, USP 20 mg"
+    ],
+    "OMEPRAZOLE MAGNESIUM": [
+      "Omeprazole delayed-release capsule 20 mg",
+      "Omeprazole delayed-release capsules 20 mg",
+      "Omeprazole delayed-release capsules, USP 20 mg",
+      "Omeprazole delayed-release tablet 20 mg",
+      "Omeprazole, USP 20 mg",
+      "Omeprazole, USP delayed-release tablet 20 mg"
+    ],
+    "PAMABROM": [
+      "Pamabrom 25 mg",
+      "Pamabrom USP 50 mg"
+    ],
+    "PECTIN": [
+      "Pectin 7 mg"
+    ],
+    "PHENAZOPYRIDINE HYDROCHLORIDE": [
+      "Phenazopyridine Hydrochloride 99.5 mg"
+    ],
+    "PHENYLEPHRINE BITARTRATE": [
+      "Phenylephrine bitartrate 7.8 mg"
+    ],
+    "PHENYLEPHRINE HYDROCHLORIDE": [
+      "Phenylephrine HCI 5 mg",
+      "Phenylephrine HCl 5 mg",
+      "Phenylephrine hydrochloride 5 mg"
+    ],
+    "PHOSPHORIC ACID": [
+      "Phosphoric acid 21.5 mg"
+    ],
+    "PSEUDOEPHEDRINE HYDROCHLORIDE": [
+      "Pseudoephedrine HCI 15 mg",
+      "Pseudoephedrine HCl 120 mg",
+      "Pseudoephedrine HCl USP 120 mg",
+      "Pseudoephedrine HCl, USP 120 mg",
+      "Pseudoephedrine Hydrochloride 30 mg",
+      "Pseudoephedrine Hydrochloride USP 240 mg"
+    ],
+    "PSEUDOEPHEDRINE SULFATE": [
+      "Pseudoephedrine sulfate 120 mg",
+      "Pseudoephedrine sulfate, USP 240 mg"
+    ],
+    "PSYLLIUM HUSK": [
+      "Psyllium husk approximately 3.4 g",
+      "Psyllium seed husk 3.4 g"
+    ],
+    "PYRANTEL PAMOATE": [
+      "Pyrantel Pamoate 144 mg",
+      "Pyrantel Pamoate USP 180 mg"
+    ],
+    "PYRILAMINE MALEATE": [
+      "Pyrilamine maleate 15 mg",
+      "Pyrilamine maleate USP 15 mg"
+    ],
+    "RANITIDINE HYDROCHLORIDE": [
+      "Ranitidine 75 mg"
+    ],
+    "RUTIN": [
+      "Rutin 255 mg"
+    ],
+    "SENNOSIDES": [
+      "Sennosides 8.6 mg",
+      "Sennosides from Senna Concentrate 8.6 mg",
+      "Sennosides USP 15 mg",
+      "Sennosides, USP 15 mg"
+    ],
+    "SENNOSIDES A AND B": [
+      "Sennosides 8.6 mg",
+      "Sennosides from Senna Concentrate 8.6 mg",
+      "Sennosides USP 25 mg"
+    ],
+    "SODIUM BICARBONATE": [
+      "Sodium Bicarbonate 1100 mg",
+      "Sodium Bicarbonate USP 515 mg"
+    ],
+    "SODIUM CHLORIDE": [
+      "Sodium Chloride USP 2300 mg"
+    ],
+    "SODIUM PERBORATE MONOHYDRATE": [
+      "Sodium perborate monohydrate 1.2 g"
+    ],
+    "SODIUM SALICYLATE": [
+      "Sodium Salicylate 162.5 mg"
+    ],
+    "THYMOL": [
+      "Thymol 16.5 mg"
+    ],
+    "TRIPROLIDINE HYDROCHLORIDE": [
+      "Triprolidine HCI 1.25 mg",
+      "Triprolidine HCl 2.5 mg"
+    ]
+  }
+}

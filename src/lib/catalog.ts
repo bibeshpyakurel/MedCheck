@@ -1,6 +1,7 @@
 import "server-only";
 
 import { catalogIngredientSchema, labelSectionsSchema, sourceLinkSchema, type Formulation } from "@/lib/domain/schema";
+import { sanitizeDosageTable } from "@/lib/openfda";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -19,7 +20,9 @@ export function rowToFormulation(row: FormulationRow): Formulation {
     directionsText: row.directions_text,
     max24hText: row.max_24h_text,
     warningsQuotes: row.warnings_quotes,
-    dosageTableHtml: row.dosage_table_html,
+    // Sanitized at ingest; again on the way out (table tags only), so client components such as the
+    // medicine card can render it without shipping the sanitizer to the browser.
+    dosageTableHtml: row.dosage_table_html ? sanitizeDosageTable(row.dosage_table_html) || null : null,
     source: row.source as Formulation["source"],
     openfdaSetId: row.openfda_set_id,
     labelEffectiveDate: row.label_effective_date,
@@ -42,6 +45,16 @@ export async function getFormulation(id: string): Promise<Formulation | null> {
   const { data, error } = await supabase.from("formulations").select("*").eq("id", id).maybeSingle();
   if (error) throw error;
   return data ? rowToFormulation(data) : null;
+}
+
+/** Catalog rows whose brand or generic name resembles `query`, best first (the `search_formulations` RPC). */
+export async function searchFormulations(query: string, max = 8): Promise<Formulation[]> {
+  const q = query.trim();
+  if (!q) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("search_formulations", { query: q, max_results: max });
+  if (error) throw error;
+  return data.map(rowToFormulation);
 }
 
 export async function getFormulationsByIds(ids: string[]): Promise<Record<string, Formulation>> {
