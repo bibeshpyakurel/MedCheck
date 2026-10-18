@@ -19,6 +19,7 @@ export function PhotoForm({
 }) {
   return (
     <PhotoCapture
+      patientId={patientId}
       action={action}
       discardAction={(entryIds) => discardAction({ patientId, entryIds })}
       otherWaysHref={otherWaysHref}

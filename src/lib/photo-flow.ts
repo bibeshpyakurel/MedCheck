@@ -4,6 +4,7 @@
 import type { ExtractionNotice } from "@/lib/ai/run-extraction";
 import { isReadable, photoReadFromFields, preselectMatch, type CatalogMatch, type StrengthAgreement } from "@/lib/catalog-match";
 import { emptyField, formatStrength } from "@/lib/domain/fields";
+import { distinctMatches } from "@/lib/match-groups";
 import type { EntryFields, Field, Formulation, SourceDocumentKind, Strength } from "@/lib/domain/schema";
 import type { PhotoIssue } from "@/lib/photo-issue";
 
@@ -126,16 +127,18 @@ export function matchOptionLabel(option: MatchOption): string {
 const OTHER_MATCHES = 5;
 
 /**
- * "Is this the medicine?": the pre-selected match first, then up to 5 others in rank order. A
- * `codeMatch` (the label the package's printed NDC or barcode points to; see `trustedCodeMatch`) is
- * the pre-selected one; otherwise the best agreeing, related match (`preselectMatch`). Nothing is
- * selected when no match qualifies.
+ * "Is this the medicine?": the pre-selected match first, then up to 5 others in rank order — one per
+ * distinct product (`distinctMatches`). A `codeMatch` (the label the package's printed NDC or barcode
+ * points to; see `trustedCodeMatch`) is the pre-selected one and stands for its product; otherwise the
+ * best agreeing, related match (`preselectMatch`). Nothing is selected when no match qualifies.
  */
 export function matchChoices(
   matches: CatalogMatch[],
   codeMatch: CatalogMatch | null = null,
 ): { selectedId: string | null; options: MatchOption[] } {
-  const rest = codeMatch ? matches.filter((m) => m.formulation.id !== codeMatch.formulation.id) : matches;
+  const others = codeMatch ? matches.filter((m) => m.formulation.id !== codeMatch.formulation.id) : matches;
+  const distinct = distinctMatches(codeMatch ? [codeMatch, ...others] : others);
+  const rest = codeMatch ? distinct.slice(1) : distinct;
   const selected = codeMatch ?? preselectMatch(rest);
   const ordered = selected ? [selected, ...rest.filter((m) => m !== selected)] : rest;
   return {
