@@ -16,6 +16,7 @@ import { type WarningsView, warningsView } from "@/lib/checks/warnings";
 import { entryLabel } from "@/lib/domain/fields";
 import type { Formulation, MedicationEntry } from "@/lib/domain/schema";
 import { DOCUMENT_KIND_LABELS, formatDocDate, INPUT_METHOD_LABELS, recordTitle } from "@/lib/record-format";
+import { overlappingIngredients } from "@/lib/overlap-visual";
 import { draftPath } from "@/lib/photo-flow";
 import { findPatient, NOT_FOUND_TITLE } from "@/lib/page-lookup";
 import { listEntries, listHistory } from "@/lib/records";
@@ -42,6 +43,7 @@ export default async function PatientRecordPage({ params }: PageProps<"/patients
   const drafts = entries.filter((e) => e.status === "draft");
   const formulations = await getFormulationsByIds(confirmed.flatMap((e) => (e.formulationId ? [e.formulationId] : [])));
   const view = warningsView(runChecks({ entries: confirmed, formulations }));
+  const overlapping = [...overlappingIngredients(view.warnings, new Map(confirmed.map((e) => [e.id, e])))];
   const base = `/patients/${patientId}`;
 
   return (
@@ -76,7 +78,7 @@ export default async function PatientRecordPage({ params }: PageProps<"/patients
             {confirmed.length === 0 ? (
               <EmptyMedicines hasDrafts={drafts.length > 0} />
             ) : (
-              <MedicationList patientId={patientId} entries={confirmed} />
+              <MedicationList patientId={patientId} entries={confirmed} overlapping={overlapping} />
             )}
           </section>
 

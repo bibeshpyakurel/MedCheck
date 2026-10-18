@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { BadgeCheckIcon, FileTextIcon, PencilIcon, TriangleAlertIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/app-shell";
+import { IngredientChip } from "@/components/ingredient-chip";
 import { MedicineCardButton } from "@/components/medicine-card/medicine-card-button";
 import { BackLink } from "@/components/page-header";
 import { RecordHeader } from "@/components/records/record-header";
@@ -17,6 +18,7 @@ import { catalogLabelSource, formatDocDate, recordTitle } from "@/lib/record-for
 import { draftPath } from "@/lib/photo-flow";
 import { entryMetadata, findEntry, findPatient } from "@/lib/page-lookup";
 import { signedPhotoUrl } from "@/lib/records";
+import { sharedIngredients } from "@/lib/shared-ingredients";
 import { isUuid } from "@/lib/uuid";
 
 export const generateMetadata = ({ params }: PageProps<"/patients/[patientId]/entries/[entryId]">) => entryMetadata(params, "Details and label");
@@ -71,9 +73,13 @@ export default async function EntryLabelPage({ params, searchParams }: PageProps
   const [patient, entry] = await Promise.all([findPatient(patientId), findEntry(entryId)]);
   if (!patient || !entry || entry.patientId !== patient.id) notFound();
 
-  const formulation = entry.formulationId ? await getFormulation(entry.formulationId) : null;
   const photoPath = entry.sourceDocument?.photoPath;
-  const photoUrl = photoPath ? await signedPhotoUrl(photoPath) : null;
+  // A draft isn't compared yet, so none of its ingredients count as shared.
+  const [formulation, photoUrl, shared] = await Promise.all([
+    entry.formulationId ? getFormulation(entry.formulationId) : null,
+    photoPath ? signedPhotoUrl(photoPath) : null,
+    entry.status === "confirmed" ? sharedIngredients(patientId) : new Set<string>(),
+  ]);
   const { fields } = entry;
   const doc = entry.sourceDocument;
 
@@ -108,6 +114,17 @@ export default async function EntryLabelPage({ params, searchParams }: PageProps
           <header className="space-y-3">
             <BackLink href={`/patients/${patient.id}`}>{recordTitle(patient)}</BackLink>
             <h1 className="font-display text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{entryLabel(fields)}</h1>
+            {fields.ingredients.some((i) => i.name.value) && (
+              <ul aria-label="Active ingredients" className="flex flex-wrap gap-1.5">
+                {fields.ingredients.map((i, idx) =>
+                  i.name.value ? (
+                    <li key={idx} className="max-w-full">
+                      <IngredientChip name={i.name.value} strength={i.strength.value ? formatStrength(i.strength.value) : null} overlapping={shared} />
+                    </li>
+                  ) : null,
+                )}
+              </ul>
+            )}
             <div className="flex flex-wrap gap-2">
               <Badge variant={entry.status === "confirmed" ? "secondary" : "outline"}>
                 {entry.status === "confirmed" ? "Confirmed" : "Waiting for review"}

@@ -89,6 +89,6 @@ The user said "just work on it" without answering one by one (2026-10-17), so ea
 
 ## Deviations made while building
 
-- **Palette:** slot 5 (lavender, too close to the violet "unresolved" color) and slot 6 (green) are replaced by orchid and aqua. Every pair, light and dark, is ≥ 6.1:1.
+- **Palette:** slot 5 (lavender, too close to the violet "unresolved" color), slot 6 (green) and slot 7 (peach, read as amber next to the overlap chip) are replaced by orchid, aqua and steel blue. Every pair, light and dark, is ≥ 6.1:1.
 - **`SceneSlot.poster`** is a `ReactNode`, not an image path, so the CSS/SVG stand-ins and later `<Image>` posters go through the same slot.
 - **`?fx=1`** forces effects on a device the gate would skip (for demo testing); it never overrides reduced motion.
