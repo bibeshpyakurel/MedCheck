@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { extractIntoDrafts, type ExtractionOutcome } from "@/lib/ai/run-extraction";
 import { requireUser } from "@/lib/auth";
+import { photoNextPath } from "@/lib/photo-flow";
 import { createSourceDocument, getPatient, uploadLabelPhoto } from "@/lib/records";
 
 const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
@@ -14,7 +15,10 @@ const inputSchema = z.object({
   kind: z.enum(["prescription_label", "discharge_list", "otc_package"]),
 });
 
-/** Photo upload: store the photo → source document → extraction → review the first draft. */
+/**
+ * Photo upload: store the photo → source document → extraction → the first draft's next step: a
+ * medicine package goes to "Is this the medicine?" (or a retake); other photos to the per-field review.
+ */
 export async function uploadPhotoAction(formData: FormData): Promise<{ error: string } | void> {
   await requireUser();
   const parsed = inputSchema.safeParse({
@@ -42,6 +46,5 @@ export async function uploadPhotoAction(formData: FormData): Promise<{ error: st
     return { error: "We couldn't save the photo. Check your connection and try again." };
   }
 
-  const query = outcome.notice ? `?notice=${outcome.notice}` : "";
-  redirect(`/patients/${patientId}/entries/${outcome.entryIds[0]}/review${query}`);
+  redirect(photoNextPath({ patientId, entryId: outcome.entryIds[0], kind, notice: outcome.notice, fields: outcome.firstFields }));
 }

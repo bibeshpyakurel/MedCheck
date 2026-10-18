@@ -1,8 +1,12 @@
 import "server-only";
 
-import { google } from "@ai-sdk/google";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import type { LanguageModel } from "ai";
 import { geminiAttempts, tryModels } from "./fallback";
+
+// GOOGLE_GENERATIVE_AI_BASE_URL is unset in production (Google's own endpoint); the e2e tests point it
+// at a local stand-in (e2e/fake-gemini.mjs).
+const google = createGoogleGenerativeAI({ baseURL: process.env.GOOGLE_GENERATIVE_AI_BASE_URL?.trim() || undefined });
 
 /** True when a Gemini API key is configured. Without it, capture still works and every field starts unknown. */
 export function hasGeminiKey(): boolean {

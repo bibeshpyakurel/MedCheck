@@ -158,7 +158,7 @@ export function PhotoCapture({
         </div>
         {!photo && (
           <p className="text-sm text-muted-foreground">
-            Hold the label flat, fill the frame, and avoid glare. You&apos;ll check every value before it&apos;s saved.
+            Fill the frame with the front of the package or the label, and avoid glare.
           </p>
         )}
       </div>

@@ -25,6 +25,6 @@ export async function POST(request: NextRequest) {
   if (!doc) return NextResponse.json({ error: "Document not found" }, { status: 404 });
   if (!doc.photoPath) return NextResponse.json({ error: "Document has no photo" }, { status: 400 });
 
-  const outcome = await extractIntoDrafts(doc);
-  return NextResponse.json(outcome);
+  const { entryIds, notice } = await extractIntoDrafts(doc);
+  return NextResponse.json({ entryIds, notice });
 }

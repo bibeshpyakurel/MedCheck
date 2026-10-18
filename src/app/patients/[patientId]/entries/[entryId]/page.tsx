@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { BadgeCheckIcon, FileTextIcon, PencilIcon, TriangleAlertIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/app-shell";
+import { MedicineCardButton } from "@/components/medicine-card/medicine-card-button";
 import { BackLink } from "@/components/page-header";
 import { RecordHeader } from "@/components/records/record-header";
 import { Badge } from "@/components/ui/badge";
@@ -60,9 +61,11 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-export default async function EntryLabelPage({ params }: PageProps<"/patients/[patientId]/entries/[entryId]">) {
+/** Query: `card=new` opens the medicine card on arrival (right after "Is this the medicine?" → Confirm). */
+export default async function EntryLabelPage({ params, searchParams }: PageProps<"/patients/[patientId]/entries/[entryId]">) {
   await requireUser();
   const { patientId, entryId } = await params;
+  const { card } = await searchParams;
   if (!isUuid(patientId) || !isUuid(entryId)) notFound();
   const [patient, entry] = await Promise.all([getPatient(patientId), getEntry(entryId)]);
   if (!patient || !entry || entry.patientId !== patient.id) notFound();
@@ -125,15 +128,26 @@ export default async function EntryLabelPage({ params }: PageProps<"/patients/[p
                 </Button>
               </div>
             )}
-            {entry.status === "confirmed" && (
-              <Button
-                variant="outline"
-                className="h-11 px-4"
-                nativeButton={false}
-                render={<Link href={`/patients/${patient.id}/entries/${entry.id}/review`} />}
-              >
-                <PencilIcon aria-hidden /> Check or change the details
-              </Button>
+            {(formulation || entry.status === "confirmed") && (
+              <div className="flex flex-wrap gap-2">
+                {formulation && (
+                  <MedicineCardButton
+                    formulation={formulation}
+                    patientId={patient.id}
+                    justAdded={card === "new" && entry.status === "confirmed"}
+                  />
+                )}
+                {entry.status === "confirmed" && (
+                  <Button
+                    variant="outline"
+                    className="h-11 px-4"
+                    nativeButton={false}
+                    render={<Link href={`/patients/${patient.id}/entries/${entry.id}/review`} />}
+                  >
+                    <PencilIcon aria-hidden /> Check or change the details
+                  </Button>
+                )}
+              </div>
             )}
           </header>
 
@@ -215,7 +229,7 @@ export default async function EntryLabelPage({ params }: PageProps<"/patients/[p
                   Dosing table from the label
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  Shown in full, exactly as printed. MedCheck doesn&apos;t pick a row — ask a pharmacist which one applies.
+                  Shown in full, exactly as printed. MedCheck doesn&apos;t pick a row.
                 </p>
               </div>
               <div

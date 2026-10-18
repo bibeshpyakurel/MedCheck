@@ -24,6 +24,8 @@ const SECTIONS: [CardSectionKey, string][] = [
   ["keep_out_of_reach", "Keep out of reach of children"],
   ["inactive_ingredients", "Inactive ingredients (allergies)"],
   ["storage", "Storage"],
+  ["other_information", "Other information"],
+  ["questions", "Questions about this product"],
 ];
 
 const hasText = (s: string) => s.trim() !== "";

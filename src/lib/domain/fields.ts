@@ -46,6 +46,24 @@ export function fieldsFromFormulation(f: Formulation): EntryFields {
   };
 }
 
+/**
+ * The catalog label's values after the user tapped "Confirm" on "Is this the medicine?": every value
+ * the label has is `confirmed` (evidence `database`); what the label doesn't say is `unknown`.
+ * Only call this after that tap — it is the user's confirmation, not the AI's.
+ */
+export function confirmedFieldsFromFormulation(f: Formulation): EntryFields {
+  const confirm = <T>(field: Field<T>): Field<T> => ({ ...field, state: field.value === null ? "unknown" : "confirmed" });
+  const fields = fieldsFromFormulation(f);
+  return {
+    productName: confirm(fields.productName),
+    dosageForm: confirm(fields.dosageForm),
+    ingredients: fields.ingredients.map((i) => ({ name: confirm(i.name), strength: confirm(i.strength) })),
+    instructions: confirm(fields.instructions),
+    doseAsWritten: confirm(fields.doseAsWritten),
+    max24h: confirm(fields.max24h),
+  };
+}
+
 /** A field the checks may rely on: the user confirmed or edited it, and it has a value. */
 export function isUsable<T>(field: Field<T>): field is Field<T> & { value: T } {
   return (field.state === "confirmed" || field.state === "edited") && field.value !== null;

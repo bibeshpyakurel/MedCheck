@@ -2,7 +2,7 @@ import "server-only";
 
 // Orchestrates photo extraction for one source document: Gemini when available, otherwise a
 // blank draft the user fills in. Used by the photo upload Server Action and POST /api/extract.
-import type { SourceDocument } from "@/lib/domain/schema";
+import type { EntryFields, SourceDocument } from "@/lib/domain/schema";
 import { createDraftEntry, downloadLabelPhoto, updateSourceDocument } from "@/lib/records";
 import { extractFromPhoto, type DocumentDetails } from "./extract-label";
 import { hasGeminiKey } from "./model";
@@ -11,7 +11,8 @@ import { unknownEntryFields } from "./raw-fields";
 /** Why the review screen should show a message. Codes travel in the review URL (`?notice=`). */
 export type ExtractionNotice = "ai-unavailable" | "ai-failed" | "nothing-found" | "several-found";
 
-export type ExtractionOutcome = { entryIds: string[]; notice: ExtractionNotice | null };
+/** One draft per medication found (or one blank draft); `firstFields` are the first draft's fields. */
+export type ExtractionOutcome = { entryIds: string[]; notice: ExtractionNotice | null; firstFields: EntryFields };
 
 export async function extractIntoDrafts(doc: SourceDocument): Promise<ExtractionOutcome> {
   if (!doc.photoPath) throw new Error("Source document has no photo");
@@ -49,7 +50,7 @@ export async function extractIntoDrafts(doc: SourceDocument): Promise<Extraction
     });
     entryIds.push(entry.id);
   }
-  return { entryIds, notice };
+  return { entryIds, notice, firstFields: medications[0] };
 }
 
 /** Saves what the model read off the document, without overwriting anything already set. */

@@ -2,6 +2,7 @@
 // code without sending email, and deleting the auth users a test run created in the real Supabase project.
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { expect, type Browser, type BrowserContext, type Locator, type Page } from "@playwright/test";
+import { SCENARIO_WIDTHS } from "./fake-gemini-scenarios.mjs";
 
 /** One reviewed value on the review screen, found by its heading. */
 export function fieldRow(page: Page, label: string): Locator {
@@ -43,9 +44,13 @@ export async function confirmMedicine(page: Page) {
   await page.waitForURL((url) => !url.pathname.includes("/review"));
 }
 
-/** A PNG "photo" of a simple printed label, rendered in a throwaway page. */
-export async function labelPhoto(browser: Browser) {
-  const page = await browser.newPage({ viewport: { width: 480, height: 320 } });
+/**
+ * A PNG "photo" of a simple printed label, rendered in a throwaway page. The e2e Gemini stand-in reads
+ * it by its width: pass a `SCENARIO_WIDTHS` scenario, or nothing for "no medicine found".
+ */
+export async function labelPhoto(browser: Browser, scenario?: keyof typeof SCENARIO_WIDTHS) {
+  const width = scenario ? SCENARIO_WIDTHS[scenario] : 480;
+  const page = await browser.newPage({ viewport: { width, height: 320 }, deviceScaleFactor: 1 });
   await page.setContent(`
     <body style="margin:0;font:20px/1.4 sans-serif;background:#fff;color:#000">
       <div style="margin:24px;padding:20px;border:3px solid #000">
