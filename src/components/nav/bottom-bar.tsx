@@ -1,10 +1,8 @@
 "use client";
 
 import { ClipboardListIcon, PillIcon, PlusIcon, type LucideIcon } from "lucide-react";
-import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { spring } from "@/lib/motion";
 import { recordNav, type RecordTab } from "@/lib/record-nav";
 import { cn } from "@/lib/utils";
 
@@ -16,7 +14,7 @@ const TABS: { id: RecordTab; label: string; name: string; icon: LucideIcon; href
 /**
  * The phone's record tabs, in thumb reach: Medicines, a raised Add, and Report. Wider screens keep the
  * tabs at the top (RecordHeader). Lives in the record's layout, so it stays put between tabs and the
- * indicator slides. globals.css pads the page shell by the bar's height while it's shown, so the footer stays above it.
+ * indicator slides (a CSS transition: no animation library on the home page's path). globals.css pads the page shell by the bar's height while it's shown, so the footer stays above it.
  */
 export function BottomBar({ patientId }: { patientId: string }) {
   const { current, hidden } = recordNav(usePathname());
@@ -30,7 +28,17 @@ export function BottomBar({ patientId }: { patientId: string }) {
       data-bottom-bar
       className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl supports-[backdrop-filter]:bg-background/88 sm:hidden"
     >
-      <ul className="mx-auto grid h-16 max-w-md grid-cols-3 items-stretch">
+      <ul className="relative mx-auto grid h-16 max-w-md grid-cols-3 items-stretch">
+        {/* The active tab's indicator: over the first or the third column. */}
+        <span
+          aria-hidden
+          className={cn(
+            "absolute top-0 left-0 h-0.5 w-1/3 px-6 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            current === "report" && "translate-x-[200%]",
+          )}
+        >
+          <span className="block h-full rounded-full bg-primary" />
+        </span>
         <Tab tab={medicines} base={base} active={current === medicines.id} />
         <li className="grid place-items-center">
           <Link
@@ -50,15 +58,7 @@ export function BottomBar({ patientId }: { patientId: string }) {
 function Tab({ tab, base, active }: { tab: (typeof TABS)[number]; base: string; active: boolean }) {
   const Icon = tab.icon;
   return (
-    <li className="relative">
-      {active ? (
-        <motion.span
-          layoutId="bottom-bar-indicator"
-          transition={spring.snappy}
-          aria-hidden
-          className="absolute inset-x-6 top-0 h-0.5 rounded-full bg-primary"
-        />
-      ) : null}
+    <li>
       <Link
         href={tab.href(base)}
         aria-current={active ? "page" : undefined}

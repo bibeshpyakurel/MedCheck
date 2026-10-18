@@ -1,6 +1,6 @@
 // Motion tokens. UI feedback ≤ 200 ms, screen changes ~320 ms; only the landing hero and the overlap
-// diagram run longer. Reduced motion turns all of it off (MotionConfig in the root layout, and the
-// global prefers-reduced-motion rule in globals.css for CSS animations).
+// diagram run longer. Reduced motion turns all of it off (MotionConfig in OverlapVenn, and the global
+// prefers-reduced-motion rule in globals.css for CSS animations).
 
 export const ease = {
   out: [0.22, 1, 0.36, 1] as const,

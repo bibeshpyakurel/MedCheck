@@ -243,8 +243,11 @@ test.describe("guest", () => {
   test("report: pending line, PDF download, preview, share and email", async () => {
     await openTab(page, "Medicine report");
     await expect(page.getByText("In this report: 2 medicines · 1 warning")).toBeVisible();
+    // As a paragraph: the report thumbnail repeats it, but the thumbnail is a picture (aria-hidden).
     await expect(
-      page.getByText("1 medicine is waiting for you to check its details. It'll appear in the report once you confirm it."),
+      page.getByRole("paragraph").filter({
+        hasText: "1 medicine is waiting for you to check its details. It'll appear in the report once you confirm it.",
+      }),
     ).toBeVisible();
 
     // Headless Chromium can't share files and this run has no email sender, so Share would only repeat
@@ -286,6 +289,8 @@ test.describe("guest", () => {
     await expect(page).toHaveTitle("Page not found · MedCheck");
     await page.getByRole("button", { name: "Back to my medicines" }).click();
     await page.waitForURL(new RegExp(`${base}$`));
+    // The URL changes with the loading skeleton; My medicines is there once its title is.
+    await expect(page.getByRole("heading", { level: 1, name: "My medicines" })).toBeVisible();
   });
 
   test("☰ → Leave guest session asks, then signs out and the record is gone", async () => {

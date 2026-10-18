@@ -126,3 +126,5 @@ The user said "just work on it" without answering one by one (2026-10-17), so ea
 Follow-ups:
 - `IngredientComparison` (from `feat/ingredient-compare`) uses the older left-rail warning style. Moving it onto `--overlap`, `--ring-a/b` and `IngredientChip` would make both Venns one design. Do it once `feat/photo-sheets` has placed it on a page.
 - Lighthouse budgets (§11 of the plan) haven't been measured.
+- **Pre-existing race:** `src/app/patients/[patientId]/loading.tsx` renders a whole `AppShell`, so the skeleton has a working ☰ menu and Get help. Opening either while the page loads lasts only until the real page commits: its shell replaces the skeleton's, and the overlay disappears. This is what made the leave-guest e2e flaky (it now waits for the title). A fix is to share the shell through a layout rather than repeat it in `loading.tsx` and each page; that's outside this plan.
+- **Motion's footprint:** only `OverlapVenn` imports `motion` now. The bottom bar, count-up and providers use CSS or `requestAnimationFrame`.
