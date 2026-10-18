@@ -1,6 +1,7 @@
 "use client";
 
-import { CameraIcon, ImageIcon, LoaderCircleIcon, type LucideIcon } from "lucide-react";
+import { CameraIcon, ImageIcon, LoaderCircleIcon, ScanBarcodeIcon, type LucideIcon } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useEffectEvent, useRef, useState, useTransition, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
@@ -26,8 +27,8 @@ function TileBody({ icon: Icon, title, detail, busy }: { icon: LucideIcon; title
 }
 
 /**
- * The two ways in: take a photo (opens the camera) or choose a photo (opens the library). A picked
- * photo goes to `{base}/photo?source=camera|library`, already loaded.
+ * The three ways in: scan a barcode (`{base}/scan`), take a photo (opens the camera) or choose a photo
+ * (opens the library). A picked photo goes to `{base}/photo?source=camera|library`, already loaded.
  */
 export function CaptureOptions({ base }: { base: string }) {
   const router = useRouter();
@@ -73,7 +74,12 @@ export function CaptureOptions({ base }: { base: string }) {
 
   return (
     <>
-      <ul className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+      <ul className="grid gap-3 sm:grid-cols-3 sm:gap-4">
+        <li>
+          <Link href={`${base}/scan`} className={cn(tileClass, "focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none", opening && "pointer-events-none")}>
+            <TileBody icon={ScanBarcodeIcon} title="Scan a barcode" detail="Finds the exact product." />
+          </Link>
+        </li>
         <li>{photoTile("camera", CameraIcon, "Take a photo", "Opens your camera.")}</li>
         <li>{photoTile("library", ImageIcon, "Choose a photo", "From your photo library.")}</li>
       </ul>

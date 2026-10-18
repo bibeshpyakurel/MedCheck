@@ -1,9 +1,10 @@
 // The add-a-medicine flow's progress and exits. Pure; safe on client and server.
 
-export type AddFlowScreen = "photo" | "match" | "retake" | "review" | "saved";
+export type AddFlowScreen = "photo" | "scan" | "match" | "retake" | "review" | "saved";
 
 const STEPS: Record<AddFlowScreen, { step: number; name: string }> = {
   photo: { step: 1, name: "Photo" },
+  scan: { step: 1, name: "Scan" },
   match: { step: 2, name: "Match" },
   retake: { step: 2, name: "Match" },
   review: { step: 2, name: "Check the details" },
@@ -12,7 +13,7 @@ const STEPS: Record<AddFlowScreen, { step: number; name: string }> = {
 
 const TOTAL = 3;
 
-/** "Step 2 of 3 · Match": photo → match (or check the details) → saved. */
+/** "Step 2 of 3 · Match": photo or scan → match (or check the details) → saved. */
 export function addFlowStep(screen: AddFlowScreen): { step: number; total: number; label: string } {
   const { step, name } = STEPS[screen];
   return { step, total: TOTAL, label: `Step ${step} of ${TOTAL} · ${name}` };

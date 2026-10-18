@@ -2,7 +2,7 @@
 
 Date: 2026-10-17 · Status: approved, revised 2026-10-17 · Source idea: `MedCheck_Project_Summary.md` (team handoff doc)
 
-> **2026-10-17 revision.** The demo is gone: no demo banner, household, kit, tools or "Try the demo"; the fictional Calmora products are no longer part of the product (`patients.is_demo` stays in the schema, unused). Sign-in has three doors: Google, email one-time code, guest. Each account has exactly one person. After sign-in the user lands on their home: the Medicines tab once anything is on file, otherwise the capture page (take photo, choose photo; describing or picking a medicine is gone). The app has two tabs, **Medicines** and **Medicine report**. Checks run as an engine: only real findings appear, as plain-English warnings; the checks list, "no finding" rows, Checks tab, "About the checks" page and pharmacist questions are gone, and the document-vs-bottle check is removed (user-facing wording says "package", never "bottle"). The footer is one line; Poison Control lives behind **Get help** in the header. Barcode scanning removed: the capture page offers only **Take a photo** and **Choose a photo**; the scan screen, typed-NDC lookup (`/api/ndc`) and the ZXing dependencies are gone, and older entries keep `input_method` `barcode`. Sections below describe the revised product.
+> **2026-10-17 revision.** The demo is gone: no demo banner, household, kit, tools or "Try the demo"; the fictional Calmora products are no longer part of the product (`patients.is_demo` stays in the schema, unused). Sign-in has three doors: Google, email one-time code, guest. Each account has exactly one person. After sign-in the user lands on their home: the Medicines tab once anything is on file, otherwise the capture page (take photo, choose photo; describing or picking a medicine is gone). The app has two tabs, **Medicines** and **Medicine report**. Checks run as an engine: only real findings appear, as plain-English warnings; the checks list, "no finding" rows, Checks tab, "About the checks" page and pharmacist questions are gone, and the document-vs-bottle check is removed (user-facing wording says "package", never "bottle"). The footer is one line; Poison Control lives behind **Get help** in the header. The capture page (**Know your drugs**) offers **Scan a barcode**, **Take a photo** and **Choose a photo** (barcode scanning was removed on 2026-10-17 and brought back the next day; see Capture). Sections below describe the revised product.
 
 > **OTC catalog revision.** The catalog now holds every US oral OTC label, OTC package photos match to it in one tap and open a medicine card, and other ingredients are in scope. See `2026-10-17-otc-catalog-design.md`, which wins where the two disagree.
 
@@ -42,7 +42,7 @@ All patient data is owned by an auth user (Google, email code, or anonymous gues
 - `patients` — `id`, `caregiver_id`, `display_name`, `relationship`, `notes`, `is_demo` (unused), timestamps. Exactly one row per account, relationship `self`, created by `ensureSelfPatient()`; guests get display name "Guest".
 - `formulations` (catalog) — `id`, `slug`, `brand_name`, `generic_name`, `dosage_form` (`liquid` | `tablet` | `caplet` | `capsule` | …), `is_fictional`, `ndc_packages text[]` (normalized 11-digit, no hyphens), `active_ingredients jsonb` (`[{name, normalized, strength_value, strength_unit, per_value, per_unit}]`), `directions_text`, `max_24h_text`, `warnings_quotes text[]` (verbatim, e.g. "do not use with other drugs containing acetaminophen"), `dosage_table_html` (sanitized), `source` (`openfda` | `fictional`), `openfda_set_id`, `label_effective_date`, `reviewed_at`.
 - `source_documents` — `id`, `patient_id`, `kind` (`otc_package` | `drug_facts_photo` | `prescription_label` | `discharge_list` | `description`), `photo_path`, `transcript_text`, `document_date`, `facility`, `prescriber`, `pharmacy`, `created_at`.
-- `medication_entries` — `id`, `patient_id`, `source_document_id`, `formulation_id` (nullable), `input_method` (new entries: `photo`; `barcode` | `voice` | `typed` | `picker` remain for old rows), `status` (`draft` | `confirmed`), `fields jsonb` (see §5), `created_at`, `confirmed_at`.
+- `medication_entries` — `id`, `patient_id`, `source_document_id`, `formulation_id` (nullable), `input_method` (new entries: `photo` | `barcode`; `voice` | `typed` | `picker` remain for old rows), `status` (`draft` | `confirmed`), `fields jsonb` (see §5), `created_at`, `confirmed_at`.
 - `history` — append-only change log written by triggers on `patients`, `medication_entries`, `source_documents`: `entity`, `entity_id`, `action`, `before`, `after`, `actor`, `at`.
 - `exports` — `id`, `patient_id`, `findings_snapshot jsonb`, `created_at`.
 - `email_sends` — `id`, `caregiver_id`, `export_id`, `to_address`, `sent_at` (rate limit: 5 per account per day).
@@ -61,7 +61,7 @@ The engine runs behind the scenes. Only `finding` results reach the UI and the r
 2. **Repeated record** — same product identity (formulation id, or name + strength + form) entered twice → reported as a repeat, *not* an overlap.
 3. **Concentration** — two liquids with the same ingredient and different mg-per-mL → "same volume holds different amounts", both stated as on the label (100 mg per 5 mL vs 200 mg per 5 mL). Never suggests a volume.
 4. **Units** — instructions and strength use units that don't line up (mL vs tsp/teaspoon, mg instruction for a liquid, missing unit) → finding.
-5. **Database vs package** — for older barcode entries (no new ones are created since barcode scanning was removed), the openFDA label values differ from the values confirmed on the Drug Facts photo → finding. (Check id `database_vs_box`.)
+5. **Database vs package** — for older barcode entries that also had a Drug Facts photo (a scan today saves the FDA label's values only, so there is nothing to compare), the openFDA label values differ from the values confirmed on the Drug Facts photo → finding. (Check id `database_vs_box`.)
 
 ## 7. Screens and flows
 
@@ -70,9 +70,10 @@ The engine runs behind the scenes. Only `finding` results reach the UI and the r
   - **Continue with email** — email plus optional first and last name → Supabase emails a one-time code → the user enters it on `/sign-in/verify` → signed in.
   - **Continue as a guest** — Supabase anonymous sign-in; display name "Guest".
 - **Home** — after any sign-in, and from the logo, `/patients` and the 404 page: the Medicines tab `/patients/{id}` once anything is on file (confirmed or waiting for review), otherwise the capture page `/patients/{id}/add`.
-- **Capture** — two ways:
-  1. **Take a photo** of a label, prescription or discharge list → Gemini extraction with per-field bounding boxes → review.
-  2. **Choose a photo** from the device → same as Take a photo.
+- **Capture** — three ways, on the **Know your drugs** page:
+  1. **Scan a barcode** (`/add/scan`, ZXing; a photo of the barcode or a typed NDC when the camera is blocked) → `findFormulationByCodes()` (catalog package NDCs, then openFDA by UPC) → "Is this the medicine?" with that one FDA label → one tap confirms it.
+  2. **Take a photo** of a label, prescription or discharge list → Gemini extraction with per-field bounding boxes → review. Gemini also copies any NDC or barcode number printed on a package, matched the same way.
+  3. **Choose a photo** from the device → same as Take a photo.
 - **Review** — one row per field: label crop | AI value | **Matches** / **Edit** / **Can't tell** (→ unknown). If no box: show the whole photo. Nothing is saved as confirmed without a user action.
 - **Medicines tab** — the person's medicine history: items waiting for review, warnings (findings only), the medicine list (with source, date, prescriber/facility/pharmacy), and activity (change history).
 - **Label view** — confirmed concentration and units beside the label's own directions, 24-hour maximum and full children's table (never a highlighted row).
@@ -84,7 +85,7 @@ The engine runs behind the scenes. Only `finding` results reach the UI and the r
 ## 8. Product data
 
 - `scripts/seed-catalog.ts`: one-time pull of acetaminophen oral OTC labels from `api.fda.gov/drug/label.json`; drops homeopathic and non-oral; groups store brands by ingredient + strength + form; hand-checked list of ~6–10 formulations including the NyQuil Cold & Flu formulations and a children's 160 mg/5 mL liquid.
-- The catalog seed still records each product's NDCs (`ndc11FromHyphenated` in `src/lib/ndc.ts`); no screen looks up a scanned or typed code.
+- NDC lookup (`src/lib/ndc.ts`, `src/lib/code-lookup.ts`): decode UPC-A (`3` + 10-digit NDC + check digit) or GS1 GTIN; a hyphenated NDC names its layout, otherwise try 4-4-2, 5-3-2 and 5-4-1; query the catalog's package NDCs, then openFDA's NDC Directory by UPC. A code that leads to more than one label is no answer; not found → photo flow.
 
 ## 9. Milestones
 
