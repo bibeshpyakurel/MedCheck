@@ -19,7 +19,7 @@ const sourceSchema = z.enum(["camera", "library"]);
 
 /**
  * Query: `source` (`camera` | `library`: which button comes first; the capture page sends a photo
- * already picked) and `kind` (default prescription_label).
+ * already picked) and `kind` (default otc_package: the product is package-first).
  */
 export default async function PhotoPage({ params, searchParams }: PageProps<"/patients/[patientId]/add/photo">) {
   await requireUser();
@@ -31,7 +31,7 @@ export default async function PhotoPage({ params, searchParams }: PageProps<"/pa
 
   const kindParam = kindSchema.safeParse(query.kind);
   const sourceParam = sourceSchema.safeParse(query.source);
-  const kind: PhotoKind = kindParam.success ? kindParam.data : "prescription_label";
+  const kind: PhotoKind = kindParam.success ? kindParam.data : "otc_package";
 
   return (
     <AppShell>

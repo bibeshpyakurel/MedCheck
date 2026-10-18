@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { CatalogMatch } from "./catalog-match";
 import { emptyEntryFields, isFullyReviewed, suggestedField } from "./domain/fields";
 import type { EntryFields, Evidence, Formulation, Strength } from "./domain/schema";
-import { matchChoices, photoNextPath, toMatchOption, typedNameFields } from "./photo-flow";
+import { draftPath, matchChoices, photoNextPath, toMatchOption, typedNameFields, withoutFictional } from "./photo-flow";
 
 const photo: Evidence = { kind: "photo", sourceDocumentId: "doc-1" };
 const s500: Strength = { amount: 500, unit: "mg", perAmount: 1, perUnit: "caplet" };
@@ -179,5 +179,29 @@ describe("matchChoices", () => {
 
   it("no matches → nothing to pick", () => {
     expect(matchChoices([])).toEqual({ selectedId: null, options: [] });
+  });
+});
+
+describe("withoutFictional", () => {
+  it("drops fictional demo products (Calmora); real labels keep their order", () => {
+    const real1 = formulation("f-es", "Tylenol Extra Strength", s500);
+    const real2 = formulation("f-reg", "Tylenol Regular", s325);
+    const calmora = { ...formulation("f-calmora", "Calmora Fever Relief (Bottle A)", s500), isFictional: true, source: "fictional" as const };
+    expect(withoutFictional([calmora, real1, calmora, real2]).map((f) => f.id)).toEqual(["f-es", "f-reg"]);
+  });
+});
+
+describe("draftPath (Waiting for your review)", () => {
+  const draft = (kind: "otc_package" | "prescription_label" | "discharge_list" | null) => ({
+    id: "e-1",
+    sourceDocument: kind ? { kind } : null,
+  });
+  it("a medicine-package draft goes back to its one-tap confirm step", () => {
+    expect(draftPath("p-1", draft("otc_package"))).toBe("/patients/p-1/entries/e-1/match");
+  });
+  it("prescription labels, discharge lists and entries without a photo keep the per-field review", () => {
+    expect(draftPath("p-1", draft("prescription_label"))).toBe("/patients/p-1/entries/e-1/review");
+    expect(draftPath("p-1", draft("discharge_list"))).toBe("/patients/p-1/entries/e-1/review");
+    expect(draftPath("p-1", draft(null))).toBe("/patients/p-1/entries/e-1/review");
   });
 });

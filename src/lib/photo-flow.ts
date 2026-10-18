@@ -27,6 +27,17 @@ export function photoNextPath(input: {
   return readable ? `${base}/match` : `${base}/retake`;
 }
 
+/** A draft's "Check details" link: a medicine-package draft returns to `/match`, anything else to `/review`. */
+export function draftPath(patientId: string, entry: { id: string; sourceDocument: { kind: SourceDocumentKind } | null }): string {
+  const step = entry.sourceDocument?.kind === "otc_package" ? "match" : "review";
+  return `/patients/${patientId}/entries/${entry.id}/${step}`;
+}
+
+/** Fictional demo products (Calmora) are no longer part of the product; never offer them. */
+export function withoutFictional<T extends Pick<Formulation, "isFictional">>(formulations: T[]): T[] {
+  return formulations.filter((f) => !f.isFictional);
+}
+
 /**
  * "Save without a match": the typed name is the product name; every other value is `unknown` (what
  * Gemini read stays as `aiValue` for the record), so checks that need a strength stay unresolved.

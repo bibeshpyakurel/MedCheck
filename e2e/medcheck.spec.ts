@@ -265,7 +265,8 @@ async function readPackagePhoto(page: Page, browser: Browser, base: string, scen
   await page.goto(`${base}/add`);
   await page.locator("label", { hasText: "Choose a photo" }).locator("input[type=file]").setInputFiles(await labelPhoto(browser, scenario));
   await page.waitForURL(/\/add\/photo\?source=library$/);
-  await page.getByRole("radio", { name: /Medicine package/ }).check();
+  // Package-first: Medicine package is already chosen.
+  await expect(page.getByRole("radio", { name: /Medicine package/ })).toBeChecked();
   await page.getByRole("button", { name: "Read this photo" }).click();
 }
 
@@ -364,6 +365,18 @@ test.describe("medicine package photo", () => {
     await readPackagePhoto(page, browser, base);
     await page.waitForURL(/\/entries\/[0-9a-f-]{36}\/retake$/, { timeout: 60_000 });
     await expect(page.getByRole("button", { name: "Type it in instead" })).toBeVisible();
+
+    // Left waiting: a package draft goes back to its one-tap step, not the per-field review.
+    await page.goto(base);
+    const waiting = page.getByRole("region", { name: /Waiting for your review/ });
+    await expect(waiting.getByRole("link", { name: /Check details/ })).toHaveAttribute("href", /\/entries\/[0-9a-f-]{36}\/match$/);
+  });
+
+  test("the type-in search never offers fictional demo products", async () => {
+    const response = await page.request.get("/api/catalog/search?q=Calmora");
+    expect(response.ok()).toBe(true);
+    const { options } = (await response.json()) as { options: { brandName: string }[] };
+    expect(options.filter((o) => /calmora/i.test(o.brandName))).toEqual([]);
   });
 });
 

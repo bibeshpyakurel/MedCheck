@@ -7,17 +7,18 @@ import { cn } from "@/lib/utils";
 
 export type PhotoKind = "prescription_label" | "discharge_list" | "otc_package";
 
+// Package first: it's the default and the most common photo.
 const KINDS: { value: PhotoKind; title: string; detail: string }[] = [
+  {
+    value: "otc_package",
+    title: "Medicine package",
+    detail: "A store-bought medicine. Photograph the front of the package; MedCheck finds it in the FDA list.",
+  },
   { value: "prescription_label", title: "Prescription label", detail: "The sticker the pharmacy puts on the container." },
   {
     value: "discharge_list",
     title: "Discharge list",
     detail: "The medicine list a hospital or clinic gives you when you leave. It can include several medicines.",
-  },
-  {
-    value: "otc_package",
-    title: "Medicine package",
-    detail: "A store-bought medicine. Photograph the front of the package; MedCheck finds it in the FDA list.",
   },
 ];
 
