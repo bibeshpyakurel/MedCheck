@@ -393,9 +393,11 @@ test.describe("medicine package photo", () => {
 
     await confirm.getByRole("button", { name: "Continue" }).click();
     const card = page.getByRole("dialog", { name: "Tylenol Extra Strength (caplets)" });
-    await expect(card.getByRole("heading", { name: "Quick answers" })).toBeVisible();
-    // Quick answers' "Took too much?" and the footer both carry Poison Control.
+    await expect(card.getByRole("tab", { name: "Quick View" })).toBeVisible();
+    // "Took too much?" and the footer both carry Poison Control.
     await expect(card.locator('a[href="tel:18002221222"]').first()).toBeVisible();
+    await card.getByRole("tab", { name: "Original FDA label" }).click();
+    await expect(card.getByRole("tabpanel")).toContainText("Every Drug Facts section as published");
     await expect(card).toContainText("Nothing is saved yet.");
 
     // Device Back returns to the question; Continue again.
@@ -528,7 +530,7 @@ test.describe("medicine package photo", () => {
     const cards = result.getByRole("heading", { level: 4 }).getByRole("button");
     await expect(cards).toHaveCount(2);
     await cards.filter({ hasText: /Tylenol/i }).click();
-    await expect(result.getByRole("heading", { name: "Quick answers" })).toBeVisible();
+    await expect(result.getByRole("tab", { name: "Quick View" })).toBeVisible();
 
     await result.getByRole("button", { name: "Save to My medicines" }).click();
     await page.waitForURL(new RegExp(`${base}$`));
@@ -549,7 +551,7 @@ test.describe("medicine package photo", () => {
 
     // One medicine left: its card, not a comparison.
     const card = page.getByRole("dialog", { name: /^TYLENOL Extra Strength|^Tylenol Extra Strength/ });
-    await expect(card.getByRole("heading", { name: "Quick answers" })).toBeVisible();
+    await expect(card.getByRole("tab", { name: "Quick View" })).toBeVisible();
     await expect(card.getByRole("heading", { name: "Together" })).toHaveCount(0);
     await card.getByRole("button", { name: "Save to My medicines" }).click();
     await page.waitForURL(new RegExp(`${base}$`));

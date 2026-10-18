@@ -25,7 +25,8 @@ export function UsesGrid({ groups, id }: { groups: UseGroup[]; id: string }) {
       {groups.map((g, n) => (
         <div key={n} className="space-y-2">
           {g.lead && <p className="text-[0.9375rem] font-semibold">{capitalize(g.lead.text)}</p>}
-          <ul className="grid grid-cols-2 gap-2 md:grid-cols-3">
+          {/* Columns follow the container (the card is also nested inside the photo comparison), not the viewport. */}
+          <ul className="grid grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] gap-2">
             {g.tiles.map((t, k) => {
               const Icon = ICONS[t.icon];
               return (
@@ -33,7 +34,7 @@ export function UsesGrid({ groups, id }: { groups: UseGroup[]; id: string }) {
                   key={k}
                   className={cn(
                     "flex min-h-11 items-center gap-2.5 rounded-xl border bg-card p-3 text-[0.9375rem] leading-snug shadow-xs",
-                    t.text.length > 40 && "col-span-2 md:col-span-3",
+                    t.text.length > 40 && "col-span-full",
                   )}
                 >
                   <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">

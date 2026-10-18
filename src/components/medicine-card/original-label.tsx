@@ -4,6 +4,23 @@ import type { Formulation } from "@/lib/domain/schema";
 import { cardSections } from "@/lib/medicine-card";
 import { formatDocDate } from "@/lib/record-format";
 
+const NDCS_SHOWN = 3;
+
+/** A label can list dozens of package NDCs: the first few, the rest one tap away. */
+function NdcList({ ndcs }: { ndcs: string[] }) {
+  const first = ndcs.slice(0, NDCS_SHOWN).join(", ");
+  if (ndcs.length <= NDCS_SHOWN) return <span className="break-all">{first}</span>;
+  return (
+    <details className="group">
+      <summary className="inline-flex min-h-11 cursor-pointer list-none flex-wrap items-center gap-x-2 [&::-webkit-details-marker]:hidden">
+        <span className="break-all">{first}</span>
+        <span className="font-sans font-medium text-primary group-open:hidden">Show all {ndcs.length}</span>
+      </summary>
+      <p className="break-all">{ndcs.slice(NDCS_SHOWN).join(", ")}</p>
+    </details>
+  );
+}
+
 export function OriginalLabel({ formulation: f }: { formulation: Formulation }) {
   const sections = cardSections(f);
   const id = (key: string) => `orig-${f.id}-${key}`;
@@ -38,7 +55,9 @@ export function OriginalLabel({ formulation: f }: { formulation: Formulation }) 
           {f.ndcPackages.length > 0 && (
             <>
               <dt className="text-muted-foreground">NDC</dt>
-              <dd className="font-mono text-xs break-all">{f.ndcPackages.join(", ")}</dd>
+              <dd className="font-mono text-xs">
+                <NdcList ndcs={f.ndcPackages} />
+              </dd>
             </>
           )}
           {date && (

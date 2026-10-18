@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # MedCheck — rules for every agent
 
-Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` and `docs/superpowers/specs/2026-10-17-otc-catalog-design.md` (the OTC catalog, photo match and medicine card) and `docs/superpowers/specs/2026-10-17-photo-answers-design.md` (one photo → confirm pop-up → quick answers or a comparison; the newest wins where they disagree) before changing behavior.
+Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` and `docs/superpowers/specs/2026-10-17-otc-catalog-design.md` (the OTC catalog, photo match and medicine card) and `docs/superpowers/specs/2026-10-17-photo-answers-design.md` (one photo → confirm pop-up → quick answers or a comparison) and `docs/superpowers/specs/2026-10-18-medication-dashboard-design.md` (the medicine card as a dashboard over the label's own words; the newest wins where they disagree) before changing behavior.
 
 ## Product boundaries (never cross)
 - Evidence, not advice. Never calculate a dose, volume or schedule; never infer a dose from age or weight; never say a combination is "safe"; never pick which product or amount is right.
@@ -35,7 +35,8 @@ Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` and `docs/superpower
 - `src/components/ui/` — shadcn components (`npx shadcn@latest add <name>`). Style `base-nova` = **Base UI, not Radix**: compose with the `render` prop (`<Button render={<Link href="/x" />} nativeButton={false}>`), there is no `asChild`.
 - `src/lib/records.ts` — all patient/document/entry/history/photo data access (runs as the user). Use these; don't query tables directly from features. `ensureSelfPatient()` returns the account's one person (relationship `self`), creating it on first use.
 - `src/lib/catalog.ts` — catalog reads (`listFormulations`, `getFormulation(s)ByIds`). The catalog holds every US oral OTC label (thousands of rows): never load it whole in a request; search with the `search_formulations` RPC.
-- `src/lib/quick-answers.ts` — `quickAnswers(f)`: the card's 14 quick answers, label bullets picked by keyword/heading rules (never reworded), adults/children split by the label's own age phrases (`splitDirectionsByAge`); rendered by `src/components/medicine-card/quick-answers.tsx` (shared bits in `label-parts.tsx`).
+- `src/lib/quick-answers.ts` — `quickAnswers(f)`: label bullets picked by keyword/heading rules (never reworded); feeds the card's Good to know. Also the age rules (`ageOf`, `ageGroups`, `splitDirectionsByAge`) and `WARNING_HEAD`.
+- `src/lib/medication-facts.ts` — `medicationFacts(f)`: the medicine card's dashboard (ingredient card, uses tiles, directions by form and age with `markRanges()` highlights, warning cards, Good to know). Every line is a `LabelLine` whose `ref` points at its raw label bullet (`resolveRef()`); a test holds that for every fixture label. Rendered by `src/components/medicine-card/` (`MedicineCard`: Quick View / Original FDA label tabs; `actions` and `defaultTab` for callers; shared bits in `label-parts.tsx`).
 - `src/lib/domain/fields.ts` — build/read `EntryFields` (`suggestedField`, `fieldsFromFormulation`, `isUsable`, `isFullyReviewed`, `formatStrength`, `entryLabel`).
 - `src/data/fictional-formulations.ts` — fictional formulations (Calmora) with their NDCs.
 - `src/lib/code-lookup.ts` — `findFormulationByCodes()`: an NDC or barcode number → its one catalog label (catalog package NDCs, then openFDA by UPC). Used by the barcode scanner (`/add/scan`, `src/components/capture/barcode-scanner.tsx`) and by photo extraction for the codes Gemini copies off a package.

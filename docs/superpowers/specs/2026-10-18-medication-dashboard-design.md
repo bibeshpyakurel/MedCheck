@@ -33,7 +33,7 @@ Original       every Drug Facts section in label order (today's cardSections()),
 Footer         Poison Control 1-800-222-1222 (tap-to-call), as today
 ```
 
-Phone-first (the mockup is 390 px wide). At `sm:` and up the card keeps a single column inside the dialog. Uses go to 3 columns and Good to know to 3 columns from `md:`. Tap targets are at least 44 px. Light and dark both come from the existing tokens.
+Phone-first (the mockup is 390 px wide). At `sm:` and up the card keeps a single column inside the dialog. Uses tiles fill their container (at least 9.5 rem each: two across on a phone, three or more at laptop width, since the card also sits inside the photo comparison). Good to know goes to 2 columns from `sm:`. A label listing many package NDCs shows the first three on the Original tab, the rest behind "Show all". Tap targets are at least 44 px. Light and dark both come from the existing tokens.
 
 ### Status chip
 
@@ -94,12 +94,12 @@ Icons come from a fixed keyword map on the tile text (`USE_ICONS`): headache →
 Built from `labelSections.directions`, or from `directionsText` as one line when the row predates sections (no grouping, no marks).
 
 - **Forms.** Some labels print one block of directions per form ("Advil Tablets", "Advil Caplets", "Advil Gel Caplets"). A bullet of at most five words that starts with the brand name (case-insensitive) and contains no digit starts a form block. With two or more blocks, a segmented control ("This label has directions for:") switches between them. Its buttons carry the label's own sub-headings. With fewer than two, there is no control.
-- **Age groups**, within a form, by the existing rules in `splitDirectionsByAge()`/`ageGroups()` (an age line, plus the lowercase lines that continue it). Each age line starts a card headed by its own age phrase (the text before its colon, first letter capitalized: "Adults and children 12 years and over", "Children under 12 years"). General lines (no age) go in a muted card before the age cards, in label order.
+- **Age groups**, within a form, by the existing rules in `splitDirectionsByAge()`/`ageGroups()` (an age line, plus the lowercase lines that continue it). Each age line starts a card headed by its own age phrase (the text before its colon, first letter capitalized: "Adults and children 12 years and over", "Children under 12 years"). Lines stay in label order: each run of general lines (no age) is a muted card, and each age line starts a card its continuing lines join (Pepcid's "Do not chew." ends the adults' card).
 - **Marks** (fixed patterns, unit-tested; the text is never changed):
   - an amount with a unit: `1 tablet`, `2 caplets`, `5 mL`, `10 mL`, `1 teaspoon`
   - an interval: `every 4 to 6 hours`, `every 4 hours`
   - a 24-hour limit: `6 tablets in 24 hours`, `5 times in 24 hours`
-  - a referral: `ask a doctor`, `do not use`
+  - a referral: `ask a doctor`, `consult a doctor` (not `do not use`, which would mark Pepcid's "do not use more than 2 tablets" as a referral)
 
   Marks render as `<mark>` with weight and the accent surface, so they don't rely on color alone. A caption reads: "The label's own sentences. Highlights mark amounts and times; nothing is removed, reworded or worked out for you."
 - **24-hour limit.** A line mentioning 24 hours is shown with a clock icon where it falls. `max24hText` is added as its own line only when no directions bullet already contains it.
