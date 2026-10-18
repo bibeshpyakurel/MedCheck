@@ -92,9 +92,15 @@ export async function previewPicksAction(input: { patientId: string; sourceDocum
 /**
  * Save to My medicines: each picked draft is confirmed with its FDA label's values (the user's
  * Continue was the confirmation) or with the typed name only; drafts removed from the photo are
- * deleted. Then My medicines replaces the photo page in history.
+ * deleted. Then My medicines replaces the photo page in history — or, with `then: "vitals"` (Save with
+ * vitals), the vitals scan does.
  */
-export async function savePicksAction(input: { patientId: string; sourceDocumentId: string; picks: PhotoPick[] }): Promise<AnswerError> {
+export async function savePicksAction(input: {
+  patientId: string;
+  sourceDocumentId: string;
+  picks: PhotoPick[];
+  then?: "vitals";
+}): Promise<AnswerError> {
   const checked = await checkPicks(input);
   if ("error" in checked) return checked;
   const { drafts, picks, formulations } = checked;
@@ -114,7 +120,8 @@ export async function savePicksAction(input: { patientId: string; sourceDocument
     console.error("Saving the photo's medicines failed", error);
     return { error: "We couldn't save these medicines. Check your connection and try again." };
   }
-  redirect(`/patients/${input.patientId}`, RedirectType.replace);
+  const next = input.then === "vitals" ? `/patients/${input.patientId}/vitals` : `/patients/${input.patientId}`;
+  redirect(next, RedirectType.replace);
 }
 
 /**

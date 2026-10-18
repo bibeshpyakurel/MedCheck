@@ -4,7 +4,7 @@
 // up, over the photo screen. Confirm ("Is this …?" for each medicine read) → Continue → the answer
 // card or the comparison → Save to My medicines or Don't save. Closing it any other way (×, Escape,
 // device Back) keeps the drafts waiting for review.
-import { ArrowLeftIcon, LoaderCircleIcon, XIcon } from "lucide-react";
+import { ArrowLeftIcon, HeartPulseIcon, LoaderCircleIcon, XIcon } from "lucide-react";
 import Link from "next/link";
 import { unstable_rethrow } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -39,7 +39,7 @@ function failedOrNavigating(error: unknown): AnswerError | null {
   return OFFLINE;
 }
 
-type Busy = "continue" | "save" | "discard" | null;
+type Busy = "continue" | "save" | "vitals" | "discard" | null;
 
 const onOverlayEntry = () => typeof (window.history.state as Record<string, unknown> | null)?.medcheckOverlay === "number";
 
@@ -141,13 +141,14 @@ export function PhotoAnswersDialog({
     setResult({ picks, formulations: r.formulations });
   }
 
-  async function save() {
+  /** Save to My medicines, or Save with vitals (`then: "vitals"`: the vitals scan follows). */
+  async function save(then?: "vitals") {
     if (!result) return;
     setError(null);
-    setBusy("save");
+    setBusy(then ?? "save");
     await leave();
-    // On success the action redirects to My medicines, replacing the photo page.
-    const r = await savePicksAction({ patientId, sourceDocumentId, picks: result.picks }).catch(failedOrNavigating);
+    // On success the action redirects to My medicines (or the vitals scan), replacing the photo page.
+    const r = await savePicksAction({ patientId, sourceDocumentId, picks: result.picks, then }).catch(failedOrNavigating);
     if (r?.error) {
       stay();
       setBusy(null);
@@ -276,14 +277,24 @@ export function PhotoAnswersDialog({
           )}
         </div>
 
-        <div className="flex shrink-0 flex-col-reverse gap-2 border-t bg-muted/50 px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:flex-row sm:justify-end">
+        <div className="flex shrink-0 flex-col-reverse gap-2 border-t bg-muted/50 px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:flex-row sm:flex-wrap sm:justify-end">
           {answers ? (
             <>
-              <p className="self-center text-sm text-muted-foreground sm:mr-auto">Nothing is saved yet.</p>
+              {/* Three buttons fill the row from sm:, so the note takes a line of its own above them. */}
+              <p className="self-center text-sm text-muted-foreground sm:basis-full">Nothing is saved yet.</p>
               <Button variant="outline" className="h-11 px-4 text-base" disabled={pending} onClick={discard}>
                 {busy === "discard" ? <BusyLabel>Discarding…</BusyLabel> : "Don't save"}
               </Button>
-              <Button className="h-11 px-5 text-base" disabled={pending} onClick={save}>
+              <Button variant="outline" className="h-11 px-4 text-base" disabled={pending} onClick={() => save("vitals")}>
+                {busy === "vitals" ? (
+                  <BusyLabel>Saving…</BusyLabel>
+                ) : (
+                  <>
+                    <HeartPulseIcon aria-hidden /> Save with vitals
+                  </>
+                )}
+              </Button>
+              <Button className="h-11 px-5 text-base" disabled={pending} onClick={() => save()}>
                 {busy === "save" ? <BusyLabel>Saving…</BusyLabel> : "Save to My medicines"}
               </Button>
             </>
