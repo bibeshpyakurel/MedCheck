@@ -45,10 +45,27 @@ export function isReadable(read: PhotoRead): boolean {
   return text(read.productName) !== null || read.ingredients.some((i) => text(i.name) !== null);
 }
 
-/** Search terms to send to search_formulations, most specific first (brand as read, then ingredient names). */
+// Package words that many products share; searched alone they drown out the brand
+// ("Rolaids Extra Strength" ranked store-brand "Extra Strength" antacids first).
+const STRENGTH = /\b\d+(?:\.\d+)?\s*(?:mg|mcg|g|ml|%)(?=\W|$)/gi;
+const PACKAGE_WORDS =
+  /\b(?:extra|maximum|max|regular|original|ultra|strength|fast|acting|rapid|relief|formula|advanced|plus|liqui-?gels?|liquid ?gels?|tablets?|caplets?|capsules?|softgels?|gelcaps?|geltabs?|chewables?|liquid|suspension)\b/gi;
+
+/** "Zantac 360 Maximum Strength" → "Zantac 360"; null when nothing distinctive is left. */
+function brandOnly(name: string | null): string | null {
+  if (!name) return null;
+  const core = name.replace(STRENGTH, " ").replace(PACKAGE_WORDS, " ").replace(/\s+/g, " ").trim();
+  return core && core.toLowerCase() !== name.toLowerCase() ? core : null;
+}
+
+/**
+ * Search terms to send to search_formulations, most specific first: brand as read, the brand alone
+ * (no strength, marketing or form words), then ingredient names.
+ */
 export function searchTermsFor(read: PhotoRead): string[] {
   const terms = [
     text(read.productName),
+    brandOnly(text(read.productName)),
     ...read.ingredients.map((i) => {
       const name = text(i.name);
       return name ? normalizeIngredient(name) : null;
