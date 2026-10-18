@@ -44,6 +44,16 @@ export async function getFormulation(id: string): Promise<Formulation | null> {
   return data ? rowToFormulation(data) : null;
 }
 
+/** Catalog rows whose brand or generic name resembles `query`, best first (the `search_formulations` RPC). */
+export async function searchFormulations(query: string, max = 8): Promise<Formulation[]> {
+  const q = query.trim();
+  if (!q) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("search_formulations", { query: q, max_results: max });
+  if (error) throw error;
+  return data.map(rowToFormulation);
+}
+
 export async function getFormulationsByIds(ids: string[]): Promise<Record<string, Formulation>> {
   const unique = [...new Set(ids)];
   if (unique.length === 0) return {};
