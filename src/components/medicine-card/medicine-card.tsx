@@ -1,98 +1,76 @@
-// The medicine card: quick answers first, then everything the FDA label says (collapsed), all in the
-// label's own words. Evidence only: no dose maths, no "safe", and the dosing table is shown in full
-// with no row picked. No "use client": it renders on the server and inside the client sheet alike.
-import { ChevronDownIcon, ExternalLinkIcon, InfoIcon } from "lucide-react";
-import { DosingTable, LabelBullets, PoisonControlButton } from "@/components/medicine-card/label-parts";
-import { QuickAnswers } from "@/components/medicine-card/quick-answers";
-import { formatStrength } from "@/lib/domain/fields";
+// The medicine card: a dashboard over the FDA label (Quick View) and the label as published (Original
+// FDA label), in the label's own words throughout. Evidence only: no dose maths, no "safe", and the
+// dosing table is shown in full with no row picked. No "use client": it renders on the server and inside
+// the client sheet alike; the tabs and the per-form switch are client children.
+import { BuildingIcon, CalendarIcon, InfoIcon, type LucideIcon, PillIcon } from "lucide-react";
+import type { ReactNode } from "react";
+import { PoisonControlButton } from "@/components/medicine-card/label-parts";
+import { type CardTab, MedicineCardTabs } from "@/components/medicine-card/medicine-card-tabs";
+import { OriginalLabel } from "@/components/medicine-card/original-label";
+import { QuickView } from "@/components/medicine-card/quick-view";
 import type { Formulation } from "@/lib/domain/schema";
-import { cardSections } from "@/lib/medicine-card";
+import { medicationFacts, STATUS_TEXT } from "@/lib/medication-facts";
 import { formatDocDate } from "@/lib/record-format";
+
+function Meta({ icon: Icon, children }: { icon: LucideIcon; children: ReactNode }) {
+  return (
+    <li className="flex items-center gap-2">
+      <Icon aria-hidden className="size-4 shrink-0" />
+      {children}
+    </li>
+  );
+}
 
 /**
  * `showTitle={false}` when the container already shows the brand name (the sheet's sticky title).
+ * `actions` sit under the status chip (Compare with my medicines); `defaultTab` opens on the Original label.
  * `dosageTableHtml` must arrive sanitized: `rowToFormulation()` does that on every catalog read.
  */
-export function MedicineCard({ formulation: f, showTitle = true }: { formulation: Formulation; showTitle?: boolean }) {
-  const sections = cardSections(f);
-  const labelDate = formatDocDate(f.labelEffectiveDate);
-  const byline = [f.labelerName, labelDate && `Label dated ${labelDate}`].filter(Boolean).join(" · ");
-  const id = (key: string) => `card-${f.id}-${key}`;
+export function MedicineCard({
+  formulation: f,
+  showTitle = true,
+  actions,
+  defaultTab = "quick",
+}: {
+  formulation: Formulation;
+  showTitle?: boolean;
+  actions?: ReactNode;
+  defaultTab?: CardTab;
+}) {
+  const facts = medicationFacts(f);
+  const { header } = facts;
+  const labelDate = formatDocDate(header.labelDate);
 
   return (
     <article className="space-y-6">
       <header className="space-y-3">
-        {showTitle && (
-          <h2 className="font-display text-2xl font-semibold tracking-tight text-balance">{f.brandName}</h2>
-        )}
-        {f.activeIngredients.length > 0 && (
-          <ul className="space-y-1 text-base font-medium nums">
-            {f.activeIngredients.map((i) => (
-              <li key={`${i.name}-${formatStrength(i.strength)}`}>
-                {i.name} {formatStrength(i.strength)}
-              </li>
+        {showTitle && <h2 className="font-display text-2xl font-semibold tracking-tight text-balance">{header.name}</h2>}
+        {header.ingredients.length > 0 && (
+          <ul className="space-y-1 text-base font-semibold nums">
+            {header.ingredients.map((line, n) => (
+              <li key={n}>{line}</li>
             ))}
           </ul>
         )}
-        {byline && <p className="text-sm text-muted-foreground">{byline}</p>}
-        {f.isFictional && <p className="text-sm text-muted-foreground">Fictional demo label, not a real product.</p>}
-        {!f.reviewed && (
-          <p className="flex items-start gap-2 text-sm text-muted-foreground">
-            <InfoIcon aria-hidden className="mt-0.5 size-4 shrink-0" />
-            Not hand-checked. Copied from the FDA label as published.
-          </p>
-        )}
+        <ul className="space-y-1.5 text-sm text-muted-foreground">
+          {header.labeler && <Meta icon={BuildingIcon}>{header.labeler}</Meta>}
+          {labelDate && <Meta icon={CalendarIcon}>Label dated {labelDate}</Meta>}
+          {header.dosageForm && <Meta icon={PillIcon}>{header.dosageForm.charAt(0).toUpperCase() + header.dosageForm.slice(1)}</Meta>}
+        </ul>
+        <p className="inline-flex items-center gap-1.5 rounded-full border bg-surface px-2.5 py-1 text-xs font-medium">
+          <InfoIcon aria-hidden className="size-3.5" />
+          {STATUS_TEXT[header.status]}
+        </p>
+        {actions}
       </header>
 
-      <QuickAnswers formulation={f} />
+      <MedicineCardTabs
+        defaultTab={defaultTab}
+        quick={<QuickView facts={facts} idPrefix={`card-${f.id}`} />}
+        original={<OriginalLabel formulation={f} />}
+      />
 
-      {sections.length > 0 && (
-        <details className="group border-y">
-          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 py-2 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none [&::-webkit-details-marker]:hidden">
-            <span>
-              <span className="block font-display text-lg font-semibold tracking-tight">Everything on the label</span>
-              <span className="block text-sm text-muted-foreground">Every Drug Facts section, as printed</span>
-            </span>
-            <ChevronDownIcon aria-hidden className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
-          </summary>
-          <div className="divide-y border-t">
-            {sections.map((section) => (
-              <section key={section.key} aria-labelledby={id(section.key)} className="space-y-3 py-5">
-                <h3 id={id(section.key)} className="text-base font-semibold">
-                  {section.heading}
-                </h3>
-                <LabelBullets bullets={section.bullets} />
-                {section.key === "directions" && f.dosageTableHtml && <DosingTable html={f.dosageTableHtml} />}
-              </section>
-            ))}
-          </div>
-        </details>
-      )}
-
-      <footer className="space-y-5">
-        {f.sourceLinks.length > 0 && (
-          <section aria-labelledby={id("sources")} className="space-y-1">
-            <h3 id={id("sources")} className="text-sm font-semibold">
-              Sources
-            </h3>
-            <ul>
-              {f.sourceLinks.map((link) => (
-                <li key={link.url}>
-                  <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline"
-                  >
-                    {link.label}
-                    <ExternalLinkIcon aria-hidden className="size-3.5" />
-                    <span className="sr-only">(opens in a new tab)</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
+      <footer>
         <PoisonControlButton />
       </footer>
     </article>
