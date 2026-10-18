@@ -7,16 +7,21 @@ import { SubmitButton } from "@/components/records/submit-button";
 import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth";
 import { entryMetadata, findEntry, findPatient } from "@/lib/page-lookup";
+import { PHOTO_ISSUE_TIPS, parsePhotoIssue } from "@/lib/photo-issue";
 import { signedPhotoUrl } from "@/lib/records";
 import { isUuid } from "@/lib/uuid";
 import { retakePhotoAction } from "../match/actions";
 
 export const generateMetadata = ({ params }: PageProps<"/patients/[patientId]/entries/[entryId]/retake">) => entryMetadata(params, "Retake the photo");
 
-/** A medicine-package photo Gemini couldn't read (no name, no ingredient): retake it, or type the name. */
-export default async function RetakePage({ params }: PageProps<"/patients/[patientId]/entries/[entryId]/retake">) {
+/**
+ * A medicine-package photo Gemini couldn't read (no name, no ingredient): retake it, or type the name.
+ * `?why=` is Gemini's reason (glare, blur, …); with it, the advice is about that problem.
+ */
+export default async function RetakePage({ params, searchParams }: PageProps<"/patients/[patientId]/entries/[entryId]/retake">) {
   await requireUser();
   const { patientId, entryId } = await params;
+  const issue = parsePhotoIssue((await searchParams).why);
   if (!isUuid(patientId) || !isUuid(entryId)) notFound();
   const [patient, entry] = await Promise.all([findPatient(patientId), findEntry(entryId)]);
   if (!patient || !entry || entry.patientId !== patient.id) notFound();
@@ -34,8 +39,13 @@ export default async function RetakePage({ params }: PageProps<"/patients/[patie
             We couldn&apos;t read this label — retake the photo
           </h1>
           <p className="leading-relaxed text-muted-foreground text-pretty">
-            Photograph the front of the package up close, so the name and strength fill the frame. Use good light and
-            avoid glare.
+            {issue ? (
+              <>
+                <span className="font-medium text-foreground">{PHOTO_ISSUE_TIPS[issue].reason}</span> {PHOTO_ISSUE_TIPS[issue].tip}
+              </>
+            ) : (
+              "Photograph the front of the package up close, so the name and strength fill the frame. Use good light and avoid glare."
+            )}
           </p>
         </header>
         {photoUrl && (

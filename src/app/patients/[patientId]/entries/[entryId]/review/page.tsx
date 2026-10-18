@@ -13,6 +13,7 @@ import { entryLabel } from "@/lib/domain/fields";
 import type { Evidence, SourceDocumentKind } from "@/lib/domain/schema";
 import { catalogMatchLabel, recordTitle } from "@/lib/record-format";
 import { entryMetadata, findEntry, findPatient } from "@/lib/page-lookup";
+import { PHOTO_ISSUE_TIPS, parsePhotoIssue } from "@/lib/photo-issue";
 import { listEntries, signedPhotoUrl } from "@/lib/records";
 import { confirmReviewAction, saveDraftAction } from "./actions";
 
@@ -48,7 +49,8 @@ const NOTICES: Record<string, { title: string; body: string }> = {
 export default async function ReviewPage({ params, searchParams }: PageProps<"/patients/[patientId]/entries/[entryId]/review">) {
   await requireUser();
   const { patientId, entryId } = await params;
-  const { notice, from: fromParam } = await searchParams;
+  const { notice, from: fromParam, why } = await searchParams;
+  const issue = parsePhotoIssue(why);
   const from = fromParam === "entry" ? "entry" : null;
   const [patient, entry] = await Promise.all([findPatient(patientId), findEntry(entryId)]);
   if (!patient || !entry || entry.patientId !== patientId) notFound();
@@ -118,7 +120,10 @@ export default async function ReviewPage({ params, searchParams }: PageProps<"/p
         {message && (
           <Alert>
             <AlertTitle>{message.title}</AlertTitle>
-            <AlertDescription>{message.body}</AlertDescription>
+            <AlertDescription>
+              {issue && notice === "nothing-found" ? `${PHOTO_ISSUE_TIPS[issue].reason} ${PHOTO_ISSUE_TIPS[issue].tip} ` : ""}
+              {message.body}
+            </AlertDescription>
           </Alert>
         )}
 

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SourceDocument } from "@/lib/domain/schema";
 import { suggestedField } from "@/lib/domain/fields";
+import type { PhotoIssue } from "@/lib/photo-issue";
 import { unknownEntryFields } from "./raw-fields";
 import type { ExtractionResult, PhotoKind } from "./extract-label";
 
@@ -37,11 +38,12 @@ function medicationNamed(name: string) {
   return { ...fields, productName: suggestedField(name, { kind: "photo", sourceDocumentId: doc.id }) };
 }
 
-function geminiReads(documentKind: PhotoKind | null, names: string[] = ["Advil"]): void {
+function geminiReads(documentKind: PhotoKind | null, names: string[] = ["Advil"], photoIssue: PhotoIssue | null = null): void {
   const result: ExtractionResult = {
     documentKind,
     document: { documentDate: null, facility: null, prescriber: null, pharmacy: null },
     medications: names.map(medicationNamed),
+    photoIssue,
   };
   gemini.extractFromPhoto.mockResolvedValue(result);
 }
@@ -92,11 +94,20 @@ describe("extractIntoDrafts: what kind of photo it was", () => {
     expect(failed).toMatchObject({ kind: "otc_package", notice: "ai-failed" });
   });
 
+  it("passes on why Gemini said the photo was hard to read; none when the read fails", async () => {
+    geminiReads("otc_package", [], "not_medicine");
+    expect(await extractIntoDrafts(doc)).toMatchObject({ notice: "nothing-found", photoIssue: "not_medicine" });
+
+    gemini.extractFromPhoto.mockRejectedValue(new Error("model down"));
+    expect(await extractIntoDrafts(doc)).toMatchObject({ notice: "ai-failed", photoIssue: null });
+  });
+
   it("saves the kind together with the document details it read", async () => {
     gemini.extractFromPhoto.mockResolvedValue({
       documentKind: "discharge_list",
       document: { documentDate: "2026-10-16", facility: "Lakeside Hospital", prescriber: null, pharmacy: null },
       medications: [medicationNamed("Amoxicillin")],
+      photoIssue: null,
     } satisfies ExtractionResult);
     await extractIntoDrafts(doc);
     expect(records.updateSourceDocument).toHaveBeenCalledWith(doc.id, {

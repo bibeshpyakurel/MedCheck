@@ -45,6 +45,31 @@ describe("photoNextPath (where a photo goes after Gemini reads it)", () => {
     );
   });
 
+  it("a retake carries why Gemini couldn't read the photo, when it said", () => {
+    expect(photoNextPath({ ...at, kind: "otc_package", notice: null, fields: blank, photoIssue: "glare" })).toBe(
+      "/patients/p-1/entries/e-1/retake?why=glare",
+    );
+    expect(photoNextPath({ ...at, kind: "otc_package", notice: "nothing-found", fields: blank, photoIssue: "not_medicine" })).toBe(
+      "/patients/p-1/entries/e-1/retake?why=not_medicine",
+    );
+  });
+
+  it("a readable package goes to confirm even if Gemini noted a photo issue", () => {
+    expect(photoNextPath({ ...at, kind: "otc_package", notice: null, fields: readable, photoIssue: "glare" })).toBe(
+      "/patients/p-1/entries/e-1/match",
+    );
+  });
+
+  it("a prescription label with nothing found carries the reason to the review", () => {
+    expect(photoNextPath({ ...at, kind: "prescription_label", notice: "nothing-found", fields: blank, photoIssue: "blurry" })).toBe(
+      "/patients/p-1/entries/e-1/review?notice=nothing-found&why=blurry",
+    );
+    // Something was found: the review needs no photo advice.
+    expect(photoNextPath({ ...at, kind: "discharge_list", notice: "several-found", fields: readable, photoIssue: "glare" })).toBe(
+      "/patients/p-1/entries/e-1/review?notice=several-found",
+    );
+  });
+
   it("Gemini failed, isn't set up, or found nothing → retake, whatever the fields say", () => {
     for (const notice of ["ai-failed", "ai-unavailable", "nothing-found"] as const) {
       expect(photoNextPath({ ...at, kind: "otc_package", notice, fields: readable })).toBe("/patients/p-1/entries/e-1/retake");

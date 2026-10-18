@@ -3,6 +3,7 @@ import "server-only";
 // Orchestrates photo extraction for one source document: Gemini when available, otherwise a
 // blank draft the user fills in. Used by the photo upload Server Action and POST /api/extract.
 import type { EntryFields, SourceDocument, SourceDocumentKind } from "@/lib/domain/schema";
+import type { PhotoIssue } from "@/lib/photo-issue";
 import { createDraftEntry, downloadLabelPhoto, updateSourceDocument } from "@/lib/records";
 import { extractFromPhoto, type DocumentDetails } from "./extract-label";
 import { hasGeminiKey } from "./model";
@@ -14,13 +15,15 @@ export type ExtractionNotice = "ai-unavailable" | "ai-failed" | "nothing-found" 
 /**
  * One draft per medication found (or one blank draft); `firstFields` are the first draft's fields.
  * `kind` is what Gemini said the photo shows, saved on the document; a medicine package when Gemini
- * wasn't sure, isn't configured or failed.
+ * wasn't sure, isn't configured or failed. `photoIssue` is why Gemini said the photo was hard to read
+ * (null when it didn't say or wasn't asked).
  */
 export type ExtractionOutcome = {
   entryIds: string[];
   notice: ExtractionNotice | null;
   firstFields: EntryFields;
   kind: SourceDocumentKind;
+  photoIssue: PhotoIssue | null;
 };
 
 /** What a photo counts as when Gemini can't say. */
@@ -33,6 +36,7 @@ export async function extractIntoDrafts(doc: SourceDocument): Promise<Extraction
   let notice: ExtractionNotice | null = null;
   let kind = DEFAULT_KIND;
   let found: DocumentDetails | null = null;
+  let photoIssue: PhotoIssue | null = null;
 
   if (!hasGeminiKey()) {
     notice = "ai-unavailable";
@@ -43,6 +47,7 @@ export async function extractIntoDrafts(doc: SourceDocument): Promise<Extraction
       const result = await extractFromPhoto(image, blob.type || "image/jpeg", doc.id);
       kind = result.documentKind ?? DEFAULT_KIND;
       found = result.document;
+      photoIssue = result.photoIssue;
       if (result.medications.length === 0) notice = "nothing-found";
       else {
         medications = result.medications;
@@ -67,7 +72,7 @@ export async function extractIntoDrafts(doc: SourceDocument): Promise<Extraction
     });
     entryIds.push(entry.id);
   }
-  return { entryIds, notice, firstFields: medications[0], kind };
+  return { entryIds, notice, firstFields: medications[0], kind, photoIssue };
 }
 
 /** Saves the kind and what the model read off the document, without overwriting details already set. */
