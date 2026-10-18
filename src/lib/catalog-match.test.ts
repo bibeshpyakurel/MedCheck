@@ -149,6 +149,25 @@ describe("rankCatalogMatches", () => {
     expect(preselectMatch(matches)?.strengthAgreement).toBe("agrees");
   });
 
+  it("never pre-selects a product that shares nothing with the read", () => {
+    const matches = rankCatalogMatches(read("Advil", null, []), [tylenolRegular, childrensTylenol]);
+    expect(matches[0].strengthAgreement).toBe("not_read");
+    expect(matches[0].related).toBe(false);
+    expect(preselectMatch(matches)).toBeNull();
+  });
+
+  it("pre-selects on a good brand match alone", () => {
+    const matches = rankCatalogMatches(read("Childrens Advil", null, []), [tylenolRegular, childrensAdvil]);
+    expect(preselectMatch(matches)?.formulation.id).toBe("f-childrens-advil");
+    // Half the tokens shared is enough: {tylenol} vs {tylenol, extra, strength} has Dice 0.5.
+    expect(preselectMatch(rankCatalogMatches(read("Tylenol", null, []), [tylenolExtra]))?.formulation.id).toBe("f-tylenol-es");
+  });
+
+  it("pre-selects on a shared ingredient alone", () => {
+    const matches = rankCatalogMatches(read(null, null, [["Ibuprofen", null]]), [childrensTylenol, advil]);
+    expect(preselectMatch(matches)?.formulation.id).toBe("f-advil");
+  });
+
   it("pre-selects nothing when every candidate disagrees", () => {
     const r = read("Tylenol", null, [["Acetaminophen", s(1000, "mg", 1, "tablet")]]);
     expect(preselectMatch(rankCatalogMatches(r, [tylenolExtra, tylenolRegular]))).toBeNull();

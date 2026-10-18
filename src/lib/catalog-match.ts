@@ -10,7 +10,13 @@ export type PhotoRead = {
   ingredients: { name: string | null; strength: Strength | null }[];
 };
 export type StrengthAgreement = "agrees" | "disagrees" | "not_read";
-export type CatalogMatch = { formulation: Formulation; strengthAgreement: StrengthAgreement; score: number };
+export type CatalogMatch = {
+  formulation: Formulation;
+  strengthAgreement: StrengthAgreement;
+  score: number;
+  /** Shares at least one normalized ingredient with the read, or its brand/generic name tokens overlap ≥ 0.5. */
+  related: boolean;
+};
 
 // ---------------------------------------------------------------------------
 // Reading
@@ -118,13 +124,14 @@ function strengthAgreement(read: PhotoRead, f: Formulation): StrengthAgreement {
 // Ties break on formulation id, so the order never depends on the candidates' order.
 const STRENGTH_POINTS: Record<StrengthAgreement, number> = { agrees: 30, not_read: 0, disagrees: -40 };
 
-function ingredientPoints(read: PhotoRead, f: Formulation): number {
+/** Ingredient points, and how many normalized ingredient names the read shares with the label. */
+function ingredientOverlap(read: PhotoRead, f: Formulation): { points: number; shared: number } {
   const r = new Set(read.ingredients.flatMap((i) => (text(i.name) ? [normalizeIngredient(i.name!)] : [])));
-  if (r.size === 0) return 0;
+  if (r.size === 0) return { points: 0, shared: 0 };
   const c = new Set(f.activeIngredients.map((i) => normalizeIngredient(i.normalized || i.name)));
   const shared = [...r].filter((n) => c.has(n)).length;
-  if (shared === r.size && shared === c.size) return 40;
-  return (30 * shared) / (r.size + c.size - shared);
+  if (shared === r.size && shared === c.size) return { points: 40, shared };
+  return { points: (30 * shared) / (r.size + c.size - shared), shared };
 }
 
 /** "Children's TYLENOL" → {childrens, tylenol}. */
@@ -139,11 +146,12 @@ function dice(a: Set<string>, b: Set<string>): number {
   return (2 * shared) / (a.size + b.size);
 }
 
-function brandPoints(read: PhotoRead, f: Formulation): number {
+/** Dice similarity (0..1) of the read name's tokens with the brand name, or with the generic name. */
+function brandSimilarity(read: PhotoRead, f: Formulation): number {
   const name = text(read.productName);
   if (!name) return 0;
   const r = tokens(name);
-  return 25 * Math.max(dice(r, tokens(f.brandName)), dice(r, tokens(f.genericName)));
+  return Math.max(dice(r, tokens(f.brandName)), dice(r, tokens(f.genericName)));
 }
 
 function formFamily(form: string): string {
@@ -166,18 +174,23 @@ export function rankCatalogMatches(read: PhotoRead, candidates: Formulation[]): 
   return [...unique.values()]
     .map((formulation) => {
       const agreement = strengthAgreement(read, formulation);
+      const ingredients = ingredientOverlap(read, formulation);
+      const brand = brandSimilarity(read, formulation);
       const score =
-        ingredientPoints(read, formulation) +
+        ingredients.points +
         STRENGTH_POINTS[agreement] +
-        brandPoints(read, formulation) +
+        25 * brand +
         formPoints(read, formulation) +
         (formulation.reviewed ? 2 : 0);
-      return { formulation, strengthAgreement: agreement, score };
+      return { formulation, strengthAgreement: agreement, score, related: ingredients.shared > 0 || brand >= 0.5 };
     })
     .sort((a, b) => b.score - a.score || (a.formulation.id < b.formulation.id ? -1 : a.formulation.id > b.formulation.id ? 1 : 0));
 }
 
-/** The match to pre-select: the best-ranked one whose strengthAgreement is not "disagrees", or null. */
+/**
+ * The match to pre-select: the best-ranked one whose strengthAgreement is not "disagrees" and that is
+ * `related` to the read, or null (the picker then starts with nothing selected).
+ */
 export function preselectMatch(matches: CatalogMatch[]): CatalogMatch | null {
-  return matches.find((m) => m.strengthAgreement !== "disagrees") ?? null;
+  return matches.find((m) => m.strengthAgreement !== "disagrees" && m.related) ?? null;
 }
