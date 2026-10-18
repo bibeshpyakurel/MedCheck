@@ -106,7 +106,7 @@ function MedicineRow({ patientId, entry, shared }: { patientId: string; entry: M
     <Link
       href={`/patients/${patientId}/entries/${entry.id}`}
       prefetch
-      className="group flex items-center gap-4 px-4 py-4 transition-colors hover:bg-muted/50 focus-visible:bg-muted/60 focus-visible:outline-none"
+      className="group flex items-center gap-4 px-4 py-4 transition-colors hover:bg-muted/50 focus-visible:bg-muted/60 focus-visible:outline-none active:bg-muted/70"
     >
       <div className="min-w-0 flex-1">
         <ViewTransition name={entryTitleTransition(entry.id)} share="morph" default="none">

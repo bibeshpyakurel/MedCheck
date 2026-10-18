@@ -79,9 +79,9 @@ export function WarningCard({
 
       {finding.evidence.length > 0 && (
         <details className="group border-t">
-          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 px-4 text-sm font-medium focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:px-5 [&::-webkit-details-marker]:hidden">
+          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 px-4 text-sm font-medium transition-colors active:bg-finding-surface/60 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:px-5 [&::-webkit-details-marker]:hidden">
             See the label evidence
-            <ChevronDownIcon aria-hidden className="size-4 text-muted-foreground transition-transform group-open:rotate-180" />
+            <ChevronDownIcon aria-hidden className="size-4 text-muted-foreground transition-transform duration-200 group-open:rotate-180" />
           </summary>
           {visual && <p className="border-t bg-surface/50 px-4 pt-3 text-sm leading-relaxed text-pretty text-muted-foreground sm:px-5">{finding.detail}</p>}
           <ul className={visual ? "divide-y bg-surface/50" : "divide-y border-t bg-surface/50"}>

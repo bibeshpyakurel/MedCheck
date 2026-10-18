@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/app-shell";
+import { CountUp } from "@/components/count-up";
 import { WarningCard } from "@/components/checks/warning-card";
 import { WarningAurora } from "@/components/fx/warning-aurora";
 import { HistoryList } from "@/components/records/history-list";
@@ -63,7 +64,7 @@ export default async function PatientRecordPage({ params }: PageProps<"/patients
             <div>
               <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">{recordTitle(patient)}</h1>
               <p className="mt-1 text-muted-foreground nums">
-                {confirmed.length} {confirmed.length === 1 ? "medicine" : "medicines"} on file
+                <CountUp value={confirmed.length} id={patientId} /> {confirmed.length === 1 ? "medicine" : "medicines"} on file
               </p>
             </div>
             {/* Phones add from the bottom bar. */}
@@ -73,7 +74,8 @@ export default async function PatientRecordPage({ params }: PageProps<"/patients
           </header>
         </div>
 
-        <div className="mt-6 space-y-8">
+        {/* Sections rise in one after another (40 ms apart), in CSS so they show without JS. */}
+        <div className="mt-6 space-y-8 *:animate-fade-up [&>*:nth-child(2)]:[animation-delay:40ms] [&>*:nth-child(3)]:[animation-delay:80ms] [&>*:nth-child(4)]:[animation-delay:120ms]">
           {drafts.length > 0 ? <NeedsReview drafts={drafts} /> : null}
 
           {confirmed.length > 0 ? (
@@ -151,7 +153,7 @@ function Disclosure({
 }) {
   return (
     <details className="group rounded-2xl border bg-card">
-      <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 rounded-2xl px-4 py-3 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none [&::-webkit-details-marker]:hidden">
+      <summary className="flex min-h-14 cursor-pointer list-none items-center gap-3 rounded-2xl px-4 py-3 transition-colors active:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none [&::-webkit-details-marker]:hidden">
         <Icon aria-hidden className="size-4 shrink-0 text-muted-foreground" />
         <span className="min-w-0 flex-1">
           <span className="block font-medium">{title}</span>
@@ -184,7 +186,7 @@ function NeedsReview({ drafts }: { drafts: MedicationEntry[] }) {
             <li key={d.id}>
               <Link
                 href={draftPath(d.patientId, d)}
-                className="group flex min-h-14 items-center gap-3 rounded-xl bg-card px-4 py-3 ring-1 ring-border transition-shadow hover:shadow-md focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                className="press group flex min-h-14 items-center gap-3 rounded-xl bg-card px-4 py-3 ring-1 ring-border hover:shadow-md focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
               >
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium">{entryLabel(d.fields)}</span>
