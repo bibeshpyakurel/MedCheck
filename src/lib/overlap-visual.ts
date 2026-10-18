@@ -45,6 +45,14 @@ export function overlapVisual(finding: Finding, entries: ReadonlyMap<string, Med
   };
 }
 
+/** What the diagram says, as one sentence: "A and B both contain Acetaminophen. A: 500 mg per caplet. B: …" */
+export function vennLabel({ ingredient, products }: OverlapVisual): string {
+  const names = products.map((p) => p.name);
+  const list = names.length === 2 ? names.join(" and ") : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
+  const strengths = products.map((p) => `${p.name}: ${p.strength ?? "strength unknown"}.`).join(" ");
+  return `${list} ${names.length === 2 ? "both" : "all"} contain ${ingredient}. ${strengths}`;
+}
+
 /** Normalized names of every ingredient the findings say is shared. */
 export function overlappingIngredients(findings: Finding[], entries: ReadonlyMap<string, MedicationEntry>): Set<string> {
   return new Set(findings.flatMap((f) => overlapVisual(f, entries)?.normalized ?? []));

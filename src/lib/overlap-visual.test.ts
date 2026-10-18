@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { calmoraA, calmoraB, ibuprofen, input, nyquilBarcode } from "@/lib/checks/__fixtures__/entries";
 import { runChecks } from "@/lib/checks";
 import { INGREDIENT_SLOTS, ingredientSlot, ingredientTone } from "@/lib/ingredient-colors";
-import { overlappingIngredients, overlapVisual } from "@/lib/overlap-visual";
+import { overlappingIngredients, overlapVisual, vennLabel } from "@/lib/overlap-visual";
 
 function setup(...entries: Parameters<typeof input>) {
   const checkInput = input(...entries);
@@ -28,6 +28,22 @@ describe("overlapVisual", () => {
   it("is null for findings that aren't an ingredient overlap", () => {
     const { findings, byId } = setup(calmoraA, calmoraB);
     for (const f of findings.filter((f) => f.check !== "ingredient_overlap")) expect(overlapVisual(f, byId)).toBeNull();
+  });
+});
+
+describe("vennLabel", () => {
+  const product = (name: string, strength: string | null) => ({ entryId: name, name, strength });
+
+  it("reads the diagram as one sentence, each strength on its own", () => {
+    expect(
+      vennLabel({ ingredient: "Acetaminophen", normalized: "acetaminophen", products: [product("Tylenol", "500 mg per caplet"), product("DayQuil", "325 mg per 15 mL")] }),
+    ).toBe("Tylenol and DayQuil both contain Acetaminophen. Tylenol: 500 mg per caplet. DayQuil: 325 mg per 15 mL.");
+  });
+
+  it("lists three or more, and says when a strength is unknown", () => {
+    expect(
+      vennLabel({ ingredient: "Acetaminophen", normalized: "acetaminophen", products: [product("A", "1 mg"), product("B", null), product("C", "2 mg")] }),
+    ).toBe("A, B and C all contain Acetaminophen. A: 1 mg. B: strength unknown. C: 2 mg.");
   });
 });
 
