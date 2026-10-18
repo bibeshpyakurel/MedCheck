@@ -18,6 +18,32 @@
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
   }
+
+  /* The landing mark: two rings slide together, then the shared part lights up. CSS, so it runs before
+     hydration and ends overlapped even without JS; reduced motion jumps to the end. */
+  --animate-ring-left: ring-left 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
+  --animate-ring-right: ring-right 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
+  --animate-lens-in: lens-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) 1.1s both;
+  --animate-float: float 4s ease-in-out 1.8s infinite alternate;
+  @keyframes ring-left {
+    from { transform: translateX(-26px); }
+  }
+  @keyframes ring-right {
+    from { transform: translateX(26px); }
+  }
+  @keyframes lens-in {
+    from { opacity: 0; transform: scale(0.6); }
+  }
+  @keyframes float {
+    to { transform: translateY(-4px); }
+  }
+
+  /* The aurora behind the landing and the record header: slow drift of soft color fields. */
+  --animate-aurora: aurora 18s ease-in-out infinite alternate;
+  @keyframes aurora {
+    from { transform: translate3d(-4%, -2%, 0) scale(1); }
+    to { transform: translate3d(4%, 3%, 0) scale(1.08); }
+  }
 }
 
 @theme inline {
@@ -264,6 +290,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
+    animation-delay: 0s !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

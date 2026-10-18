@@ -4,13 +4,16 @@ import { redirect } from "next/navigation";
 import { startGuest } from "@/app/actions/session";
 import { GoogleButton } from "@/app/sign-in/google-button";
 import { AppShell } from "@/components/app-shell";
+import { Aurora } from "@/components/fx/aurora";
+import { OverlapMark } from "@/components/landing/overlap-mark";
 import { SubmitButton } from "@/components/records/submit-button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { signInErrorMessage } from "@/lib/account";
 import { getCurrentUser, homePath } from "@/lib/auth";
 
-// One screen, no scrolling: the job in a line, then the three ways in. The explainers live in the ☰ menu.
+// One screen, no scrolling: the overlap at a glance, the job in a line, then the three ways in. The
+// explainers live in the ☰ menu.
 // Anyone already signed in (guests too) goes straight home — their medicines, or adding the first one — like opening an app they use.
 export default async function Home({ searchParams }: PageProps<"/">) {
   const { error, code } = await searchParams;
@@ -22,20 +25,16 @@ export default async function Home({ searchParams }: PageProps<"/">) {
   return (
     <AppShell bleed>
       <section className="relative isolate overflow-hidden">
-        <div
-          aria-hidden
-          className="absolute inset-0 -z-10 bg-grid [mask-image:radial-gradient(ellipse_70%_60%_at_50%_0%,black,transparent)]"
-        />
-        <div
-          aria-hidden
-          className="absolute -top-48 left-1/2 -z-10 h-[34rem] w-[60rem] -translate-x-1/2 rounded-full bg-brand/14 blur-3xl"
-        />
-        <div className="mx-auto w-full max-w-md px-4 pt-8 pb-8 sm:px-6 sm:pt-16 animate-fade-up">
-          <h1 className="font-display text-[2rem] leading-[1.1] font-semibold tracking-[-0.03em] text-balance sm:text-5xl">
-            Compare your medicine labels.
+        <Aurora className="[mask-image:linear-gradient(to_bottom,black_55%,transparent)]" />
+        <div className="mx-auto w-full max-w-md px-4 pt-4 pb-6 sm:px-6 sm:pt-12">
+          <OverlapMark className="mx-auto h-[clamp(5.5rem,17dvh,11rem)] w-auto" />
+          <h1 className="mt-4 font-display text-[2.125rem] leading-[1.02] font-extrabold tracking-[-0.035em] text-balance animate-fade-up sm:text-5xl">
+            Two medicines.
+            <br />
+            <span className="text-finding-foreground">One ingredient.</span>
           </h1>
-          <p className="mt-3 text-base leading-relaxed text-muted-foreground text-pretty sm:text-lg">
-            Photograph a medicine, check what it contains, and share a simple report.
+          <p className="mt-3 text-[0.9375rem] leading-relaxed text-muted-foreground text-pretty animate-fade-up sm:text-lg">
+            Photograph your medicine labels. MedCheck shows what they share, straight from the label.
           </p>
 
           {message ? (

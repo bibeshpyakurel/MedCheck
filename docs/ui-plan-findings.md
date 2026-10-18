@@ -91,4 +91,7 @@ The user said "just work on it" without answering one by one (2026-10-17), so ea
 
 - **Palette:** slot 5 (lavender, too close to the violet "unresolved" color), slot 6 (green) and slot 7 (peach, read as amber next to the overlap chip) are replaced by orchid, aqua and steel blue. Every pair, light and dark, is ≥ 6.1:1.
 - **`SceneSlot.poster`** is a `ReactNode`, not an image path, so the CSS/SVG stand-ins and later `<Image>` posters go through the same slot.
+- **Landing copy (WP5):** "…straight from the label", not "the FDA label": prescription and discharge photos aren't FDA labels.
+- **Landing mark (WP5):** animated in CSS, not Motion, so it runs before hydration and finishes overlapped without JS. The global reduced-motion rule now also zeroes `animation-delay`, so reduced motion shows end states at once.
+- **Aurora (WP5/WP6):** gradients and one transform animation, with no blur filter (large blurred layers are a known iOS Safari paint problem while scrolling).
 - **`?fx=1`** forces effects on a device the gate would skip (for demo testing); it never overrides reduced motion.
