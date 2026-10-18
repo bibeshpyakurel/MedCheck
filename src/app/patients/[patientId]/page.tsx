@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/app-shell";
 import { WarningCard } from "@/components/checks/warning-card";
+import { WarningAurora } from "@/components/fx/warning-aurora";
 import { HistoryList } from "@/components/records/history-list";
 import { MedicationList } from "@/components/records/medication-list";
 import { RecordHeader } from "@/components/records/record-header";
@@ -49,20 +50,28 @@ export default async function PatientRecordPage({ params }: PageProps<"/patients
   return (
     <AppShell>
       <div className="mx-auto max-w-4xl">
-        <RecordHeader patient={patient} current="medicines" />
+        {/* The aurora sits behind the name and the title only, never behind cards or label text. */}
+        <div className="relative isolate -mx-4 -mt-5 px-4 pt-5 pb-1 sm:mx-0 sm:mt-0 sm:px-0 sm:pt-0">
+          <WarningAurora
+            patientId={patientId}
+            alert={view.warnings.length > 0}
+            className="-top-px h-60 [mask-image:linear-gradient(to_bottom,black_40%,transparent)] sm:-inset-x-6 sm:-top-12"
+          />
+          <RecordHeader patient={patient} current="medicines" />
 
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">{recordTitle(patient)}</h1>
-            <p className="mt-1 text-muted-foreground nums">
-              {confirmed.length} {confirmed.length === 1 ? "medicine" : "medicines"} on file
-            </p>
-          </div>
-          {/* Phones add from the bottom bar. */}
-          <Button size="lg" className="hidden h-11 px-4 text-base sm:inline-flex" nativeButton={false} render={<Link href={`${base}/add`} />}>
-            <PlusIcon aria-hidden /> Add a medicine
-          </Button>
-        </header>
+          <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">{recordTitle(patient)}</h1>
+              <p className="mt-1 text-muted-foreground nums">
+                {confirmed.length} {confirmed.length === 1 ? "medicine" : "medicines"} on file
+              </p>
+            </div>
+            {/* Phones add from the bottom bar. */}
+            <Button size="lg" className="hidden h-11 px-4 text-base sm:inline-flex" nativeButton={false} render={<Link href={`${base}/add`} />}>
+              <PlusIcon aria-hidden /> Add a medicine
+            </Button>
+          </header>
+        </div>
 
         <div className="mt-6 space-y-8">
           {drafts.length > 0 ? <NeedsReview drafts={drafts} /> : null}
