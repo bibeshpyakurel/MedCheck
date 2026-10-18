@@ -23,6 +23,9 @@ Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` and `docs/superpower
 ## Code map
 - `src/lib/domain/schema.ts` — the shared contract (zod + types). Do not change it inside a feature PR; propose changes separately.
 - `src/lib/domain/ingredients.ts` — `normalizeIngredient()`; all ingredient comparisons go through it.
+- `src/lib/domain/families.ts` — the reviewed ingredient families (NSAIDs, antihistamines, nasal decongestants, acid reducers, sleep aids): members are `normalizeIngredient()` names, `labelTerm` is how a label's warning names the family. Add a member only when catalog labels support it.
+- `src/lib/compare.ts` — `compareProducts()`: ingredients per product, shared ingredients and same-family pairs, each with the label's own quote (no quote → no family). `checks/family.ts` is the Medicines-page check over the same rules.
+- `src/components/compare/ingredient-comparison.tsx` — `IngredientComparison` ("Together"): a Venn for two medicines, a grid for three or more, plus shared/family callouts. Reuse it for any multi-medicine comparison.
 - `src/lib/supabase/{client,server,proxy}.ts` — Supabase clients. `createAdminClient()` (secret key) is only for catalog writes.
 - `src/lib/supabase/database.types.ts` — generated (`npm run db:types`); never hand-edit.
 - `src/lib/auth.ts` — `getCurrentUser()` / `requireUser()`.
