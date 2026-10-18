@@ -50,6 +50,8 @@ const withMedlinePlus = args.has("--with-medlineplus");
 const withSpl = args.has("--with-spl");
 const doPrune = args.has("--prune");
 const doEnrichReviewed = args.has("--enrich-reviewed");
+/** --dump-rows=<file>: write the rows as JSON too (a review aid for verifiers). */
+const dumpRowsTo = process.argv.find((a) => a.startsWith("--dump-rows="))?.slice("--dump-rows=".length) ?? null;
 const SPL_CONCURRENCY = 2;
 const SPL_DELAY_MS = 400; // ~2 workers × 2.5 req/s; DailyMed throttles bursts (429, Retry-After 60)
 
@@ -591,6 +593,7 @@ async function main() {
   if (doEnrichReviewed) await enrichReviewed(labels, index, withSpl ? splMap : undefined);
   else console.log("  MedlinePlus links: skipped (pass --with-medlineplus)");
   await report(labels, products.length, exportDate, result, splStats);
+  if (dumpRowsTo) await writeFile(dumpRowsTo, JSON.stringify(result.rows.map((r) => formulationToRow(r, null))));
 
   let plan: Awaited<ReturnType<typeof prunePlan>> | null = null;
   if (doPrune) {

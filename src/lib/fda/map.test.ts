@@ -203,6 +203,25 @@ describe("mapLabel — verifier findings (full-catalog scan)", () => {
     expect([...f.ndcPackages].sort()).toEqual([...new Set(own)].sort());
   });
 
+  it("A: a product whose strength the label doesn't print gets no row — never the label's other strength", () => {
+    const label = fixtureLabel("guaifenesin-dxm-label-prints-one-of-two"); // prints 60/1200 mg; NDC products 60/1200 and 30/600
+    const results = mapLabel(label, index);
+    const rowsOut = results.filter((r) => r.ok).map((r) => (r.ok ? r.formulation : null)!);
+    expect(rowsOut.map((f) => f.activeIngredients.map((i) => `${i.normalized} ${i.strength.amount}`).join(" + "))).toEqual(["dextromethorphan 60 + guaifenesin 1200"]);
+    const own = fixtureProducts("guaifenesin-dxm-label-prints-one-of-two")
+      .filter((p) => p.active_ingredients!.some((i) => i.strength === "1200 mg/1"))
+      .flatMap((p) => (p.packaging ?? []).map((k) => ndc11FromHyphenated(k.package_ndc!)));
+    expect(rowsOut[0].ndcPackages.sort()).toEqual([...new Set(own)].sort());
+    expect(results.filter((r) => !r.ok)).toEqual([expect.objectContaining({ reason: "strength_mismatch" })]);
+  });
+
+  it("A: no two rows of one label share a slug", () => {
+    for (const name of allFixtureNames()) {
+      const slugs = mapLabel(fixtureLabel(name), index).flatMap((r) => (r.ok ? [r.formulation.slug] : []));
+      expect(new Set(slugs).size, name).toBe(slugs.length);
+    }
+  });
+
   it("A: products of different strengths on one label become one row per strength, each with its own NDCs", () => {
     const label = fixtureLabel("nicotine-two-strengths");
     const out = mapLabel(label, index).filter((r) => r.ok).map((r) => (r.ok ? r.formulation : null)!);
@@ -210,6 +229,23 @@ describe("mapLabel — verifier findings (full-catalog scan)", () => {
     expect(out.map((f) => formatStrength(f.activeIngredients[0].strength))).toEqual(["2 mg per lozenge", "4 mg per lozenge"]);
     const [a, b] = out.map((f) => new Set(f.ndcPackages));
     expect([...a].some((n) => b.has(n))).toBe(false);
+  });
+});
+
+describe("mapLabel — the label's own per-quantity, wherever it prints it", () => {
+  it("takes each amount's own dose block ('(in each 5 mL cup)' … '(in each 10 mL cup)')", () => {
+    expect(strengths("guaifenesin-dxm-two-dose-blocks")).toEqual(["guaifenesin 100 mg per 5 mL", "dextromethorphan 10 mg per 5 mL"]);
+  });
+
+  it.each<[FixtureName, string[]]>([
+    ["omeprazole-form-words", ["omeprazole 20 mg per delayed-release capsule"]], // "Omeprazole delayed-release capsule 20 mg"
+    ["rompe-pechito-teaspoonful-ml", ["dextromethorphan 5 mg per 2.5 mL", "guaifenesin 50 mg per 2.5 mL"]], // "(in each teaspoonful 2.5 ml.)"
+    ["texaclear-per-30ml-heading", ["caffeine 65 mg per 30 mL", "choline salicylate 870 mg per 30 mL"]], // "Active Ingredients per 30mL"
+    ["magnesium-citrate-per-fl-oz", ["magnesium citrate 1.745 g per fl oz"]], // "1.745g per fl oz"
+  ])("%s", (name, expected) => {
+    expect(strengths(name)).toEqual(expected);
+    const label = fixtureLabel(name);
+    expect(importLabels([label], index, new Set()).rows).toHaveLength(1); // and it passes the gate
   });
 });
 

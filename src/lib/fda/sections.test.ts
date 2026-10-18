@@ -278,6 +278,46 @@ describe("labelSections — age lines and parentheses (allergy/cold scan)", () =
   });
 });
 
+describe("labelSections — monograph items in flattened lists (pre-demo scan)", () => {
+  it("Advil PM: separate conditions stay separate", () => {
+    expect(labelSections(fixtureLabel("advil-pm-caplet")).do_not_use).toEqual([
+      "if you have ever had an allergic reaction to any other pain reliever/fever reducer",
+      "unless you have time for a full night's sleep",
+      "in children under 12 years of age",
+      "right before or after heart surgery",
+      "with any other product containing diphenhydramine, even one used on skin",
+      "if you have sleeplessness without pain",
+    ]);
+  });
+
+  it("Tylenol PM: 'even one used on skin' | 'in children under 12 years of age'", () => {
+    const s = labelSections(fixtureLabel("tylenol-pm-extra-strength"));
+    expect(s.do_not_use).toContain("with any other product containing diphenhydramine, even one used on skin");
+    expect(s.do_not_use).toContain("in children under 12 years of age");
+    expect(s.warnings).toContain("with other drugs containing acetaminophen");
+    expect(s.warnings).toContain("3 or more alcoholic drinks every day while using this product");
+  });
+
+  it("Motrin IB: aspirin | under a doctor's care; the NSAID 'chance is higher if you' list", () => {
+    const s = labelSections(fixtureLabel("motrin-ib"));
+    expect(s.ask_doctor_or_pharmacist).toEqual([
+      "you are taking aspirin for heart attack or stroke, because ibuprofen may decrease this benefit of aspirin",
+      "under a doctor's care for any serious condition",
+      "taking any other drug",
+    ]);
+    expect(s.warnings).toEqual(
+      expect.arrayContaining([
+        "The chance is higher if you are age 60 or older",
+        "have had stomach ulcers or bleeding problems",
+        "take a blood thinning (anticoagulant) or steroid drug",
+        "take other drugs containing prescription or nonprescription NSAIDs [aspirin, ibuprofen, naproxen, or others]",
+        "have 3 or more alcoholic drinks every day while using this product",
+        "take more or for a longer time than directed",
+      ]),
+    );
+  });
+});
+
 describe("isPlaceholder", () => {
   it("flags labels whose sections are only heading words", () => {
     expect(isPlaceholder(fixtureLabel("placeholder-head-and-cold"))).toBe(true);

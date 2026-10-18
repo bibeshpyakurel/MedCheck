@@ -3890,6 +3890,449 @@
    ]
   }
  },
+ "guaifenesin-dxm-two-dose-blocks": {
+  "id": "6bc4ec89-dcf0-4e03-ac41-abb85c1a5efd",
+  "set_id": "ad9026f4-f0b6-4d02-aa44-f0460eeefc0e",
+  "version": "6",
+  "effective_time": "20231101",
+  "active_ingredient": [
+   "DRUG FACTS Active Ingredient (in each 5 mL cup) Purpose Guaifenesin, USP 100mg .............................................................................................................................. Expectorant Dextromethorphan HBr, USP 10mg ...................................................................................................... Cough Suppressant Active Ingredient (in each 10 mL cup) Purpose Guaifenesin, USP 200mg .............................................................................................................................. Expectorant Dextromethorphan HBr, USP 20mg .......................................................................................................Cough Suppressant Inactive Ingredients Anhydrous citric acid, dextrose, FD&C Red No. 40, flavor, glycerin, high fructose corn syrup, menthol, purified water, saccharin sodium, sodium benzoate."
+  ],
+  "purpose": [
+   "Non-Narcotic - Alcohol Free"
+  ],
+  "indications_and_usage": [
+   "Uses • helps loosen phlegm (mucus) and thin bronchial secretions to make coughs more productive. • temporarily relieves cough due to minor throat and bronchial irritation as may occur with a cold."
+  ],
+  "warnings": [
+   "Warnings Do not use if you are now taking a prescription monoamine oxidase inhibitor (MAOI) or for two weeks after stopping the MAOI drug. Ask a doctor before use if you have • cough that occurs with too much phlegm (mucus) • cough that lasts or is chronic such as occurs with smoking, asthma, chronic bronchitis or emphysema Ask a doctor or pharmacist before use if you are taking any other drug Stop use and ask a doctor if • your cough lasts more than 7 days, comes back, or is accompanied by fever, rash, or persistant headache. • you are hypersensitive to any of the ingredients If pregnant or breast-feeding, ask a health professional before use Keep out of reach of children. In case of overdose, get medical help or contact a Poison Control Center right away (1-800-222-1222)"
+  ],
+  "do_not_use": [
+   "Do not use if you are now taking a prescription monoamine oxidase inhibitor (MAOI) or for two weeks after stopping the MAOI drug."
+  ],
+  "ask_doctor": [
+   "Ask a doctor before use if you have • cough that occurs with too much phlegm (mucus) • cough that lasts or is chronic such as occurs with smoking, asthma, chronic bronchitis or emphysema Ask a doctor or pharmacist before use if you are taking any other drug"
+  ],
+  "stop_use": [
+   "Stop use and ask a doctor if • your cough lasts more than 7 days, comes back, or is accompanied by fever, rash, or persistant headache. • you are hypersensitive to any of the ingredients"
+  ],
+  "pregnancy_or_breast_feeding": [
+   "If pregnant or breast-feeding, ask a health professional before use"
+  ],
+  "keep_out_of_reach_of_children": [
+   "Keep out of reach of children. In case of overdose, get medical help or contact a Poison Control Center right away (1-800-222-1222)"
+  ],
+  "dosage_and_administration": [
+   "DIRECTIONS: Age Dose Adults and children 12 years and over 10 mL every 4 hours Max dose is 60mL in 24-hours Children under 12 years of age Ask a doctor"
+  ],
+  "dosage_and_administration_table": [
+   "<table width=\"75%\"><colgroup><col width=\"50%\" align=\"center\" valign=\"top\"/><col width=\"50%\" align=\"center\" valign=\"top\"/></colgroup><thead><tr styleCode=\"First Last\"><th styleCode=\"Lrule Rrule\" align=\"center\">Age</th><th styleCode=\"Rrule\" align=\"center\">Dose</th></tr></thead><tbody><tr styleCode=\"Botrule First\"><td styleCode=\"Lrule Rrule\" align=\"center\">Adults and children  12 years and over</td><td styleCode=\"Rrule\" align=\"center\"><paragraph>10 mL every 4 hours</paragraph><paragraph>Max dose is 60mL in 24-hours</paragraph></td></tr><tr><td styleCode=\"Lrule Rrule\" align=\"center\">Children under 12 years of age</td><td styleCode=\"Rrule\" align=\"center\">Ask a doctor</td></tr></tbody></table>"
+  ],
+  "storage_and_handling": [
+   "Other Information • Store at controlled room temperature 20-25ºC (68-77ºF) • Do not refrigerate • Keep tightly closed • Each 5mL contains sodium 3mg • Each 10mL contains sodium 6mg • Fruit punch flavor • Do not use if lid seal is open or damaged • See top of cup for lot number and expiration date"
+  ],
+  "inactive_ingredient": [
+   "Inactive Ingredients Anhydrous citric acid, dextrose, FD&C Red No. 40, flavor, glycerin, high fructose corn syrup, menthol, purified water, saccharin sodium, sodium benzoate."
+  ],
+  "package_label_principal_display_panel": [
+   "PRINCIPAL DISPLAY PANEL - 5 mL Unit Dose Cup Label Delivers 5 mL NDC 69339-149-05 GUAIFENESIN SYRUP & DEXTROMETHORPHAN HBr 100 mg/10 mg per 5 mL For Institutional Use Only 3 69339 14905 8 Lot # 111 Exp: 09/22/2020 See Insert Dash Pharmaceuticals LLC Upper Saddle River, NJ 07458 DASH- DOSE 5mL Cup La"
+  ],
+  "openfda": {
+   "brand_name": [
+    "Guaifenesin Syrup and Dextromethorphan"
+   ],
+   "generic_name": [
+    "GUAIFENESIN SYRUP AND DEXTROMETHORPHAN"
+   ],
+   "manufacturer_name": [
+    "Natco Pharma USA LLC"
+   ],
+   "product_type": [
+    "HUMAN OTC DRUG"
+   ],
+   "route": [
+    "ORAL"
+   ],
+   "package_ndc": [
+    "69339-149-05",
+    "69339-149-19",
+    "69339-150-01",
+    "69339-150-19"
+   ],
+   "spl_id": [
+    "6bc4ec89-dcf0-4e03-ac41-abb85c1a5efd"
+   ],
+   "substance_name": [
+    "GUAIFENESIN",
+    "DEXTROMETHORPHAN HYDROBROMIDE"
+   ]
+  }
+ },
+ "omeprazole-form-words": {
+  "id": "edbe9a75-73ef-4b53-8f08-10e775091e23",
+  "set_id": "0340ef94-d2b4-47af-a045-d0d031293984",
+  "version": "2",
+  "effective_time": "20240329",
+  "active_ingredient": [
+   "Active ingredient (in each capsule) Omeprazole delayed-release capsule 20 mg (equivalent to 20.6 mg omeprazole magnesium)"
+  ],
+  "purpose": [
+   "Purpose Acid reducer"
+  ],
+  "indications_and_usage": [
+   "Use • treats frequent heartburn (occurs 2 or more days a week) • not intended for immediate relief of heartburn; this drug may take 1 to 4 days for full effect"
+  ],
+  "warnings": [
+   "Warnings Allergy alert: • do not use if you are allergic to omeprazole. • Omeprazole may cause severe skin reactions. Symptoms may include: • skin reddening • blisters • rash If an allergic reaction occurs, stop use and seek medical help right away. Do not use if you have: • trouble or pain swallowing food, vomiting with blood, or bloody or black stools • heartburn with lightheadedness, sweating or dizziness • chest pain or shoulder pain with shortness of breath; sweating; pain spreading to arms, neck or shoulders; or lightheadedness • frequent chest pain These may be signs of a serious condition. See your doctor. Ask a doctor before use if you have: • had heartburn over 3 months. This may be a sign of a more serious condition. • frequent wheezing, particularly with heartburn • unexplained weight loss • nausea or vomiting • stomach pain Ask a doctor or pharmacist before use if you are taking a prescription drug. Acid reducers may interact with certain prescription drugs. Stop use and ask a doctor if: • your heartburn continues or worsens • you need to take this product for more than 14 days • you need to take more than 1 course of treatment every 4 months • you get diarrhea • you develop a rash or joint pain If pregnant or breast-feeding, ask a health professional before use. Keep out of reach of children. In case of overdose, get medical help or contact a Poison Control Center right away (1-800-222-1222)."
+  ],
+  "do_not_use": [
+   "Do not use if you have: • trouble or pain swallowing food, vomiting with blood, or bloody or black stools • heartburn with lightheadedness, sweating or dizziness • chest pain or shoulder pain with shortness of breath; sweating; pain spreading to arms, neck or shoulders; or lightheadedness • frequent chest pain These may be signs of a serious condition. See your doctor."
+  ],
+  "ask_doctor": [
+   "Ask a doctor before use if you have: • had heartburn over 3 months. This may be a sign of a more serious condition. • frequent wheezing, particularly with heartburn • unexplained weight loss • nausea or vomiting • stomach pain"
+  ],
+  "ask_doctor_or_pharmacist": [
+   "Ask a doctor or pharmacist before use if you are taking a prescription drug. Acid reducers may interact with certain prescription drugs."
+  ],
+  "stop_use": [
+   "Stop use and ask a doctor if: • your heartburn continues or worsens • you need to take this product for more than 14 days • you need to take more than 1 course of treatment every 4 months • you get diarrhea • you develop a rash or joint pain"
+  ],
+  "pregnancy_or_breast_feeding": [
+   "If pregnant or breast-feeding, ask a health professional before use."
+  ],
+  "keep_out_of_reach_of_children": [
+   "Keep out of reach of children. In case of overdose, get medical help or contact a Poison Control Center right away (1-800-222-1222)."
+  ],
+  "dosage_and_administration": [
+   "Directions • for adults 18 years of age and older • this product is to be used once a day (every 24 hours), every day for 14 days • it may take 1 to 4 days for full effect; some people get complete relief of symptoms within 24 hours 14-Day Course of Treatment • swallow 1 capsule with a glass of water before eating in the morning • take every day for 14 days • do not take more than 1 capsule a day • do not use for more than 14 days unless directed by your doctor • swallow whole. Do not chew or crush capsules. Repeated 14-Day Courses (if needed) • you may repeat a 14-day course every 4 months • do not take for more than 14 days or more often than every 4 months unless directed by a doctor • children under 18 years of age: ask a doctor. Heartburn in children may sometimes be caused by a serious condition."
+  ],
+  "other_safety_information": [
+   "Other information • read the directions and warnings before use • keep the carton. It contains important information. • store at 20-25°C (68-77°F) and protect from moisture • FDA approved dissolution test specifications differ from USP"
+  ],
+  "inactive_ingredient": [
+   "Inactive ingredients FD&C yellow # 6, ferric oxide, gelatin, glyceryl monostearate, hypromellose, magnesium stearate, meglumine, methacrylic acid copolymer, polyethylene glycol, polysorbate 80, shellac, sodium lauryl sulfate, sugar spheres, talc, titanium dioxide, triethyl citrate"
+  ],
+  "questions": [
+   "Questions or comments? 1-800-719-9260"
+  ],
+  "package_label_principal_display_panel": [
+   "Package/Label Principal Display Panel meijer ® Omeprazole Delayed Release Capsules, 20 mg | Acid Reducer COMPARE TO PRILOSEC OTC ® ACTIVE INGREDIENT 24 HR Treats FREQUENT Heartburn! Mini Capsules 42 CAPSULES THREE 14-DAY COURSES OF TREATMENT MAY TAKE 1 TO 4 DAYS FOR FULL EFFECT See Current Drug Fact"
+  ],
+  "openfda": {
+   "brand_name": [
+    "omeprazole"
+   ],
+   "generic_name": [
+    "OMEPRAZOLE MAGNESIUM"
+   ],
+   "manufacturer_name": [
+    "Meijer, Inc."
+   ],
+   "product_type": [
+    "HUMAN OTC DRUG"
+   ],
+   "route": [
+    "ORAL"
+   ],
+   "package_ndc": [
+    "79481-0281-0",
+    "79481-0281-1"
+   ],
+   "spl_id": [
+    "edbe9a75-73ef-4b53-8f08-10e775091e23"
+   ],
+   "substance_name": [
+    "OMEPRAZOLE MAGNESIUM"
+   ]
+  }
+ },
+ "rompe-pechito-teaspoonful-ml": {
+  "id": "411e99da-2482-40c7-e063-6394a90aaf80",
+  "set_id": "004d12e1-6e3d-84c8-e063-6394a90aa653",
+  "version": "5",
+  "effective_time": "20251014",
+  "active_ingredient": [
+   "Active Ingredients: (in each teaspoonful 2.5 ml.) Purpose Dextromethorphan Hydrobromide 5 mg ...................................... Cough Suppressant Guaifenesin 50 mg ................................................................... Expectorant"
+  ],
+  "purpose": [
+   "Purpose Cough Suppressant Expectorant"
+  ],
+  "indications_and_usage": [
+   "Uses Uses: temporarily relieves cough due to minor throat and bronchial irritation as may occur with a cold helps loosen phlegm (mucus) and thin bronchial secretions to drain bronchial tubes."
+  ],
+  "warnings": [
+   "Warnings Do not use in child who is taking a prescription monoamine oxidase inhibitor (MAOI) (certain drugs for depression, psychiatric, or emotional condition, or Parkinson’s disease), or for 2 weeks after stopping the MAOI drug. If you do not know if your child’s prescription drug contains an MAOI, ask a doctor or pharmacist before giving this product."
+  ],
+  "do_not_use": [
+   "Do not use Do not use in child who is taking a prescription monoamine oxidase inhibitor (MAOI) (certain drugs for depression, psychiatric, or emotional condition, or Parkinson’s disease), or for 2 weeks after stopping the MAOI drug. If you do not know if your child’s prescription drug contains an MAOI, ask a doctor or pharmacist before giving this product."
+  ],
+  "ask_doctor": [
+   "Stop use and ask a doctor if  cough that occurs with too much phlegm (mucus)  persistent or chronic cough, such as occurs with asthma or chronic bronchitis. These could be signs of a serious condition.",
+   "Ask a doctor before use if the child has cough that occurs with too much phlegm (mucus) persistent or chronic cough, such as occurs with asthma or chronic bronchitis"
+  ],
+  "keep_out_of_reach_of_children": [
+   "Keep out of reach of children. In case of overdose, get medical help or contact a Poison Control Center right away."
+  ],
+  "dosage_and_administration": [
+   "Directions Do not give more than 6 doses in any 24 hours period  shake well before use  measure only with dosing cup provided  keep dosing cup with product  mL = milliliter Age Dose Children 6 to under 12 years of age 5 mL every 4 hours Children 4 to under 6 years of age 2.5 mL every 4 hours Children under 4 years of age Do not use"
+  ],
+  "other_safety_information": [
+   "Other Information store this product between 15 to 30 °C (59 to 86 °F ) do not refrigerate product color & flavor may vary due to natural honey Tamper-Evident Feature: do not use this product if printed security seal is torn, broken or missing."
+  ],
+  "inactive_ingredient": [
+   "Inactive Ingredients: Inactive Ingredients: citric acid, elderberry fruit extract, glycerin, honey, maltodextrin, methylparaben, flavor, potassium sorbate as a preservative, propylparaben, propylene glycol, purified water, sodium chloride, sucralose and zinc sulfate."
+  ],
+  "questions": [
+   "Questions or Comments? 305-805-3456 Monday - Friday 9AM to 5PM EST www.efficientlabs.com"
+  ],
+  "package_label_principal_display_panel": [
+   "Rompe Pechito Pack"
+  ],
+  "openfda": {
+   "brand_name": [
+    "Rompe Pechito DM for Kids"
+   ],
+   "generic_name": [
+    "DEXTROMETHORPHAN HBR, GUAIFENESIN"
+   ],
+   "manufacturer_name": [
+    "Efficient Laboratories Inc"
+   ],
+   "product_type": [
+    "HUMAN OTC DRUG"
+   ],
+   "route": [
+    "ORAL"
+   ],
+   "package_ndc": [
+    "58593-276-04"
+   ],
+   "spl_id": [
+    "411e99da-2482-40c7-e063-6394a90aaf80"
+   ],
+   "substance_name": [
+    "DEXTROMETHORPHAN HYDROBROMIDE",
+    "GUAIFENESIN"
+   ]
+  }
+ },
+ "texaclear-per-30ml-heading": {
+  "id": "4139160a-f694-24ee-e063-6294a90a1f52",
+  "set_id": "065bd10c-3bcf-486f-a49c-40544127007f",
+  "version": "10",
+  "effective_time": "20251015",
+  "active_ingredient": [
+   "Active Ingredients per 30mL Caffeine 65 mg Choline Salicylate (NSAID)* 870 mg"
+  ],
+  "purpose": [
+   "Purpose Pain Reliever Aid Pain Reliever / Fever Reducer ( NSAID) *nonsteroidal anti-inflammatory drug"
+  ],
+  "indications_and_usage": [
+   "Uses temporarily relieves minor aches and pains due to: ○ headache ○ minor arthritis pain ○ muscle aches ○ menstrual cramps ○ backache temporarily reduces fever"
+  ],
+  "warnings": [
+   "Warnings Reye's syndrome Children and teenagers who have or are recovering from chicken pox or flu-like symptoms should not use this product. When using this product, if changes in behavior with nausea and vomiting occur, consult a doctor because these symptoms could be an early sign of Reye's syndrome, a rare but serious illness. Allergy alert Salicylates (NSAIDs) may cause a severe allergic reaction which may include: hives skin reddening rash facial swelling shock asthma (wheezing) Stomach bleeding warning This product contains an NSAID, which may cause severe stomach bleeding. The chance is higher if you: are age 60 or older have had stomach ulcers or bleeding problems take blood thinning (anticoagulant) or steroid drug take other drugs containing prescription or nonprescription NSAIDs (aspirin, ibuprofen, naproxen, or others) have 3 or more alcoholic drinks every day while using this product take more or for a longer time than directed Do not use if you ever had an allergic reaction to salicylates (including aspirin) or any other pain reliever/ fever reducer. Ask a doctor before use if stomach bleeding warning applies to you you have high blood pressure, heart disease, liver cirrhosis, or kidney disease you are taking a diuretic you have a history of stomach problems such as heartburn, upset stomach, stomach pain, or ulcers you have asthma Ask a doctor or pharmacist before use if under a doctor's care for any serious condition taking a prescription drug for diabetes, gout, or arthritis. When using this product limit the use of caffeine-containing medications, foods, or beverages because too much caffeine may cause nervousness, irritability, sleeplessness, and occasionally, rapid heart beat the recommended dose of this product contains about as much caffeine as a cup of coffee take with food or milk if stomach upset occurs Stop use and ask a doctor if an allergic reaction occurs. Seek medical help right away. you experience any of the following signs of stomach bleeding: ○ feel faint ○ vomit blood ○ have bloody or black stools ○ have stomach pain that does not get better symptoms do not improve pain gets worse or lasts more than 10 days ringing in the ears or loss of hearing occurs redness or swelling is present new symptoms occur fever gets worse or lasts more than 3 days If pregnant or breast-feeding, ask a health professional before use. It is especially important not to use salicylates (NSAIDs) during the last 3 months of pregnancy unless definitely directed to do so by a doctor because it may cause problems in the unborn child or complications during delivery. Keep out of reach of children. In case of overdose, get medical help or contact a Poison Control Center right away."
+  ],
+  "do_not_use": [
+   "Do not use if you ever had an allergic reaction to salicylates (including aspirin) or any other pain reliever/ fever reducer."
+  ],
+  "ask_doctor": [
+   "Ask a doctor before use if stomach bleeding warning applies to you you have high blood pressure, heart disease, liver cirrhosis, or kidney disease you are taking a diuretic you have a history of stomach problems such as heartburn, upset stomach, stomach pain, or ulcers you have asthma"
+  ],
+  "ask_doctor_or_pharmacist": [
+   "Ask a doctor or pharmacist before use if under a doctor's care for any serious condition taking a prescription drug for diabetes, gout, or arthritis."
+  ],
+  "when_using": [
+   "When using this product limit the use of caffeine-containing medications, foods, or beverages because too much caffeine may cause nervousness, irritability, sleeplessness, and occasionally, rapid heart beat the recommended dose of this product contains about as much caffeine as a cup of coffee take with food or milk if stomach upset occurs"
+  ],
+  "stop_use": [
+   "Stop use and ask a doctor if an allergic reaction occurs. Seek medical help right away. you experience any of the following signs of stomach bleeding: ○ feel faint ○ vomit blood ○ have bloody or black stools ○ have stomach pain that does not get better symptoms do not improve pain gets worse or lasts more than 10 days ringing in the ears or loss of hearing occurs redness or swelling is present new symptoms occur fever gets worse or lasts more than 3 days"
+  ],
+  "keep_out_of_reach_of_children": [
+   "Keep out of reach of children. In case of overdose, get medical help or contact a Poison Control Center right away."
+  ],
+  "dosage_and_administration": [
+   "Directions do not take more than directed. adults and children 12 years of age and over: take 30mL every 6 hours, while symptoms persist do not take exceed 4 doses in any 24 hours unless directed by a doctor children under 12 years of age: ask a doctor use enclosed dose cup"
+  ],
+  "other_safety_information": [
+   "Other Information each 30mL contains: Sodium 19 mg read all product information before using store at room temperature 68-86ºF (20-30ºC) avoid excessive heat and humidity tamper evident: Do not use if foil seal under cap is broken or missing read all"
+  ],
+  "inactive_ingredient": [
+   "Inactive Ingredients anhydrous citric acid, glycerin, propylene glycol, purified water, sodium benzoate, sodium citrate, sodium saccharin, sorbitol"
+  ],
+  "questions": [
+   "Questions or comments? Call 1-888-423-0139 R071316M"
+  ],
+  "package_label_principal_display_panel": [
+   "PRINCIPAL DISPLAY PANEL NDC 58809-389-08 TEXACLEAR Pain Reliever 8 fl oz (237 mL) principaldisplaylabel Onsert2"
+  ],
+  "openfda": {
+   "brand_name": [
+    "TEXACLEAR PAIN RELIEVER"
+   ],
+   "generic_name": [
+    "CAFFEINE, CHOLINE SALICYLATE"
+   ],
+   "manufacturer_name": [
+    "GM Pharmaceuticals, INC"
+   ],
+   "product_type": [
+    "HUMAN OTC DRUG"
+   ],
+   "route": [
+    "ORAL"
+   ],
+   "package_ndc": [
+    "58809-389-08"
+   ],
+   "spl_id": [
+    "4139160a-f694-24ee-e063-6294a90a1f52"
+   ],
+   "substance_name": [
+    "CHOLINE SALICYLATE",
+    "CAFFEINE"
+   ]
+  }
+ },
+ "magnesium-citrate-per-fl-oz": {
+  "id": "088e554c-e128-d52b-e063-6394a90ae8e8",
+  "set_id": "088e5543-c947-af78-e063-6294a90a8bc4",
+  "version": "1",
+  "effective_time": "20231025",
+  "active_ingredient": [
+   "Active Ingredient Magnesium citrate 1.745g per fl oz"
+  ],
+  "purpose": [
+   "Purpose Saline Laxtive"
+  ],
+  "indications_and_usage": [
+   "Use for relief of occasional constipation (irregularity). Generally produces bowel movement in 1/2 to 6 hours"
+  ],
+  "warnings": [
+   "Warnings kidney disease a magnesium restricted diet abdorominal pain, nausea, or vomiting noticed a sudden change in bowel habits that persists over a period of 2 weeks already used a laxative for a period longer than 1 week"
+  ],
+  "ask_doctor": [
+   "ASK A DOCTOR OR PHARMACIST BEFORE USE IF YOU ARE taking any other drug. Take this product 2 or more hours before or after other drugs. Laxatives may affect how other drugs work."
+  ],
+  "stop_use": [
+   "STOP USE AND ASK A DOCTOR IF you have rectal bleeding or failure to have a bowel movement after use. These could be signs of a serious condition."
+  ],
+  "pregnancy_or_breast_feeding": [
+   "IF PREGNANT OR BREAST-FEEDING ask health professional before use."
+  ],
+  "keep_out_of_reach_of_children": [
+   "KEEP OUT OF REACH OF CHILDREN. In case of overdose, get medical help or contact a Poison Control Center right away."
+  ],
+  "dosage_and_administration": [
+   "Directions shake well before using drink a full glass (8 ounces) of liquid with each dose may be taken as a single daily dose or in divided doses adults and children 12 years of age and over - 6.5 to 10 fl oz maximum 10 fl oz in 24 hours children 6 to under 12 years of age - 3 to 7 fl oz maximum 7 fl oz in 24 hours children 2 to under 6 years of age - 2 to 3 fl oz in 24 hours maximum 3 fl oz in 24 hours children under 2 years of age - ask a doctor"
+  ],
+  "other_safety_information": [
+   "Other Information Store at temperatures between 46° and 86°F (8° and 30° C)",
+   "Other Information each fl oz contains: magnesium 290 mg each fl oz contains: sodium 1 mg"
+  ],
+  "inactive_ingredient": [
+   "Inactive Ingredients benzoic acid, citric acid, disodium EDTA, flavor, sucralose, water"
+  ],
+  "package_label_principal_display_panel": [
+   "Major Lemon CDER 10-25-2023"
+  ],
+  "openfda": {
+   "brand_name": [
+    "Magnesium Citrate"
+   ],
+   "generic_name": [
+    "MAJOR MAGNESIUM CITRATE ORAL SOLUTION - LEMON"
+   ],
+   "manufacturer_name": [
+    "Major Pharmaceuticals"
+   ],
+   "product_type": [
+    "HUMAN OTC DRUG"
+   ],
+   "route": [
+    "ORAL"
+   ],
+   "package_ndc": [
+    "0904-7418-44"
+   ],
+   "spl_id": [
+    "088e554c-e128-d52b-e063-6394a90ae8e8"
+   ],
+   "substance_name": [
+    "MAGNESIUM CITRATE"
+   ]
+  }
+ },
+ "guaifenesin-dxm-label-prints-one-of-two": {
+  "id": "801949ca-1baf-4a19-8466-91b4269a2c63",
+  "set_id": "06328741-03e3-49cf-ae44-d4c2116e38a3",
+  "version": "7",
+  "effective_time": "20221206",
+  "active_ingredient": [
+   "Active ingredients (in each extended-release tablet) Dextromethorphan HBr 60 mg Guaifenesin 1200 mg"
+  ],
+  "purpose": [
+   "Purposes Cough suppressant Expectorant"
+  ],
+  "indications_and_usage": [
+   "Uses • helps loosen phlegm (mucus) and thin bronchial secretions to rid the bronchial passageways of bothersome mucus and make coughs more productive • temporarily relieves: • cough due to minor throat and bronchial irritation as may occur with the common cold or inhaled irritants • the intensity of coughing • the impulse to cough to help you get to sleep"
+  ],
+  "warnings": [
+   "Warnings Do not use • for children under 12 years of age • if you are now taking a prescription monoamine oxidase inhibitor (MAOI) (certain drugs for depression, psychiatric, or emotional conditions, or Parkinson’s disease), or for 2 weeks after stopping the MAOI drug. If you do not know if your prescription drug contains an MAOI, ask a doctor or pharmacist before taking this product. Ask a doctor before use if you have • persistent or chronic cough such as occurs with smoking, asthma, chronic bronchitis, or emphysema • cough accompanied by too much phlegm (mucus) When using this product • Do not use more than directed Stop use and ask a doctor if • cough lasts more than 7 days, comes back, or occurs with fever, rash, or persistent headache. These could be signs of a serious illness. Pregnancy or Breast Feeding If pregnant or breast-feeding, ask a health professional before use. Keep Out of Reach of Children In case of overdose, get medical help or contact a Poison Control Center right away (1-800-222-1222)."
+  ],
+  "ask_doctor": [
+   "Ask a doctor before use if you have • persistent or chronic cough such as occurs with smoking, asthma, chronic bronchitis, or emphysema • cough accompanied by too much phlegm (mucus)"
+  ],
+  "when_using": [
+   "When using this product • Do not use more than directed"
+  ],
+  "stop_use": [
+   "Stop use and ask a doctor if • cough lasts more than 7 days, comes back, or occurs with fever, rash, or persistent headache. These could be signs of a serious illness."
+  ],
+  "pregnancy_or_breast_feeding": [
+   "Pregnancy or Breast Feeding If pregnant or breast-feeding, ask a health professional before use."
+  ],
+  "keep_out_of_reach_of_children": [
+   "Keep Out of Reach of Children In case of overdose, get medical help or contact a Poison Control Center right away (1-800-222-1222)."
+  ],
+  "dosage_and_administration": [
+   "Directions • do not crush, chew, or break extended-release tablet • take with a full glass of water • this product can be administered without regard for timing of meals • adults and children 12 years and older: 1 extended-release tablet every 12 hours; not more than 2 extended-release tablets in 24 hours • children under 12 years of age: do not use Other information • Store between 20-25°C (68-77°F)"
+  ],
+  "inactive_ingredient": [
+   "Inactive ingredients carbomer homopolymer, colloidal silicon dioxide, hypromellose, magnesium stearate, maltodextrin, microcrystalline cellulose, povidone (K-30), stearic acid"
+  ],
+  "package_label_principal_display_panel": [
+   "Package/Label Principal Display Panel NDC 63304-110-14 Maximum Strength Guaifenesin & Dextromethorphan HBr Extended-Release Tablets 1200 mg/60 mg Expectorant & Cough Suppressant 12 Hour • Controls Cough • Thins and Loosens Mucus • Immediate and Extended Release 14 Extended-Release Tablets SUN PHARMA"
+  ],
+  "openfda": {
+   "brand_name": [
+    "Guaifenesin and Dextromethorphan HBr"
+   ],
+   "generic_name": [
+    "GUAIFENESIN AND DEXTROMETHORPHAN HBR"
+   ],
+   "manufacturer_name": [
+    "SUN PHARMACEUTICAL INDUSTRIES, INC."
+   ],
+   "product_type": [
+    "HUMAN OTC DRUG"
+   ],
+   "route": [
+    "ORAL"
+   ],
+   "package_ndc": [
+    "63304-106-21",
+    "63304-110-54"
+   ],
+   "spl_id": [
+    "801949ca-1baf-4a19-8466-91b4269a2c63"
+   ],
+   "substance_name": [
+    "GUAIFENESIN",
+    "DEXTROMETHORPHAN HYDROBROMIDE"
+   ]
+  }
+ },
  "homeopathic-pellets": {
   "id": "ca7bbcc8-2354-375c-e053-2995a90a72a0",
   "set_id": "0000025c-6dbf-4af7-a741-5cbacaed519a",

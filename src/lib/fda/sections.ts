@@ -154,7 +154,8 @@ const MONOGRAPH_ITEMS: Partial<Record<LabelSectionKey, string[]>> = {
   do_not_use: [
     "right before or after heart surgery", "if you have ever had an allergic reaction", "if you are allergic to",
     "with any other drug containing", "with any other product containing", "to make a child sleepy",
-    "if you are now taking a prescription monoamine oxidase inhibitor",
+    "if you are now taking a prescription monoamine oxidase inhibitor", "unless you have time for a full night's sleep",
+    "in children under 12 years of age", "if you have sleeplessness without pain",
   ],
   ask_doctor: [
     "liver disease", "heart disease", "high blood pressure", "thyroid disease", "diabetes", "glaucoma",
@@ -164,7 +165,14 @@ const MONOGRAPH_ITEMS: Partial<Record<LabelSectionKey, string[]>> = {
   ask_doctor_or_pharmacist: [
     "taking aspirin for heart attack or stroke", "taking any other drug", "taking sedatives or tranquilizers",
     "taking the blood thinning drug warfarin", "taking a prescription drug", "taking any other pain reliever",
-    "taking a diuretic",
+    "taking a diuretic", "under a doctor's care", "taking any other antihistamines",
+  ],
+  warnings: [
+    // NSAID stomach bleeding warning: "The chance is higher if you …"
+    "are age 60 or older", "have had stomach ulcers or bleeding problems", "take a blood thinning", "take other drugs containing",
+    "have 3 or more alcoholic drinks", "take more or for a longer time than directed",
+    // Acetaminophen liver warning: "Severe liver damage may occur if you take …"
+    "with other drugs containing acetaminophen", "3 or more alcoholic drinks every day while using this product",
   ],
   stop_use: [
     "pain gets worse", "fever gets worse", "new symptoms occur", "redness or swelling is present", "symptoms do not get better",
@@ -187,7 +195,7 @@ const STORAGE_LINE = /^(?:store|keep (?:in|at|tightly|away from (?:heat|light|mo
 const NOT_STORAGE = /do not use if|tamper|seal|contains|sodium|calcium|phenylketonurics|\blot\b|\bexp\b|\bsee\b|retain|read all|carton|packet|blister/i;
 
 /** A piece that needs what follows it: "you have", "Symptoms may include:", "if your child takes", a subheading. */
-const LEAD_IN_END = /(?:^|\s)(?:if|takes?|includes?|of|with|the|a|an|and|or|than|for|such as|due to|following|your child)$/i;
+const LEAD_IN_END = /(?:^|\s)(?:if|if you|takes?|includes?|of|with|the|a|an|and|or|than|for|such as|due to|following|your child)$/i;
 /** Short fragments that only open a sentence: "you have", "you are", "if you", "your child is". */
 const SHORT_LEAD_IN = /^(?:if )?(?:you|your child)(?: (?:have|are|has|is|take|get|are taking|have ever had))?$|^if$/i;
 
@@ -395,7 +403,7 @@ export function splitSection(key: LabelSectionKey, text: string, options: SplitO
     if (monograph) {
       for (const m of text.matchAll(monograph.re)) {
         const i = m.index!;
-        if (!/[\p{L}\d)]/u.test(previousChar(text, i)) || NO_CUT_AFTER.has(previousWord(text, i))) continue;
+        if (!/[\p{L}\d)\]]/u.test(previousChar(text, i)) || NO_CUT_AFTER.has(previousWord(text, i))) continue;
         if (!m[0].includes(" ") && !monograph.endsWithItem.test(text.slice(0, i).trimEnd())) continue; // "sinus | headache"
         soft(i);
       }

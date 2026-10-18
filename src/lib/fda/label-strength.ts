@@ -10,7 +10,7 @@
 // means the label doesn't print an amount for it there.
 import type { CatalogIngredient, Strength } from "@/lib/domain/schema";
 import { normalizeIngredient } from "@/lib/domain/ingredients";
-import { labelPers } from "./strength";
+import { labelPerMarkers, labelPers, type LabelPer } from "./strength";
 
 export type PrintedUnit = "mg" | "mcg" | "g" | "%";
 
@@ -25,6 +25,10 @@ export type Printed = {
   baseName: string | null;
   /** The ingredient name as the label prints it at this occurrence. */
   printedName: string;
+  /** The "(in each …)" printed closest before this amount (labels with several dose blocks). */
+  context: LabelPer | null;
+  /** "1.745g per fl oz". */
+  perFlOz: boolean;
   /** Where the name starts and the amount ends in the text. */
   start: number;
   end: number;
@@ -40,7 +44,8 @@ const QUALIFIERS = new Set(
   (
     "usp nf hcl hbr hci hydrochloride hydrobromide dihydrochloride sodium potassium calcium magnesium succinate maleate citrate " +
     "sulfate tartrate bitartrate polacrilex monohydrate dihydrate trihydrate sesquihydrate anhydrous base acetate carbonate " +
-    "phosphate gluconate bromide chloride fumarate mesylate besylate salicylate equal equivalent to as micronized"
+    "phosphate gluconate bromide chloride fumarate mesylate besylate salicylate equal equivalent to as micronized " +
+    "delayed extended release capsule capsules tablet tablets caplet caplets softgel softgels chewable"
   ).split(" "),
 );
 const PAREN_AMOUNT_PREFIX = /^\(\s*(?:equal to|equivalent to|as|providing|contains)?\s*$/i;
@@ -145,7 +150,7 @@ function displayName(raw: string): string {
     .replace(/[.…·_:;,*]+/g, " ")
     .replace(/\s+/g, " ")
     .trim()
-    .replace(/(?:\s+(?:usp|nf|equal to|equivalent to|as))+$/i, "")
+    .replace(/(?:\s+(?:usp|nf|equal to|equivalent to|as|delayed-release|extended-release|delayed|extended|release|capsules?|tablets?|caplets?|softgels?|chewable))+$/i, "")
     .trim();
   if (name === name.toUpperCase()) return name.toLowerCase().replace(/(^|[\s(/-])(\p{L})/gu, (_, sep: string, ch: string) => sep + ch.toUpperCase());
   return name.charAt(0).toUpperCase() + name.slice(1);
@@ -156,6 +161,7 @@ export function findAllPrinted(activeText: string, ndcName: string, otherNames: 
   const text = activeText;
   const lower = text.toLowerCase();
   const depth = parenDepths(text);
+  const markers = labelPerMarkers(text);
   for (const name of candidates(ndcName, otherNames)) {
     const found: Printed[] = [];
     for (const m of lower.matchAll(new RegExp(`(?<![\\p{L}])${escapeRegExp(name)}(?![\\p{L}])`, "gu"))) {
@@ -167,13 +173,16 @@ export function findAllPrinted(activeText: string, ndcName: string, otherNames: 
       const perVolume = rest.match(/^\s*(?:\/|per|in each|in)\s*(\d+(?:\.\d+)?)\s*ml\b/i);
       const basis = a.unit === "%" ? (rest.match(/^\s*\(?\s*(w\/v|w\/w)\b/i)?.[1].toLowerCase() as "w/v" | "w/w" | undefined) : undefined;
       const printedName = displayName(text.slice(start, a.at));
+      const context = [...markers].reverse().find((k) => k.index < start)?.per ?? null;
       found.push({
         amount: a.amount,
         unit: a.unit,
         perVolume: perVolume ? Number(perVolume[1]) : null,
         basis: basis ?? null,
-        baseName: /^\s*\(\s*(?:as|equivalent to|equal to)\b/i.test(rest) ? text.slice(start, a.at).replace(/[\s,:.…-]+$/, "").trim() || null : null,
+        baseName: /^\s*\(\s*(?:as|equivalent to|equal to)\b/i.test(rest) ? displayName(text.slice(start, a.at)) || null : null,
         printedName,
+        context,
+        perFlOz: /^\s*per\s+fl\.?\s*oz\b/i.test(rest),
         start,
         end: a.end,
       });
@@ -240,10 +249,11 @@ export function strengthIsTraceable(ingredient: CatalogIngredient, otherNames: s
       return s.unit === "mg" && s.perAmount === 1 && (s.perUnit === "mL" || s.perUnit === "g") && close(s.amount, p.amount * 10);
     }
     if (mg === undefined || !close(s.amount * mg, p.amount * MG[p.unit])) return false;
-    const volume = p.perVolume ?? labelVolume(activeText);
+    const volume = p.perVolume ?? (p.context?.kind === "volume" ? p.context.amount : null) ?? labelVolume(activeText);
+    if (s.perUnit === "fl oz") return p.perFlOz || /\bfl\.? ?oz\b|fluid ounce/i.test(activeText);
     if (volume !== null) return s.perUnit === "mL" && close(s.perAmount ?? 1, volume);
-    if (s.perUnit === "fl oz") return /\bfl\.? ?oz\b|fluid ounce/i.test(activeText);
     if (s.perUnit === "mL" || s.perUnit === "L" || s.perUnit === "g" || s.perUnit === "mg") return false; // the label gives no per-quantity
-    return close(s.perAmount ?? 1, labelCount(activeText) ?? 1);
+    const count = p.context?.kind === "count" ? (p.context.amount ?? 1) : labelCount(activeText);
+    return close(s.perAmount ?? 1, count ?? 1);
   });
 }

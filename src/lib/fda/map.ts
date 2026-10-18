@@ -103,13 +103,17 @@ function labelStrength(p: Printed, form: FormInfo, per: LabelPerInfo): { strengt
     const strength: Strength = { amount: round(p.amount * 10), unit: "mg", perAmount: 1, perUnit: basis === "w/v" ? "mL" : "g" };
     return { strength, explicit: p.basis !== null };
   }
-  const volume = p.perVolume ?? per.volume;
-  if (volume !== null) return { strength: { amount: p.amount, unit: p.unit, perAmount: volume, perUnit: "mL" }, explicit: true };
-  if (form.kind !== "solid" && per.nouns.length === 1 && /^(?:fl\.? ?oz|fluid ounce)$/.test(per.nouns[0])) {
+  // The per-quantity printed with this amount, else the label's dose block for it, else the label's only one.
+  const context = p.context;
+  const volume = p.perVolume ?? (context?.kind === "volume" ? context.amount : null) ?? per.volume;
+  const flOz = (n: string) => /^(?:fl\.? ?oz|fluid ounce)$/.test(n);
+  if (form.kind !== "solid" && (p.perFlOz || (context?.kind === "count" && flOz(context.noun)) || (per.nouns.length === 1 && flOz(per.nouns[0])))) {
     return { strength: { amount: p.amount, unit: p.unit, perAmount: 1, perUnit: "fl oz" }, explicit: true };
   }
+  if (volume !== null) return { strength: { amount: p.amount, unit: p.unit, perAmount: volume, perUnit: "mL" }, explicit: true };
   if (form.kind === "solid") {
-    return { strength: { amount: p.amount, unit: p.unit, perAmount: per.count ?? 1, perUnit: form.per ?? form.form }, explicit: true };
+    const count = context?.kind === "count" ? (context.amount ?? 1) : (per.count ?? 1);
+    return { strength: { amount: p.amount, unit: p.unit, perAmount: count, perUnit: form.per ?? form.form }, explicit: true };
   }
   return null;
 }
@@ -294,6 +298,9 @@ export function mapLabel(label: FdaLabel, index: NdcIndex, options: MapOptions =
       const decided = decideAmong(printed, parsed.ok ? parsed.value : null, form, per);
       if (typeof decided === "string") return void mapped.push({ result: reject(decided)[0], first: 0 });
       if (!plausibleStrength(decided.strength)) return void mapped.push({ result: reject("implausible_strength")[0], first: 0 });
+      // A label covering products of several strengths describes only those it prints: each product must
+      // agree with a printed amount, never borrow another product's (label "60/1200 mg" ≠ a 30/600 mg product).
+      if (groups.size > 1 && decided.source !== "label_and_ndc") return void mapped.push({ result: reject("strength_mismatch")[0], first: 0 });
       sources.push(decided.source);
       // The label's own name ("Dextromethorphan HBr", "Simethicone"); its base for "X 75 mg (as SALT 84 mg)".
       const name = decided.printed.baseName ?? (decided.printed.printedName || titleCase(ndcName));
@@ -304,7 +311,14 @@ export function mapLabel(label: FdaLabel, index: NdcIndex, options: MapOptions =
     const brand = groups.size > 1 && brandsDiffer ? groupBrands[g] : labelBrand;
     mapped.push({ result: build(ordered, form.form, group, slug, brand, sources), first: ordered[0]?.strength.amount ?? 0 });
   });
-  return mapped.sort((a, b) => a.first - b.first).map((m) => m.result);
+  // Groups that differ only in how the NDC spells a strength end up as the same row: merge their NDCs.
+  const out: MapResult[] = [];
+  for (const { result } of mapped.sort((a, b) => a.first - b.first)) {
+    const same = result.ok ? out.find((r) => r.ok && r.formulation.slug === result.formulation.slug) : undefined;
+    if (same?.ok && result.ok) same.formulation.ndcPackages = [...new Set([...same.formulation.ndcPackages, ...result.formulation.ndcPackages])];
+    else out.push(result);
+  }
+  return out;
 }
 
 /**

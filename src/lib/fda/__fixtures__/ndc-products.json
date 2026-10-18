@@ -2315,6 +2315,237 @@
    ]
   }
  ],
+ "guaifenesin-dxm-two-dose-blocks": [
+  {
+   "product_ndc": "69339-149",
+   "spl_id": "6bc4ec89-dcf0-4e03-ac41-abb85c1a5efd",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Guaifenesin Syrup and Dextromethorphan",
+   "generic_name": "Guaifenesin Syrup and Dextromethorphan",
+   "labeler_name": "Natco Pharma USA LLC",
+   "dosage_form": "SYRUP",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "GUAIFENESIN",
+     "strength": "100 mg/5mL"
+    },
+    {
+     "name": "DEXTROMETHORPHAN HYDROBROMIDE",
+     "strength": "10 mg/5mL"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "69339-149-19"
+    }
+   ]
+  },
+  {
+   "product_ndc": "69339-150",
+   "spl_id": "6bc4ec89-dcf0-4e03-ac41-abb85c1a5efd",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Guaifenesin Syrup and Dextromethorphan",
+   "generic_name": "Guaifenesin Syrup and Dextromethorphan",
+   "labeler_name": "Natco Pharma USA LLC",
+   "dosage_form": "SYRUP",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "GUAIFENESIN",
+     "strength": "100 mg/5mL"
+    },
+    {
+     "name": "DEXTROMETHORPHAN HYDROBROMIDE",
+     "strength": "10 mg/5mL"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "69339-150-19"
+    }
+   ]
+  }
+ ],
+ "omeprazole-form-words": [
+  {
+   "product_ndc": "79481-0281",
+   "spl_id": "edbe9a75-73ef-4b53-8f08-10e775091e23",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "omeprazole",
+   "generic_name": "Omeprazole magnesium",
+   "labeler_name": "Meijer, Inc.",
+   "dosage_form": "CAPSULE, DELAYED RELEASE",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "OMEPRAZOLE MAGNESIUM",
+     "strength": "20 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "79481-0281-0"
+    },
+    {
+     "package_ndc": "79481-0281-1"
+    }
+   ]
+  }
+ ],
+ "rompe-pechito-teaspoonful-ml": [
+  {
+   "product_ndc": "58593-276",
+   "spl_id": "411e99da-2482-40c7-e063-6394a90aaf80",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Rompe Pechito DM for Kids",
+   "generic_name": "Dextromethorphan HBr, Guaifenesin",
+   "labeler_name": "Efficient Laboratories Inc",
+   "dosage_form": "LIQUID",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "DEXTROMETHORPHAN HYDROBROMIDE",
+     "strength": "5 mg/2.5mL"
+    },
+    {
+     "name": "GUAIFENESIN",
+     "strength": "50 mg/2.5mL"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "58593-276-04"
+    }
+   ]
+  }
+ ],
+ "texaclear-per-30ml-heading": [
+  {
+   "product_ndc": "58809-389",
+   "spl_id": "4139160a-f694-24ee-e063-6294a90a1f52",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "TEXACLEAR PAIN RELIEVER",
+   "generic_name": "Caffeine, Choline salicylate",
+   "labeler_name": "GM Pharmaceuticals, INC",
+   "dosage_form": "LIQUID",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "CHOLINE SALICYLATE",
+     "strength": "870 mg/30mL"
+    },
+    {
+     "name": "CAFFEINE",
+     "strength": "65 mg/30mL"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "58809-389-08"
+    }
+   ]
+  }
+ ],
+ "magnesium-citrate-per-fl-oz": [
+  {
+   "product_ndc": "0904-7418",
+   "spl_id": "088e554c-e128-d52b-e063-6394a90ae8e8",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Magnesium Citrate",
+   "generic_name": "Major Magnesium Citrate Oral Solution - Lemon",
+   "labeler_name": "Major Pharmaceuticals",
+   "dosage_form": "LIQUID",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "MAGNESIUM CITRATE",
+     "strength": "1.745 g/29.6mL"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "0904-7418-44"
+    }
+   ]
+  }
+ ],
+ "guaifenesin-dxm-label-prints-one-of-two": [
+  {
+   "product_ndc": "63304-110",
+   "spl_id": "801949ca-1baf-4a19-8466-91b4269a2c63",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Guaifenesin and Dextromethorphan HBr",
+   "generic_name": "Guaifenesin and Dextromethorphan HBr",
+   "labeler_name": "SUN PHARMACEUTICAL INDUSTRIES, INC.",
+   "dosage_form": "TABLET, EXTENDED RELEASE",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "GUAIFENESIN",
+     "strength": "1200 mg/1"
+    },
+    {
+     "name": "DEXTROMETHORPHAN HYDROBROMIDE",
+     "strength": "60 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "63304-110-54"
+    }
+   ]
+  },
+  {
+   "product_ndc": "63304-106",
+   "spl_id": "801949ca-1baf-4a19-8466-91b4269a2c63",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Guaifenesin and Dextromethorphan HBr",
+   "generic_name": "Guaifenesin and Dextromethorphan HBr",
+   "labeler_name": "SUN PHARMACEUTICAL INDUSTRIES, INC.",
+   "dosage_form": "TABLET, EXTENDED RELEASE",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "GUAIFENESIN",
+     "strength": "600 mg/1"
+    },
+    {
+     "name": "DEXTROMETHORPHAN HYDROBROMIDE",
+     "strength": "30 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "63304-106-21"
+    }
+   ]
+  }
+ ],
  "homeopathic-pellets": [
   {
    "product_ndc": "15631-0404",
