@@ -74,10 +74,11 @@ export function SceneSlot({
 
   const [tabVisible, setTabVisible] = useState(true);
   useEffect(() => {
+    if (!wantsScene) return;
     const onChange = () => setTabVisible(!document.hidden);
     document.addEventListener("visibilitychange", onChange);
     return () => document.removeEventListener("visibilitychange", onChange);
-  }, []);
+  }, [wantsScene]);
 
   const eligible = wantsScene && allowed && near && idle && !failed;
   const request = budget?.request;
