@@ -6,6 +6,10 @@ describe("addFlowStep (the add flow's progress label)", () => {
     expect(addFlowStep("photo")).toEqual({ step: 1, total: 3, label: "Step 1 of 3 · Photo" });
   });
 
+  it("scanning a barcode is step 1, like taking the photo", () => {
+    expect(addFlowStep("scan")).toEqual({ step: 1, total: 3, label: "Step 1 of 3 · Scan" });
+  });
+
   it("matching a package (or retaking an unreadable one) is step 2", () => {
     expect(addFlowStep("match").label).toBe("Step 2 of 3 · Match");
     expect(addFlowStep("retake").label).toBe("Step 2 of 3 · Match");
