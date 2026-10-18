@@ -20,14 +20,14 @@ Gemini only reads the photo and suggests which products it shows. Every answer i
 
 A bottom sheet on phones, a centered dialog at laptop width, over the photo screen. Device Back closes it (`useBackToClose`).
 
-- **One medicine:** "Is this **Tylenol Extra Strength**?" with ingredient + strength ("Acetaminophen 500 mg per caplet"), form and labeler. Below: **Not this one?** with up to 5 alternatives, then **None of these — type it in** (catalog search) and **Cancel** (discards the read, back to capture).
+- **One medicine:** "Is this **Tylenol Extra Strength**?" with ingredient + strength ("Acetaminophen 500 mg per caplet"), form and labeler. Below: **Not this one?** with up to 5 alternatives, then **None of these — type it in** (catalog search) and **Cancel** (discards the read, back to capture). When nothing matches, **Type it in** can also keep the typed name alone (saved only on Save; its details stay unknown).
 - **Alternatives are distinct products.** Catalog rows that are the same product (same brand name ignoring form words, same ingredient set, same strengths, same dosage form) collapse into one choice, keeping the best-ranked row. Different versions (Regular / Extra Strength / PM / 8HR / Children's) and other brands stay separate. Each choice names its labeler.
 - **Several medicines:** one row per medicine, numbered "1 of 2", each with its own best match, **Not this one?**, **Type it in** and **Remove from this photo**. One **Continue** button confirms them all. With more than 3 medicines the rows step one at a time.
 - Tapping **Continue** is the user's confirmation of which product each one is (the "AI only suggests" rule); the values then come from the FDA label.
 
 ## 3. The answer card (one medicine)
 
-Opens in the same pop-up after **Continue**. **Nothing is saved yet.** The card ends with **Save to My medicines** (confirms the entry, then goes to My medicines) and **Don't save** (deletes the read and its drafts, back to capture). Leaving any other way keeps the draft "waiting for review", as today.
+Opens in the same pop-up after **Continue**. **Nothing is saved yet.** The card ends with **Save to My medicines** (confirms the entry, then My medicines replaces the photo page in history) and **Don't save** (deletes the read, its drafts and the photo; the photo screen starts again with no photo). Leaving any other way (×, Escape, device Back) keeps the draft "waiting for review", as today; the photo screen then says so, with **Check the medicines again** and **Go to My medicines**. Device Back from the card returns to the confirm step.
 
 **Quick answers** come first, each a plain question over the label's own bullets:
 
