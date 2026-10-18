@@ -4,7 +4,7 @@
 // rules here only decide where a bullet goes, and a bullet no rule places stays where the label put it.
 import { formatStrength } from "@/lib/domain/fields";
 import type { Formulation, LabelSectionKey, SourceLink } from "@/lib/domain/schema";
-import { ageGroups, ageOf, LABEL_HEADINGS, WARNING_HEAD } from "@/lib/quick-answers";
+import { ageGroups, ageOf, LABEL_HEADINGS, quickAnswers, WARNING_HEAD } from "@/lib/quick-answers";
 
 export type LabelSource = LabelSectionKey | "directions_text" | "max_24h_text" | "warnings_quotes";
 /** Which raw field, and which bullet of it, a line came from. */
@@ -34,6 +34,10 @@ export type Directions = { blocks: DirectionBlock[]; max24h: LabelLine | null; d
 /** `headed`: a named label warning ("Stomach bleeding warning"); `section`: a Drug Facts section card. */
 export type WarningCard = { kind: "headed" | "section"; title: string; section: LabelSectionKey | null; lead: LabelLine | null; lines: LabelLine[] };
 
+export type GoodToKnowKey = "alcohol" | "food" | "drowsiness" | "allergies";
+/** The label's bullets mentioning the topic, or the fixed "The label doesn't mention …" line. */
+export type GoodToKnowTile = { key: GoodToKnowKey; title: string; bullets: string[]; notOnLabel: string | null };
+
 export type MedicationFacts = {
   header: { name: string; ingredients: string[]; labeler: string | null; labelDate: string | null; dosageForm: string; status: StatusKind };
   hero: { ingredients: { name: string; amount: string; per: string | null }[]; purposes: LabelLine[] };
@@ -42,6 +46,7 @@ export type MedicationFacts = {
   warnings: WarningCard[];
   /** "Took too much?": the label's overdose lines (maybe none; Poison Control's number always shows). */
   overdose: LabelLine[];
+  goodToKnow: GoodToKnowTile[];
   source: { kind: Formulation["source"]; setId: string | null; ndcs: string[]; links: SourceLink[] };
 };
 
@@ -102,18 +107,18 @@ const USE_VERB = /^(?:temporarily|relieves|reduces|helps|prevents|controls|for)\
 const LIST_GLYPH = /^[-•·*]\s*/;
 const firstWord = (s: string) => (s.trim().split(/\s+/)[0] ?? "").toLowerCase().replace(/[^a-z]/g, "");
 
-function useIcon(text: string): UseIcon {
+function iconOf(text: string): UseIcon {
   return USE_ICONS.find(([re]) => re.test(text))?.[1] ?? "dot";
 }
 
-const useTile = (text: string, index: number): UseTile => ({ ...line(text, "uses", index), icon: useIcon(text) });
+const tileOf = (text: string, index: number): UseTile => ({ ...line(text, "uses", index), icon: iconOf(text) });
 
 /**
  * A bullet with a colon starts a list: the words up to the colon are its lead, the rest its first tile.
  * Following colon-less bullets join the list, unless they open a statement of their own (the lead's
  * first word, or a Uses verb: "temporarily reduces fever"), which stands alone.
  */
-function useGroups(f: Formulation): UseGroup[] {
+function usesGroups(f: Formulation): UseGroup[] {
   const groups: UseGroup[] = [];
   let open: { group: UseGroup; leadWord: string } | null = null;
   for (const [index, raw] of (f.labelSections.uses ?? []).entries()) {
@@ -121,7 +126,7 @@ function useGroups(f: Formulation): UseGroup[] {
     if (colon > 0) {
       const lead = raw.slice(0, colon + 1).trim();
       const rest = raw.slice(colon + 1).trim().replace(LIST_GLYPH, "");
-      const group: UseGroup = { lead: line(lead, "uses", index), tiles: rest ? [useTile(rest, index)] : [] };
+      const group: UseGroup = { lead: line(lead, "uses", index), tiles: rest ? [tileOf(rest, index)] : [] };
       groups.push(group);
       open = { group, leadWord: firstWord(lead) };
       continue;
@@ -129,13 +134,13 @@ function useGroups(f: Formulation): UseGroup[] {
     const text = raw.trim().replace(LIST_GLYPH, "");
     if (!text) continue;
     if (open && firstWord(text) !== open.leadWord && !USE_VERB.test(text)) {
-      open.group.tiles.push(useTile(text, index));
+      open.group.tiles.push(tileOf(text, index));
       continue;
     }
     open = null;
     const last = groups.at(-1);
-    if (last && last.lead === null) last.tiles.push(useTile(text, index));
-    else groups.push({ lead: null, tiles: [useTile(text, index)] });
+    if (last && last.lead === null) last.tiles.push(tileOf(text, index));
+    else groups.push({ lead: null, tiles: [tileOf(text, index)] });
   }
   return groups;
 }
@@ -331,6 +336,29 @@ function warningCards(f: Formulation): { warnings: WarningCard[]; overdose: Labe
   return { warnings: cards, overdose };
 }
 
+// ---------------------------------------------------------------------------------------------
+// Good to know: the quick answers' keyword rules, unchanged.
+
+const GOOD_TO_KNOW: [GoodToKnowKey, string][] = [
+  ["alcohol", "Alcohol"],
+  ["food", "With food?"],
+  ["drowsiness", "Drowsiness and driving"],
+  ["allergies", "Allergies"],
+];
+
+function goodToKnow(f: Formulation): GoodToKnowTile[] {
+  const answers = new Map(quickAnswers(f).map((a) => [a.key, a]));
+  return GOOD_TO_KNOW.map(([key, title]) => {
+    const a = answers.get(key);
+    // The inactive ingredients are long and per form; the Allergies tile links to them on the Original tab.
+    const bullets =
+      key === "allergies"
+        ? (a?.groups ?? []).filter((g) => g.heading !== LABEL_HEADINGS.inactive_ingredients).flatMap((g) => g.bullets)
+        : (a?.bullets ?? []);
+    return { key, title, bullets, notOnLabel: a?.notOnLabel ?? null };
+  });
+}
+
 export function medicationFacts(f: Formulation): MedicationFacts {
   const { warnings, overdose } = warningCards(f);
   return {
@@ -343,10 +371,11 @@ export function medicationFacts(f: Formulation): MedicationFacts {
       status: statusOf(f),
     },
     hero: hero(f),
-    uses: useGroups(f),
+    uses: usesGroups(f),
     directions: directions(f),
     warnings,
     overdose,
+    goodToKnow: goodToKnow(f),
     source: { kind: f.source, setId: f.openfdaSetId, ndcs: f.ndcPackages, links: f.sourceLinks },
   };
 }

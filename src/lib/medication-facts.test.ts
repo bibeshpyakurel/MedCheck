@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { FICTIONAL_FORMULATIONS } from "@/data/fictional-formulations";
 import type { Formulation } from "@/lib/domain/schema";
 import labels from "./__fixtures__/quick-answers-labels.json";
-import { markRanges, medicationFacts, resolveRef, STATUS_TEXT } from "./medication-facts";
+import { type LabelLine, markRanges, medicationFacts, resolveRef, STATUS_TEXT } from "./medication-facts";
 
 // Real catalog rows (live import, October 2026), copied verbatim.
 const L = labels as unknown as Record<keyof typeof labels, Formulation>;
@@ -225,5 +225,70 @@ describe("warnings", () => {
 
   it("a label with no overdose line still has Took too much? (empty; the card adds Poison Control)", () => {
     expect(medicationFacts({ ...L.advil, labelSections: { uses: ["headache"] }, warningsQuotes: [] }).overdose).toEqual([]);
+  });
+});
+
+describe("good to know", () => {
+  const tiles = (f: Formulation) => Object.fromEntries(medicationFacts(f).goodToKnow.map((t) => [t.key, t]));
+
+  it("has the four tiles in order", () => {
+    expect(medicationFacts(L.advil).goodToKnow.map((t) => t.title)).toEqual(["Alcohol", "With food?", "Drowsiness and driving", "Allergies"]);
+  });
+
+  it("quotes the label when it speaks, else the fixed line (Advil)", () => {
+    const g = tiles(L.advil);
+    expect(g.food.bullets).toEqual(["take with food or milk if stomach upset occurs"]);
+    expect(g.alcohol.bullets).toContain("have 3 or more alcoholic drinks every day while using this product");
+    expect(g.drowsiness.bullets).toEqual([]);
+    expect(g.drowsiness.notOnLabel).toBe("The label doesn't mention drowsiness or driving. Ask a pharmacist.");
+  });
+
+  it("Allergies leaves the inactive ingredients to the Original tab", () => {
+    const g = tiles(L.advil);
+    expect(g.allergies.bullets.some((b) => /acetylated monoglycerides/.test(b))).toBe(false);
+    expect(g.allergies.bullets[0]).toMatch(/^Allergy alert/);
+  });
+});
+
+describe("traceability", () => {
+  const legacy: Formulation = { ...L.advil, id: "legacy", labelSections: {} };
+  const cases = [...Object.entries(L), ["calmora", calmora], ["legacy advil", legacy]] as [string, Formulation][];
+
+  function allLines(f: Formulation): LabelLine[] {
+    const x = medicationFacts(f);
+    return [
+      ...x.hero.purposes,
+      ...x.uses.flatMap((g) => [...(g.lead ? [g.lead] : []), ...g.tiles]),
+      ...x.directions.blocks.flatMap((b) => [...(b.heading ? [b.heading] : []), ...b.segments.flatMap((s) => s.lines)]),
+      ...(x.directions.max24h ? [x.directions.max24h] : []),
+      ...x.warnings.flatMap((w) => [...(w.lead ? [w.lead] : []), ...w.lines]),
+      ...x.overdose,
+    ];
+  }
+
+  it.each(cases)("%s: every line is its source bullet, or a piece of it", (_, f) => {
+    const lines = allLines(f);
+    expect(lines.length).toBeGreaterThan(0);
+    for (const l of lines) {
+      const raw = resolveRef(f, l.ref);
+      expect(raw, JSON.stringify(l.ref)).not.toBeNull();
+      expect(raw).toContain(l.text);
+    }
+  });
+
+  it.each(cases)("%s: Good to know quotes only bullets the label has", (_, f) => {
+    const everything = [...Object.values(f.labelSections).flat(), ...f.warningsQuotes, f.directionsText ?? ""];
+    for (const t of medicationFacts(f).goodToKnow) for (const b of t.bullets) expect(everything).toContain(b);
+  });
+
+  it.each(cases)("%s: our words never say safe", (_, f) => {
+    const x = medicationFacts(f);
+    const ours = [
+      STATUS_TEXT[x.header.status],
+      ...x.warnings.map((w) => w.title),
+      ...x.directions.blocks.flatMap((b) => b.segments.map((s) => s.age ?? "")),
+      ...x.goodToKnow.map((t) => t.notOnLabel ?? ""),
+    ];
+    for (const s of ours) expect(s).not.toMatch(/\bsafe\b/i);
   });
 });
