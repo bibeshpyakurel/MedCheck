@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "db:types": "supabase gen types typescript --linked > src/lib/supabase/database.types.ts",
     "seed": "tsx --env-file=.env.local scripts/seed-catalog.ts",
+    "import:otc": "tsx --env-file=.env.local scripts/import-otc.ts",
     "e2e": "playwright test"
   },
   "dependencies": {
@@ -46,6 +47,7 @@
     "@vitest/coverage-v8": "^5.0.5",
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
+    "fflate": "^0.8.3",
     "supabase": "^2.121.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
