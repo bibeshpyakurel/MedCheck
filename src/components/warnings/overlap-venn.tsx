@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { MotionConfig, motion } from "motion/react";
 import { type OverlapVisual, vennLabel } from "@/lib/overlap-visual";
 import { ease, spring } from "@/lib/motion";
 
@@ -20,7 +20,11 @@ const LENS = `M160 19.27 A${R} ${R} 0 0 1 160 150.73 A${R} ${R} 0 0 1 160 19.27 
  * them still. Screen readers get one sentence (`vennLabel`).
  */
 export function OverlapVenn({ visual }: { visual: OverlapVisual }) {
-  return visual.products.length === 2 ? <TwoWay visual={visual} /> : <ManyWay visual={visual} />;
+  return (
+    // Motion follows the device's reduced-motion setting. Only this component uses Motion, so the
+    // library loads only on pages with a shared-ingredient warning.
+    <MotionConfig reducedMotion="user">{visual.products.length === 2 ? <TwoWay visual={visual} /> : <ManyWay visual={visual} />}</MotionConfig>
+  );
 }
 
 function TwoWay({ visual }: { visual: OverlapVisual }) {
