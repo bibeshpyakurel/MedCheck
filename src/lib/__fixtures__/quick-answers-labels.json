@@ -1,0 +1,852 @@
+{
+  "tylenolExtraStrength": {
+    "id": "ab902ce3-62c4-4f1b-988a-ab0e0d5ddabf",
+    "slug": "otc-015a6179-bacb-452d-b594-4de628ddc11d",
+    "brandName": "TYLENOL Extra Strength",
+    "genericName": "Acetaminophen",
+    "dosageForm": "tablet",
+    "isFictional": false,
+    "ndcPackages": [
+      "50580059004"
+    ],
+    "activeIngredients": [
+      {
+        "name": "Acetaminophen",
+        "strength": {
+          "unit": "mg",
+          "amount": 500,
+          "perUnit": "tablet",
+          "perAmount": 1
+        },
+        "normalized": "acetaminophen"
+      }
+    ],
+    "directionsText": "do not take more than directed (see overdose warning ) adults and children 12 years and over take 2 tablets every 6 hours while symptoms last do not take more than 6 tablets in 24 hours, unless directed by a doctor do not use for more than 10 days unless directed by a doctor children under 12 years ask a doctor",
+    "max24hText": "do not take more than 6 tablets in 24 hours",
+    "warningsQuotes": [
+      "Liver warning This product contains acetaminophen.",
+      "Severe liver damage may occur if you take more than 4,000 mg of acetaminophen in 24 hours with other drugs containing acetaminophen 3 or more alcoholic drinks every day while using this product",
+      "Allergy alert: acetaminophen may cause severe skin reactions.",
+      "Do not use with any other drug containing acetaminophen (prescription or nonprescription).",
+      "If you are not sure whether a drug contains acetaminophen, ask a doctor or pharmacist.",
+      "if you are allergic to acetaminophen or any of the inactive ingredients in this product"
+    ],
+    "dosageTableHtml": "<table><col /><col /><tbody><tr><td>adults and children 12 years and over</td><td>take 2 tablets every 6 hours while symptoms last<br>do not take more than 6 tablets in 24 hours, unless directed by a doctor<br>do not use for more than 10 days unless directed by a doctor</td></tr><tr><td>children under 12 years</td><td>ask a doctor</td></tr></tbody></table>",
+    "source": "openfda",
+    "openfdaSetId": "015a6179-bacb-452d-b594-4de628ddc11d",
+    "labelEffectiveDate": "2024-11-07",
+    "labelerName": "Kenvue Brands LLC",
+    "labelSections": {
+      "uses": [
+        "temporarily relieves minor aches and pains due to: the common cold",
+        "headache",
+        "backache",
+        "minor pain of arthritis",
+        "toothache",
+        "muscular aches",
+        "premenstrual and menstrual cramps",
+        "temporarily reduces fever"
+      ],
+      "purpose": [
+        "Pain reliever/fever reducer"
+      ],
+      "storage": [
+        "store between 20-25°C (68-77°F)"
+      ],
+      "stop_use": [
+        "pain gets worse or lasts more than 10 days",
+        "fever gets worse or lasts more than 3 days",
+        "new symptoms occur",
+        "redness or swelling is present",
+        "These could be signs of a serious condition."
+      ],
+      "warnings": [
+        "Liver warning This product contains acetaminophen.",
+        "Severe liver damage may occur if you take more than 4,000 mg of acetaminophen in 24 hours",
+        "with other drugs containing acetaminophen",
+        "3 or more alcoholic drinks every day while using this product",
+        "Allergy alert: acetaminophen may cause severe skin reactions.",
+        "Symptoms may include: skin reddening blisters rash",
+        "If a skin reaction occurs, stop use and seek medical help right away.",
+        "Overdose warning In case of overdose, get medical help or contact a Poison Control Center right away. (1-800-222-1222) Quick medical attention is critical for adults as well as for children even if you do not notice any signs or symptoms."
+      ],
+      "questions": [
+        "call 1-877-895-3665 (toll-free) or 215-273-8755 (collect)"
+      ],
+      "ask_doctor": [
+        "you have liver disease"
+      ],
+      "directions": [
+        "do not take more than directed (see overdose warning )"
+      ],
+      "do_not_use": [
+        "with any other drug containing acetaminophen (prescription or nonprescription).",
+        "If you are not sure whether a drug contains acetaminophen, ask a doctor or pharmacist.",
+        "if you are allergic to acetaminophen or any of the inactive ingredients in this product"
+      ],
+      "keep_out_of_reach": [
+        "Keep out of reach of children."
+      ],
+      "other_information": [
+        "do not use if neck band or foil inner seal imprinted with \"TYLENOL\" is broken or missing"
+      ],
+      "inactive_ingredients": [
+        "carnauba wax, FD&C red no. 40 aluminum lake, FD&C yellow no. 6 aluminum lake, hypromellose, iron oxide, magnesium stearate, modified starch may contain , polyethylene glycol, polysorbate 80, powdered cellulose, pregelatinized starch, purified water, sodium starch glycolate, sucralose, titanium dioxide"
+      ],
+      "ask_doctor_or_pharmacist": [
+        "you are taking the blood thinning drug warfarin"
+      ],
+      "pregnancy_or_breast_feeding": [
+        "If pregnant or breast-feeding, ask a health professional before use."
+      ]
+    },
+    "sourceLinks": [
+      {
+        "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=015a6179-bacb-452d-b594-4de628ddc11d",
+        "label": "FDA label (DailyMed)"
+      },
+      {
+        "url": "https://medlineplus.gov/druginfo/meds/a681004.html",
+        "label": "MedlinePlus: Acetaminophen"
+      }
+    ],
+    "reviewed": false
+  },
+  "childrensTylenol": {
+    "id": "677fa751-c4ab-4686-9998-10761ce68937",
+    "slug": "childrens-tylenol-160mg-5ml",
+    "brandName": "Children's Tylenol Oral Suspension",
+    "genericName": "Acetaminophen",
+    "dosageForm": "liquid",
+    "isFictional": false,
+    "ndcPackages": [
+      "50580013904"
+    ],
+    "activeIngredients": [
+      {
+        "name": "Acetaminophen",
+        "strength": {
+          "unit": "mg",
+          "amount": 160,
+          "perUnit": "mL",
+          "perAmount": 5
+        },
+        "normalized": "acetaminophen"
+      }
+    ],
+    "directionsText": "this product does not contain directions or complete warnings for adult use • do not give more than directed (see overdose warning) • shake well before using • mL = milliliter • find right dose on chart below. If possible, use weight to dose; otherwise, use age. • remove the child protective cap and squeeze your child’s dose into the dosing cup • repeat dose every 4 hours while symptoms last • do not give more than 5 times in 24 hours Weight (lb) Age (yr) Dose (mL)* under 24 under 2 years ask a doctor 24-35 lbs 2-3 years 5 mL 36-47 lbs 4-5 years 7.5 mL 48-59 lbs 6-8 years 10 mL 60-71 lbs 9-10 years 12.5 mL 72-95 lbs 11 years 15 mL * or as directed by a doctor Attention: use only enclosed dosing cup specifically designed for use with this product. Do not use any other dosing device.",
+    "max24hText": "do not give more than 5 times in 24 hours",
+    "warningsQuotes": [
+      "Liver warning: This product contains acetaminophen.",
+      "Severe liver damage may occur if your child takes more than 5 doses in 24 hours, which is the maximum daily amount with other drugs containing acetaminophen",
+      "Allergy alert: acetaminophen may cause severe skin reactions.",
+      "Do not use with any other drug containing acetaminophen (prescription or nonprescription).",
+      "If you are not sure whether a drug contains acetaminophen, ask a doctor or pharmacist.",
+      "if your child is allergic to acetaminophen or any of the inactive ingredients in this product"
+    ],
+    "dosageTableHtml": "<table><tbody><tr><td>Weight (lb)</td><td>Age (yr)</td><td>Dose (mL)*</td></tr><tr><td>under 24</td><td>under 2 years</td><td>ask a doctor</td></tr><tr><td>24-35 lbs</td><td>2-3 years</td><td>5 mL</td></tr><tr><td>36-47 lbs</td><td>4-5 years</td><td>7.5 mL</td></tr><tr><td>48-59 lbs</td><td>6-8 years</td><td>10 mL</td></tr><tr><td>60-71 lbs</td><td>9-10 years</td><td>12.5 mL</td></tr><tr><td>72-95 lbs</td><td>11 years</td><td>15 mL</td></tr></tbody></table>",
+    "source": "openfda",
+    "openfdaSetId": "3162733b-9382-39f1-e063-6294a90ac420",
+    "labelEffectiveDate": "2026-06-12",
+    "labelerName": "Kenvue Brands LLC",
+    "labelSections": {
+      "uses": [
+        "temporarily: reduces fever",
+        "relieves minor aches and pains due to: -the common cold",
+        "flu",
+        "headache",
+        "sore throat",
+        "toothache"
+      ],
+      "purpose": [
+        "Pain reliever/fever reducer"
+      ],
+      "storage": [
+        "store between 20-25°C (68-77°F)"
+      ],
+      "stop_use": [
+        "pain gets worse or lasts more than 5 days",
+        "fever gets worse or lasts more than 3 days",
+        "new symptoms occur",
+        "redness or swelling is present",
+        "These could be signs of a serious condition."
+      ],
+      "warnings": [
+        "Liver warning: This product contains acetaminophen.",
+        "Severe liver damage may occur if your child takes more than 5 doses in 24 hours, which is the maximum daily amount",
+        "with other drugs containing acetaminophen",
+        "Allergy alert: acetaminophen may cause severe skin reactions.",
+        "Symptoms may include: skin reddening",
+        "blisters",
+        "rash",
+        "If a skin reaction occurs, stop use and seek medical help right away.",
+        "Sore throat warning: if sore throat is severe, persists for more than 2 days, is accompanied or followed by fever, headache, rash, nausea, or vomiting, consult a doctor promptly.",
+        "Overdose warning: In case of overdose, get medical help or contact a Poison Control Center right away. (1-800-222-1222) Quick medical attention is critical for adults as well as for children even if you do not notice any signs or symptoms."
+      ],
+      "questions": [
+        "call 1-800-458-1635 (toll-free) or 215-273-8755 (collect)"
+      ],
+      "ask_doctor": [
+        "your child has liver disease"
+      ],
+      "directions": [
+        "this product does not contain directions or complete warnings for adult use",
+        "do not give more than directed (see overdose warning)",
+        "shake well before using",
+        "mL = milliliter",
+        "find right dose on chart below.",
+        "If possible, use weight to dose; otherwise, use age.",
+        "remove the child protective cap and squeeze your child’s dose into the dosing cup",
+        "repeat dose every 4 hours while symptoms last",
+        "do not give more than 5 times in 24 hours",
+        "or as directed by a doctor Attention: use only enclosed dosing cup specifically designed for use with this product.",
+        "Do not use any other dosing device."
+      ],
+      "do_not_use": [
+        "with any other drug containing acetaminophen (prescription or nonprescription).",
+        "If you are not sure whether a drug contains acetaminophen, ask a doctor or pharmacist.",
+        "if your child is allergic to acetaminophen or any of the inactive ingredients in this product"
+      ],
+      "when_using": [
+        "do not exceed recommended dose (see overdose warning)"
+      ],
+      "keep_out_of_reach": [
+        "Keep out of reach of children."
+      ],
+      "other_information": [
+        "each 5 mL contains: potassium 5 mg",
+        "do not use if carton is opened.",
+        "Do not use if bottle wrap imprinted with “TYLENOL” is broken or missing"
+      ],
+      "inactive_ingredients": [
+        "anhydrous citric acid, flavors, glycerin, microcrystalline cellulose and carboxymethylcellulose sodium, potassium sorbate, purified water, sorbitol solution, sucralose, sucrose, xanthan gum"
+      ],
+      "ask_doctor_or_pharmacist": [
+        "your child is taking the blood thinning drug warfarin"
+      ]
+    },
+    "sourceLinks": [
+      {
+        "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=3162733b-9382-39f1-e063-6294a90ac420",
+        "label": "FDA label (DailyMed)"
+      },
+      {
+        "url": "https://medlineplus.gov/druginfo/meds/a681004.html",
+        "label": "MedlinePlus: Acetaminophen"
+      }
+    ],
+    "reviewed": true
+  },
+  "advil": {
+    "id": "a3c09c5f-0027-47f2-93be-d8424e65dff3",
+    "slug": "otc-1a665e64-9f30-be37-4a83-38789f1f1e89",
+    "brandName": "ADVIL",
+    "genericName": "Ibuprofen",
+    "dosageForm": "tablet",
+    "isFictional": false,
+    "ndcPackages": [
+      "00573016520"
+    ],
+    "activeIngredients": [
+      {
+        "name": "Ibuprofen",
+        "strength": {
+          "unit": "mg",
+          "amount": 200,
+          "perUnit": "tablet",
+          "perAmount": 1
+        },
+        "normalized": "ibuprofen"
+      }
+    ],
+    "directionsText": "Advil Tablets do not take more than directed the smallest effective dose should be used adults and children 12 years and over: take 1 tablet every 4 to 6 hours while symptoms persist if pain or fever does not respond to 1 tablet, 2 tablets may be used do not exceed 6 tablets in 24 hours, unless directed by a doctor children under 12 years: ask a doctor Advil Caplets do not take more than directed the smallest effective dose should be used adults and children 12 years and over: take 1 caplet every 4 to 6 hours while symptoms persist if pain or fever does not respond to 1 caplet, 2 caplets may be used do not exceed 6 caplets in 24 hours, unless directed by a doctor children under 12 years: ask a doctor Advil Gel Caplets do not take more than directed the smallest effective dose should be used adults and children 12 years and over: take 1 gel caplet every 4 to 6 hours while symptoms persist if pain or fever does not respond to 1 gel caplet, 2 gel caplets may be used do not exceed 6 gel caplets in 24 hours, unless directed by a doctor children under 12 years: ask a doctor",
+    "max24hText": "do not exceed 6 tablets in 24 hours",
+    "warningsQuotes": [
+      "Allergy alert: Ibuprofen may cause a severe allergic reaction, especially in people allergic to aspirin.",
+      "Ask a doctor or pharmacist before use if you are under a doctor's care for any serious condition taking aspirin for heart attack or stroke, because ibuprofen may decrease this benefit of aspirin taking any other drug",
+      "It is especially important not to use ibuprofen at 20 weeks or later in pregnancy unless definitely directed to do so by a doctor because it may cause problems in the unborn child or complications during delivery."
+    ],
+    "dosageTableHtml": null,
+    "source": "openfda",
+    "openfdaSetId": "1a665e64-9f30-be37-4a83-38789f1f1e89",
+    "labelEffectiveDate": "2026-03-12",
+    "labelerName": "Haleon US Holdings LLC",
+    "labelSections": {
+      "uses": [
+        "temporarily relieves minor aches and pains due to: headache",
+        "toothache",
+        "backache",
+        "menstrual cramps",
+        "the common cold",
+        "muscular aches",
+        "minor pain of arthritis",
+        "temporarily reduces fever"
+      ],
+      "purpose": [
+        "Pain reliever/Fever reducer"
+      ],
+      "stop_use": [
+        "you experience any of the following signs of stomach bleeding: feel faint",
+        "vomit blood",
+        "have bloody or black stools",
+        "have stomach pain that does not get better",
+        "you have symptoms of heart problems or stroke: chest pain",
+        "trouble breathing",
+        "weakness in one part or side of body",
+        "slurred speech",
+        "leg swelling",
+        "pain gets worse or lasts more than 10 days",
+        "fever gets worse or lasts more than 3 days",
+        "redness or swelling is present in the painful area",
+        "any new symptoms appear"
+      ],
+      "warnings": [
+        "Allergy alert: Ibuprofen may cause a severe allergic reaction, especially in people allergic to aspirin.",
+        "Symptoms may include: hives facial swelling asthma (wheezing) shock skin reddening rash blisters",
+        "If an allergic reaction occurs, stop use and seek medical help right away.",
+        "Stomach bleeding warning: This product contains an NSAID, which may cause severe stomach bleeding.",
+        "The chance is higher if you are age 60 or older",
+        "have had stomach ulcers or bleeding problems",
+        "take a blood thinning (anticoagulant) or steroid drug",
+        "take other drugs containing prescription or non-prescription NSAIDs [aspirin, ibuprofen, naproxen, or others]",
+        "have 3 or more alcoholic drinks every day while using this product",
+        "take more or for a longer time than directed",
+        "Heart attack and stroke warning: NSAIDs, except aspirin, increase the risk of heart attack, heart failure, and stroke.",
+        "These can be fatal.",
+        "The risk is higher if you use more than directed or for longer than directed."
+      ],
+      "questions": [
+        "call toll free 1-800-88-ADVIL"
+      ],
+      "ask_doctor": [
+        "stomach bleeding warning applies to you",
+        "you have problems or serious side effects from taking pain relievers or fever reducers",
+        "you have a history of stomach problems, such as heartburn",
+        "you have high blood pressure, heart disease, liver cirrhosis, kidney disease, asthma, or had a stroke",
+        "you are taking a diuretic"
+      ],
+      "directions": [
+        "Advil Tablets",
+        "do not take more than directed the smallest effective dose should be used",
+        "adults and children 12 years and over: take 1 tablet every 4 to 6 hours while symptoms persist if pain or fever does not respond to 1 tablet, 2 tablets may be used",
+        "do not exceed 6 tablets in 24 hours, unless directed by a doctor",
+        "children under 12 years: ask a doctor",
+        "Advil Caplets",
+        "do not take more than directed the smallest effective dose should be used",
+        "adults and children 12 years and over: take 1 caplet every 4 to 6 hours while symptoms persist if pain or fever does not respond to 1 caplet, 2 caplets may be used",
+        "do not exceed 6 caplets in 24 hours, unless directed by a doctor",
+        "children under 12 years: ask a doctor",
+        "Advil Gel Caplets",
+        "do not take more than directed the smallest effective dose should be used",
+        "adults and children 12 years and over: take 1 gel caplet every 4 to 6 hours while symptoms persist if pain or fever does not respond to 1 gel caplet, 2 gel caplets may be used",
+        "do not exceed 6 gel caplets in 24 hours, unless directed by a doctor",
+        "children under 12 years: ask a doctor"
+      ],
+      "do_not_use": [
+        "if you have ever had an allergic reaction to any other pain reliever/fever reducer",
+        "right before or after heart surgery"
+      ],
+      "when_using": [
+        "take with food or milk if stomach upset occurs"
+      ],
+      "keep_out_of_reach": [
+        "Keep out of reach of children.",
+        "In case of overdose, get medical help or contact a Poison Control Center right away."
+      ],
+      "inactive_ingredients": [
+        "Advil Tablets",
+        "acetylated monoglycerides, colloidal silicon dioxide, corn starch, croscarmellose sodium, methylparaben, microcrystalline cellulose, pharmaceutical glaze, pharmaceutical ink, povidone, pregelatinized starch, propylparaben, sodium benzoate, sodium lauryl sulfate, stearic acid, sucrose, synthetic iron oxide, titanium dioxide, white wax",
+        "Advil Caplets",
+        "acetylated monoglycerides, colloidal silicon dioxide, corn starch, croscarmellose sodium, methylparaben, microcrystalline cellulose, pharmaceutical glaze, pharmaceutical ink, povidone, pregelatinized starch, propylparaben, sodium benzoate, sodium lauryl sulfate, stearic acid, sucrose, synthetic iron oxide, titanium dioxide, white wax",
+        "Advil Gel Caplets",
+        "colloidal silicon dioxide, corn starch, croscarmellose sodium, FD&C red no. 40, FD&C yellow no. 6, fractionated coconut oil, gelatin, glycerin, hypromellose, pharmaceutical ink, pregelatinized starch, propyl gallate, purified water, sodium lauryl sulfate, stearic acid, synthetic iron oxides, titanium dioxide, triacetin"
+      ],
+      "ask_doctor_or_pharmacist": [
+        "you are under a doctor's care for any serious condition",
+        "taking aspirin for heart attack or stroke, because ibuprofen may decrease this benefit of aspirin",
+        "taking any other drug"
+      ],
+      "pregnancy_or_breast_feeding": [
+        "If pregnant or breast-feeding, ask a health professional before use.",
+        "It is especially important not to use ibuprofen at 20 weeks or later in pregnancy unless definitely directed to do so by a doctor because it may cause problems in the unborn child or complications during delivery."
+      ]
+    },
+    "sourceLinks": [
+      {
+        "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=1a665e64-9f30-be37-4a83-38789f1f1e89",
+        "label": "FDA label (DailyMed)"
+      },
+      {
+        "url": "https://medlineplus.gov/druginfo/meds/a682159.html",
+        "label": "MedlinePlus: Ibuprofen"
+      }
+    ],
+    "reviewed": false
+  },
+  "zyrtec": {
+    "id": "09adf1ee-a6f2-4413-b0d7-fb0f2bc175f7",
+    "slug": "otc-0face45c-af24-3559-e063-6294a90abde5",
+    "brandName": "ZYRTEC Allergy",
+    "genericName": "Cetirizine hydrochloride",
+    "dosageForm": "capsule",
+    "isFictional": false,
+    "ndcPackages": [
+      "50580078612"
+    ],
+    "activeIngredients": [
+      {
+        "name": "Cetirizine HCl",
+        "strength": {
+          "unit": "mg",
+          "amount": 10,
+          "perUnit": "capsule",
+          "perAmount": 1
+        },
+        "normalized": "cetirizine"
+      }
+    ],
+    "directionsText": "adults and children 6 years and over one 10 mg capsule once daily; do not take more than one 10 mg capsule in 24 hours. A 5 mg product may be appropriate for less severe symptoms. adults 65 years and over ask a doctor children under 6 years of age ask a doctor consumers with liver or kidney disease ask a doctor",
+    "max24hText": "do not take more than one 10 mg capsule in 24 hours",
+    "warningsQuotes": [],
+    "dosageTableHtml": "<table><colgroup><col /><col /></colgroup><tbody><tr><td>adults and children 6 years and over</td><td>one 10 mg capsule once daily; do not take more than one 10 mg capsule in 24 hours. A 5 mg product may be appropriate for less severe symptoms.</td></tr><tr><td>adults 65 years and over</td><td>ask a doctor</td></tr><tr><td>children under 6 years of age</td><td>ask a doctor</td></tr><tr><td>consumers with liver or kidney disease</td><td>ask a doctor</td></tr></tbody></table>",
+    "source": "openfda",
+    "openfdaSetId": "0face45c-af24-3559-e063-6294a90abde5",
+    "labelEffectiveDate": "2025-10-21",
+    "labelerName": "Kenvue Brands LLC",
+    "labelSections": {
+      "uses": [
+        "temporarily relieves these symptoms due to hay fever or other upper respiratory allergies: runny nose",
+        "sneezing",
+        "itchy, watery eyes",
+        "itching of the nose or throat"
+      ],
+      "purpose": [
+        "Antihistamine"
+      ],
+      "storage": [
+        "store between 20°-25°C (68°-77°F) avoid high humidity and excessive heat above 40°C (104°F)",
+        "protect from light"
+      ],
+      "stop_use": [
+        "an allergic reaction to this product occurs.",
+        "Seek medical help right away."
+      ],
+      "questions": [
+        "call 1-800-343-7805 (toll-free) or 215-273-8755 (collect)"
+      ],
+      "ask_doctor": [
+        "you have liver or kidney disease.",
+        "Your doctor should determine if you need a different dose."
+      ],
+      "do_not_use": [
+        "if you have ever had an allergic reaction to this product or any of its ingredients or to an antihistamine containing hydroxyzine."
+      ],
+      "when_using": [
+        "drowsiness may occur avoid alcoholic drinks alcohol, sedatives, and tranquilizers may increase drowsiness be careful when driving a motor vehicle or operating machinery"
+      ],
+      "keep_out_of_reach": [
+        "Keep out of reach of children.",
+        "In case of overdose, get medical help or contact a Poison Control Center right away. (1-800-222-1222)"
+      ],
+      "other_information": [
+        "do not use if foil inner seal imprinted with \"Sealed For Your Safety\" is broken or missing"
+      ],
+      "inactive_ingredients": [
+        "butylated hydroxytoluene, gelatin, glycerin, pharmaceutical ink, polyethylene glycol 400, purified water, sodium hydroxide, sorbitan, sorbitol"
+      ],
+      "ask_doctor_or_pharmacist": [
+        "you are taking tranquilizers or sedatives."
+      ],
+      "pregnancy_or_breast_feeding": [
+        "If pregnant or breast-feeding if breast-feeding: not recommended if pregnant: ask a health professional before use."
+      ]
+    },
+    "sourceLinks": [
+      {
+        "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=0face45c-af24-3559-e063-6294a90abde5",
+        "label": "FDA label (DailyMed)"
+      },
+      {
+        "url": "https://medlineplus.gov/druginfo/meds/a623043.html",
+        "label": "MedlinePlus: Cetirizine"
+      }
+    ],
+    "reviewed": false
+  },
+  "zzzquil": {
+    "id": "edea7936-42ca-4d8e-8bc4-3057c1b66df9",
+    "slug": "otc-0b2777be-85d4-443d-b65f-6750e0ba97ba",
+    "brandName": "ZzzQuil",
+    "genericName": "Diphenhydramine hydrochloride",
+    "dosageForm": "capsule",
+    "isFictional": false,
+    "ndcPackages": [
+      "66715974601"
+    ],
+    "activeIngredients": [
+      {
+        "name": "Diphenhydramine hydrochloride",
+        "strength": {
+          "unit": "mg",
+          "amount": 25,
+          "perUnit": "capsule",
+          "perAmount": 1
+        },
+        "normalized": "diphenhydramine"
+      }
+    ],
+    "directionsText": "take only one dose (2 LiquiCaps) per day (24 hours) adults & children 12 yrs & over 2 LiquiCaps at bedtime if needed or as directed by a doctor children under 12 yrs do not use",
+    "max24hText": "take only one dose (2 LiquiCaps) per day (24 hours)",
+    "warningsQuotes": [
+      "Do not use for children under 12 years of age with any other product containing diphenhydramine, even one used on skin"
+    ],
+    "dosageTableHtml": "<table><colgroup><col /><col /></colgroup><tbody><tr><td>adults &amp; children 12 yrs &amp; over</td><td>2 LiquiCaps at bedtime if needed or as directed by a doctor</td></tr><tr><td>children under 12 yrs</td><td>do not use</td></tr></tbody></table>",
+    "source": "openfda",
+    "openfdaSetId": "0b2777be-85d4-443d-b65f-6750e0ba97ba",
+    "labelEffectiveDate": "2024-11-18",
+    "labelerName": "Lil' Drug Store Products, Inc.",
+    "labelSections": {
+      "uses": [
+        "for the relief of occasional sleeplessness reduces time to fall asleep if you have difficulty falling asleep"
+      ],
+      "purpose": [
+        "Nighttime sleep-aid"
+      ],
+      "storage": [
+        "store at no greater than 25°C (77°F)",
+        "avoid excessive heat above 40°C (104°F)",
+        "protect from light."
+      ],
+      "stop_use": [
+        "sleeplessness persists continuously for more than 2 weeks.",
+        "Insomnia may be a symptom of serious underlying medical illness."
+      ],
+      "ask_doctor": [
+        "you have a breathing problem such as emphysema or chronic bronchitis glaucoma difficulty in urination due to enlargement of the prostate gland"
+      ],
+      "directions": [
+        "take only one dose (2 LiquiCaps) per day (24 hours)"
+      ],
+      "do_not_use": [
+        "for children under 12 years of age",
+        "with any other product containing diphenhydramine, even one used on skin"
+      ],
+      "when_using": [
+        "avoid alcoholic beverages"
+      ],
+      "keep_out_of_reach": [
+        "Keep out of reach of children.",
+        "In case of overdose, get medical help or contact a Poison Control Center right away."
+      ],
+      "inactive_ingredients": [
+        "FD&C Blue No. 1, FD&C Red No. 40, gelatin, glycerin, mannitol, polyethylene glycol, shellac*, sorbitan, sorbitol titanium dioxide*, water *May contain these ingredients"
+      ],
+      "ask_doctor_or_pharmacist": [
+        "you are taking sedatives or tranquilizers"
+      ],
+      "pregnancy_or_breast_feeding": [
+        "If pregnant or breast-feeding, ask a health professional before use."
+      ]
+    },
+    "sourceLinks": [
+      {
+        "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=0b2777be-85d4-443d-b65f-6750e0ba97ba",
+        "label": "FDA label (DailyMed)"
+      }
+    ],
+    "reviewed": false
+  },
+  "benadrylLiquid": {
+    "id": "5d09e7d2-488e-4762-abed-b88bf62f82ce",
+    "slug": "otc-224ba2a3-1a93-29c8-e063-6394a90a9bef",
+    "brandName": "BENADRYL Allergy",
+    "genericName": "Diphenhydramine hydrochloride",
+    "dosageForm": "liquid",
+    "isFictional": false,
+    "ndcPackages": [
+      "50580057304"
+    ],
+    "activeIngredients": [
+      {
+        "name": "Diphenhydramine HCl",
+        "strength": {
+          "unit": "mg",
+          "amount": 12.5,
+          "perUnit": "mL",
+          "perAmount": 5
+        },
+        "normalized": "diphenhydramine"
+      }
+    ],
+    "directionsText": "find right dose on chart below mL = milliliter take every 4 to 6 hours, or as directed by a doctor do not take more than 6 doses in 24 hours Age (yr) Dose (mL) adults and children 12 years and over 10 mL to 20 mL (2x10 mL; Note: dosing cup needs to be filled to 10 mL line twice for the 20 mL dose) children 6 to 11 years 5 mL to 10 mL children 2 to 5 years do not use unless directed by a doctor children under 2 years do not use Attention: use only enclosed dosing cup specifically designed for use with this product. Do not use any other dosing device.",
+    "max24hText": "do not take more than 6 doses in 24 hours",
+    "warningsQuotes": [
+      "Do not use to make a child sleepy with any other product containing diphenhydramine, even one used on skin"
+    ],
+    "dosageTableHtml": "<table><tbody><tr><td>Age (yr)</td><td>Dose (mL)</td></tr><tr><td>adults and children   12 years and over </td><td>10 mL to 20 mL (2x10 mL;   Note: dosing cup needs to   be filled to 10 mL line twice   for the 20 mL dose) </td></tr><tr><td>children 6 to 11 years</td><td>5 mL to 10 mL</td></tr><tr><td>children 2 to 5 years</td><td>do not use unless directed   by a doctor </td></tr><tr><td>children under 2 years</td><td>do not use</td></tr></tbody></table>",
+    "source": "openfda",
+    "openfdaSetId": "224ba2a3-1a93-29c8-e063-6394a90a9bef",
+    "labelEffectiveDate": "2025-01-30",
+    "labelerName": "Kenvue Brands LLC",
+    "labelSections": {
+      "uses": [
+        "temporarily relieves these symptoms due to hay fever or other upper respiratory allergies: runny nose",
+        "sneezing",
+        "itchy, watery eyes",
+        "itching of the nose or throat",
+        "temporarily relieves these symptoms due to the common cold: runny nose",
+        "sneezing"
+      ],
+      "purpose": [
+        "Antihistamine"
+      ],
+      "storage": [
+        "store between 20-25ºC (68-77ºF).",
+        "Protect from light."
+      ],
+      "questions": [
+        "call 1-877-717-2824 or 215-273-8755 (collect)"
+      ],
+      "ask_doctor": [
+        "the user has",
+        "a breathing problem such as chronic bronchitis glaucoma",
+        "trouble urinating due to an enlarged prostate gland",
+        "a sodium-restricted diet"
+      ],
+      "directions": [
+        "find right dose on chart below mL = milliliter take every 4 to 6 hours, or as directed by a doctor",
+        "do not take more than 6 doses in 24 hours",
+        "Attention: use only enclosed dosing cup specifically designed for use with this product.",
+        "Do not use any other dosing device."
+      ],
+      "do_not_use": [
+        "to make a child sleepy",
+        "with any other product containing diphenhydramine, even one used on skin"
+      ],
+      "when_using": [
+        "marked drowsiness may occur avoid alcoholic drinks alcohol, sedatives, and tranquilizers may increase drowsiness be careful when driving a motor vehicle or operating machinery excitability may occur, especially in children"
+      ],
+      "keep_out_of_reach": [
+        "Keep out of reach of children.",
+        "In case of overdose, get medical help or contact a Poison Control Center right away. (1-800-222-1222)"
+      ],
+      "other_information": [
+        "each 5 mL contains: sodium 14 mg",
+        "Store in outer carton until contents used.",
+        "do not use if carton is opened",
+        "do not use if bottle wrap imprinted with “Sealed For Your Safety” is broken or missing"
+      ],
+      "inactive_ingredients": [
+        "anhydrous citric acid, D&C red no. 33, FD&C red no. 40, flavors, glycerin, monoammonium glycyrrhizinate, poloxamer 407, purified water, sodium benzoate, sodium chloride, sodium citrate, sucrose"
+      ],
+      "ask_doctor_or_pharmacist": [
+        "the user is taking sedatives or tranquilizers"
+      ],
+      "pregnancy_or_breast_feeding": [
+        "If pregnant or breast-feeding, ask a health professional before use."
+      ]
+    },
+    "sourceLinks": [
+      {
+        "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=224ba2a3-1a93-29c8-e063-6394a90a9bef",
+        "label": "FDA label (DailyMed)"
+      },
+      {
+        "url": "https://medlineplus.gov/druginfo/meds/a682539.html",
+        "label": "MedlinePlus: Diphenhydramine"
+      }
+    ],
+    "reviewed": false
+  },
+  "pepcidAcMax": {
+    "id": "815f0014-71cb-4efc-9174-b66c47d10558",
+    "slug": "otc-2854047f-c5c4-43c3-8ef2-5c0a84a307f2",
+    "brandName": "PEPCID AC Maximum Strength",
+    "genericName": "Famotidine",
+    "dosageForm": "tablet",
+    "isFictional": false,
+    "ndcPackages": [
+      "16837085502"
+    ],
+    "activeIngredients": [
+      {
+        "name": "Famotidine",
+        "strength": {
+          "unit": "mg",
+          "amount": 20,
+          "perUnit": "tablet",
+          "perAmount": 1
+        },
+        "normalized": "famotidine"
+      }
+    ],
+    "directionsText": "adults and children 12 years and over: to relieve symptoms, swallow 1 tablet with a glass of water. Do not chew. to prevent symptoms, swallow 1 tablet with a glass of water at any time from 10 to 60 minutes before eating food or drinking beverages that cause heartburn do not use more than 2 tablets in 24 hours children under 12 years: ask a doctor",
+    "max24hText": "do not use more than 2 tablets in 24 hours",
+    "warningsQuotes": [
+      "Do not use if you are allergic to famotidine or other acid reducers"
+    ],
+    "dosageTableHtml": null,
+    "source": "openfda",
+    "openfdaSetId": "2854047f-c5c4-43c3-8ef2-5c0a84a307f2",
+    "labelEffectiveDate": "2024-11-11",
+    "labelerName": "Kenvue Brands LLC",
+    "labelSections": {
+      "uses": [
+        "relieves heartburn associated with acid indigestion and sour stomach prevents heartburn associated with acid indigestion and sour stomach brought on by eating or drinking certain food and beverages"
+      ],
+      "purpose": [
+        "Acid reducer"
+      ],
+      "storage": [
+        "store at 20°-25°C (68°-77°F)",
+        "protect from moisture"
+      ],
+      "stop_use": [
+        "your heartburn continues or worsens you need to take this product for more than 14 days"
+      ],
+      "warnings": [
+        "Allergy alert Do not use if you are allergic to famotidine or other acid reducers"
+      ],
+      "questions": [
+        "1-800-755-4008 (toll-free) or 215-273-8755 (collect)"
+      ],
+      "ask_doctor": [
+        "you have had heartburn over 3 months.",
+        "This may be a sign of a more serious condition.",
+        "heartburn with lightheadedness, sweating, or dizziness chest pain or shoulder pain with shortness of breath; sweating; pain spreading to arms, neck or shoulders; or lightheadedness frequent chest pain frequent wheezing, particularly with heartburn unexplained weight loss nausea or vomiting stomach pain",
+        "kidney disease"
+      ],
+      "directions": [
+        "adults and children 12 years and over: to relieve symptoms, swallow 1 tablet with a glass of water.",
+        "Do not chew.",
+        "to prevent symptoms, swallow 1 tablet with a glass of water at any time from 10 to 60 minutes before eating food or drinking beverages that cause heartburn",
+        "do not use more than 2 tablets in 24 hours",
+        "children under 12 years: ask a doctor"
+      ],
+      "do_not_use": [
+        "if you have trouble or pain swallowing food, vomiting with blood, or bloody or black stools.",
+        "These may be signs of a serious condition.",
+        "See your doctor.",
+        "with other acid reducers"
+      ],
+      "keep_out_of_reach": [
+        "Keep out of reach of children.",
+        "In case of overdose, get medical help or contact a Poison Control Center right away. (1-800-222-1222)"
+      ],
+      "other_information": [
+        "read the directions and warnings before use keep the carton.",
+        "It contains important information."
+      ],
+      "inactive_ingredients": [
+        "carnauba wax, hydroxypropyl cellulose, hypromellose, magnesium stearate, microcrystalline cellulose, pregelatinized starch, talc, titanium dioxide"
+      ],
+      "ask_doctor_or_pharmacist": [
+        "you are taking a prescription drug.",
+        "Acid reducers may interact with certain prescription drugs."
+      ],
+      "pregnancy_or_breast_feeding": [
+        "If pregnant or breast-feeding, ask a health professional before use."
+      ]
+    },
+    "sourceLinks": [
+      {
+        "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=2854047f-c5c4-43c3-8ef2-5c0a84a307f2",
+        "label": "FDA label (DailyMed)"
+      },
+      {
+        "url": "https://medlineplus.gov/druginfo/meds/a687011.html",
+        "label": "MedlinePlus: Famotidine"
+      }
+    ],
+    "reviewed": false
+  },
+  "claritin": {
+    "id": "20f79f0d-1e10-4fc1-ba24-9332d61927a6",
+    "slug": "otc-660ac9df-f1b1-4c89-94dd-9fae0a013f3c",
+    "brandName": "Claritin",
+    "genericName": "Loratadine",
+    "dosageForm": "tablet",
+    "isFictional": false,
+    "ndcPackages": [
+      "11523716001"
+    ],
+    "activeIngredients": [
+      {
+        "name": "Loratadine",
+        "strength": {
+          "unit": "mg",
+          "amount": 10,
+          "perUnit": "tablet",
+          "perAmount": 1
+        },
+        "normalized": "loratadine"
+      }
+    ],
+    "directionsText": "adults and children 6 years and over 1 tablet daily; not more than 1 tablet in 24 hours children under 6 years of age ask a doctor consumers with liver or kidney disease ask a doctor",
+    "max24hText": null,
+    "warningsQuotes": [],
+    "dosageTableHtml": "<table><col /><col /><tbody><tr><td>adults and children 6 years and over</td><td>1 tablet daily; not more than 1 tablet in 24 hours</td></tr><tr><td>children under 6 years of age</td><td>ask a doctor </td></tr><tr><td>consumers with liver or kidney disease</td><td>ask a doctor</td></tr></tbody></table>",
+    "source": "openfda",
+    "openfdaSetId": "660ac9df-f1b1-4c89-94dd-9fae0a013f3c",
+    "labelEffectiveDate": "2025-12-05",
+    "labelerName": "Bayer HealthCare LLC.",
+    "labelSections": {
+      "uses": [
+        "temporarily relieves these symptoms due to hay fever or other upper respiratory allergies: runny nose",
+        "itchy, watery eyes",
+        "sneezing",
+        "itching of the nose or throat"
+      ],
+      "purpose": [
+        "Antihistamine"
+      ],
+      "storage": [
+        "store between 20° to 25°C (68° to 77°F)",
+        "protect from excessive moisture"
+      ],
+      "stop_use": [
+        "an allergic reaction to this product occurs.",
+        "Seek medical help right away."
+      ],
+      "questions": [
+        "1-800-CLARITIN (1-800-252-7484) or www.claritin.com"
+      ],
+      "ask_doctor": [
+        "you have liver or kidney disease.",
+        "Your doctor should determine if you need a different dose."
+      ],
+      "do_not_use": [
+        "if you have ever had an allergic reaction to this product or any of its ingredients."
+      ],
+      "when_using": [
+        "do not take more than directed.",
+        "Taking more than directed may cause drowsiness."
+      ],
+      "keep_out_of_reach": [
+        "Keep out of reach of children.",
+        "In case of overdose, get medical help or contact a Poison Control Center right away."
+      ],
+      "other_information": [
+        "(Blister foil units) safety sealed: do not use if the individual blister unit imprinted with Claritin ® is open or torn",
+        "Other information (Bottles) Tamper-evident: do not use if foil seal under cap, printed with \"SEALED for YOUR PROTECTION\" is missing, open or broken"
+      ],
+      "inactive_ingredients": [
+        "corn starch, lactose monohydrate, magnesium stearate"
+      ],
+      "pregnancy_or_breast_feeding": [
+        "If pregnant or breast-feeding, ask a health professional before use."
+      ]
+    },
+    "sourceLinks": [
+      {
+        "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=660ac9df-f1b1-4c89-94dd-9fae0a013f3c",
+        "label": "FDA label (DailyMed)"
+      },
+      {
+        "url": "https://medlineplus.gov/druginfo/meds/a697038.html",
+        "label": "MedlinePlus: Loratadine"
+      }
+    ],
+    "reviewed": false
+  }
+}
