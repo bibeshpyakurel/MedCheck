@@ -111,7 +111,9 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-:root {
+/* `.paper` re-declares the light tokens, so a report drawn on it is white paper in either theme. */
+:root,
+.paper {
   --radius: 0.625rem;
 
   /* Clinical neutrals: cool slate, near-white canvas, white surfaces. */
@@ -278,10 +280,11 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Room for the phone's bottom tab bar, so the footer and the last card clear it. */
+/* Room for the phone's bottom tab bar (4rem) and its raised Add button (1.5rem above it), so the footer
+   and the last card clear both. */
 @media (width < 40rem) {
   body:has([data-bottom-bar]) [data-app-shell] {
-    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
   }
 }
 

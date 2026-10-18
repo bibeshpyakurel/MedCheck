@@ -3,9 +3,10 @@ import { DownloadButton, EmailYourselfButton, PreviewButton, ShareButton } from 
 import { emailDraft, type Report } from "@/lib/report/build-report";
 
 /**
- * The report's actions: Preview (left out on the preview itself), Download PDF, Share, and Send by
- * email — MedCheck's own sender (`emailConfigured`) or the person's email app. All are disabled until a
- * medicine is confirmed: until then the report has nothing in it.
+ * The report's actions: Share first and wide where the phone can share the PDF (it hides itself where
+ * it would only repeat Send by email), then one row of Preview (left out on the preview itself),
+ * Download PDF and Send by email — MedCheck's own sender (`emailConfigured`) or the person's email app.
+ * All are disabled until a medicine is confirmed: until then the report has nothing in it.
  */
 export function ReportActions({
   patientId,
@@ -24,15 +25,17 @@ export function ReportActions({
 
   return (
     <div className="space-y-2">
-      <section aria-label="Report actions" className="grid grid-cols-2 gap-2 sm:auto-cols-fr sm:grid-flow-col sm:grid-cols-none">
-        {preview && <PreviewButton patientId={patientId} disabled={disabled} />}
-        <DownloadButton patientId={patientId} disabled={disabled} />
-        <ShareButton {...share} emailConfigured={emailConfigured} disabled={disabled} />
-        {emailConfigured ? (
-          <EmailDialog patientId={patientId} defaultSubject={draft.subject} defaultBody={draft.body} disabled={disabled} />
-        ) : (
-          <EmailYourselfButton {...share} disabled={disabled} />
-        )}
+      <section aria-label="Report actions" className="space-y-2">
+        <ShareButton {...share} emailConfigured={emailConfigured} disabled={disabled} featured />
+        <div className="grid auto-cols-fr grid-flow-col gap-2">
+          {preview && <PreviewButton patientId={patientId} disabled={disabled} />}
+          <DownloadButton patientId={patientId} disabled={disabled} />
+          {emailConfigured ? (
+            <EmailDialog patientId={patientId} defaultSubject={draft.subject} defaultBody={draft.body} disabled={disabled} />
+          ) : (
+            <EmailYourselfButton {...share} disabled={disabled} />
+          )}
+        </div>
       </section>
       {emailConfigured ? null : <p className="text-sm text-muted-foreground">Send by email uses your own email app.</p>}
     </div>

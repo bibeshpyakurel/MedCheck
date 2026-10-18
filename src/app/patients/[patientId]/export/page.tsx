@@ -6,6 +6,7 @@ import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { RecordHeader } from "@/components/records/record-header";
 import { ReportActions } from "@/components/report/report-actions";
+import { ReportPaper } from "@/components/report/report-paper";
 import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth";
 import { findPatient, patientMetadata } from "@/lib/page-lookup";
@@ -53,6 +54,8 @@ export default async function ExportPage({ params }: PageProps<"/patients/[patie
         ) : null}
 
         {summary ? <p className="text-sm text-muted-foreground">In this report: {summary}</p> : null}
+
+        {report.isEmpty ? null : <ReportPaper patientId={patientId} report={report} />}
 
         {report.pendingNote ? (
           <div className="flex gap-3 rounded-xl bg-unresolved-surface p-4 text-sm text-unresolved-foreground">
