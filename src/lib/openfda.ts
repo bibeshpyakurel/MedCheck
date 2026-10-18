@@ -19,6 +19,7 @@ export type OpenFdaLabel = {
   do_not_use?: string[];
   openfda?: {
     brand_name?: string[];
+    manufacturer_name?: string[];
     generic_name?: string[];
     route?: string[];
     product_type?: string[];
@@ -29,7 +30,7 @@ export type OpenFdaLabel = {
   [section: string]: unknown;
 };
 
-export type CatalogFormulation = Omit<Formulation, "id">;
+export type CatalogFormulation = Omit<Formulation, "id" | "reviewed">;
 
 // ---------------------------------------------------------------------------
 // Mapping
@@ -211,7 +212,15 @@ export function labelToFormulation(label: OpenFdaLabel): CatalogFormulation | nu
     source: "openfda",
     openfdaSetId: setId,
     labelEffectiveDate: date ? `${date[1]}-${date[2]}-${date[3]}` : null,
+    labelerName: o.manufacturer_name?.[0]?.trim() || null,
+    labelSections: {},
+    sourceLinks: setId ? [{ label: "FDA label (DailyMed)", url: dailyMedUrl(setId) }] : [],
   };
+}
+
+/** The label's public page on DailyMed (NLM's home for FDA labels). */
+export function dailyMedUrl(setId: string): string {
+  return `https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=${encodeURIComponent(setId)}`;
 }
 
 /** A catalog formulation as a `formulations` row for upsert (on `slug`). */
@@ -234,6 +243,9 @@ export function formulationToRow(
     source: f.source,
     openfda_set_id: f.openfdaSetId,
     label_effective_date: f.labelEffectiveDate,
+    labeler_name: f.labelerName,
+    label_sections: f.labelSections as unknown as Json,
+    source_links: f.sourceLinks as unknown as Json,
     reviewed_at: reviewedAt,
   };
 }

@@ -133,9 +133,10 @@ export function buildSeedRow(spec: SeedSpec, formulations: CatalogFormulation[])
 
 export function fictionalCatalogRows(): CatalogFormulation[] {
   return FICTIONAL_FORMULATIONS.map((f) => {
-    const row: CatalogFormulation & { ndc10?: string; upcA?: string } = { ...f };
+    const row: CatalogFormulation & { ndc10?: string; upcA?: string; reviewed?: boolean } = { ...f };
     delete row.ndc10;
     delete row.upcA;
+    delete row.reviewed;
     return row;
   });
 }

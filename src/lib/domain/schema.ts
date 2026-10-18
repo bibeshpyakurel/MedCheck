@@ -144,6 +144,35 @@ export const catalogIngredientSchema = z.object({
 });
 export type CatalogIngredient = z.infer<typeof catalogIngredientSchema>;
 
+/**
+ * Drug Facts sections the medicine card shows, in card order. Each holds the label's own text split
+ * into short bullets (cleaned of repeated headings and bullet glyphs, never reworded).
+ */
+export const LABEL_SECTION_KEYS = [
+  "uses",
+  "purpose",
+  "directions",
+  "do_not_use",
+  "ask_doctor",
+  "ask_doctor_or_pharmacist",
+  "when_using",
+  "stop_use",
+  "pregnancy_or_breast_feeding",
+  "warnings", // general warnings not under a named heading (liver, allergy alert, sore throat, …)
+  "keep_out_of_reach",
+  "inactive_ingredients",
+  "storage",
+] as const;
+export const labelSectionKeySchema = z.enum(LABEL_SECTION_KEYS);
+export type LabelSectionKey = z.infer<typeof labelSectionKeySchema>;
+
+export const labelSectionsSchema = z.partialRecord(labelSectionKeySchema, z.array(z.string().min(1)));
+export type LabelSections = z.infer<typeof labelSectionsSchema>;
+
+/** A source the card cites: the FDA label itself, MedlinePlus for an ingredient. */
+export const sourceLinkSchema = z.object({ label: z.string().min(1), url: z.url() });
+export type SourceLink = z.infer<typeof sourceLinkSchema>;
+
 export type Formulation = {
   id: string;
   slug: string;
@@ -160,6 +189,11 @@ export type Formulation = {
   source: "openfda" | "fictional";
   openfdaSetId: string | null;
   labelEffectiveDate: string | null;
+  labelerName: string | null; // the company on the label, e.g. "Johnson & Johnson Consumer Inc."
+  labelSections: LabelSections;
+  sourceLinks: SourceLink[];
+  /** Hand-checked. Imported rows are not; the card says so. */
+  reviewed: boolean;
 };
 
 // ---------------------------------------------------------------------------

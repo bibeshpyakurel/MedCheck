@@ -37,6 +37,10 @@ export const FICTIONAL_FORMULATIONS: FictionalFormulation[] = [
     source: "fictional",
     openfdaSetId: null,
     labelEffectiveDate: "2026-10-01",
+    labelerName: null,
+    labelSections: {},
+    sourceLinks: [],
+    reviewed: true,
   },
   {
     slug: "calmora-extra-fever-relief-200mg-5ml",
@@ -58,6 +62,10 @@ export const FICTIONAL_FORMULATIONS: FictionalFormulation[] = [
     source: "fictional",
     openfdaSetId: null,
     labelEffectiveDate: "2026-10-01",
+    labelerName: null,
+    labelSections: {},
+    sourceLinks: [],
+    reviewed: true,
   },
 ];
 
