@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { goBackTo } from "@/components/back-link";
+import { onHistoryEntry } from "@/components/use-back-to-close";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -16,7 +17,16 @@ import { Button } from "@/components/ui/button";
 
 type Leaving = { kind: "link"; href: string } | { kind: "back" };
 
-const GUARD_STATE = { medcheckUnsaved: true };
+const KEY = "medcheckUnsaved";
+let lastId = 0;
+
+/** history.back(), resolved once the browser has moved. */
+function stepBack(): Promise<void> {
+  return new Promise((resolve) => {
+    window.addEventListener("popstate", () => resolve(), { once: true });
+    window.history.back();
+  });
+}
 
 /** The in-app page a click is heading to, or null for clicks this guard lets through. */
 function inAppTarget(e: MouseEvent): string | null {
@@ -41,28 +51,34 @@ export function useUnsavedChangesGuard(dirty: boolean): { dialog: ReactNode; dis
   const router = useRouter();
   const [armed, setArmed] = useState(true);
   const [leaving, setLeaving] = useState<Leaving | null>(null);
-  // The URL while the guard's history entry is the current one; null when it isn't there.
-  const entry = useRef<string | null>(null);
-  // The next popstate is the guard stepping back over its own entry, not the person pressing Back.
-  const ownPop = useRef(false);
+  // The key of the guard's history entry while it's in the history; null when it isn't.
+  const entry = useRef<number | null>(null);
+  // The guard is stepping back over its own entry: those popstates aren't the person pressing Back.
+  const dropping = useRef(false);
   const leaveFreely = useRef(false);
   const active = dirty && armed;
 
   const pushEntry = useCallback(() => {
-    window.history.pushState(GUARD_STATE, "");
-    entry.current = window.location.href;
+    const id = ++lastId;
+    window.history.pushState({ [KEY]: id }, "");
+    entry.current = id;
   }, []);
 
-  /** Steps back over the guard's history entry (if it's still the current one) and waits until that's done. */
+  /**
+   * Steps back over the guard's history entry, and over an overlay's (say, the ☰ menu) left on top
+   * of it, then resolves. Overlays close themselves on the way.
+   */
   const dropEntry = useCallback(async () => {
-    const href = entry.current;
+    const id = entry.current;
     entry.current = null;
-    if (href === null || window.location.href !== href) return;
-    ownPop.current = true;
-    await new Promise<void>((resolve) => {
-      window.addEventListener("popstate", () => resolve(), { once: true });
-      window.history.back();
-    });
+    if (id === null) return;
+    dropping.current = true;
+    try {
+      for (let i = 0; i < 3 && !onHistoryEntry(KEY, id); i++) await stepBack();
+      if (onHistoryEntry(KEY, id)) await stepBack();
+    } finally {
+      dropping.current = false;
+    }
   }, []);
 
   useEffect(() => {
@@ -81,11 +97,9 @@ export function useUnsavedChangesGuard(dirty: boolean): { dialog: ReactNode; dis
       setLeaving({ kind: "link", href });
     };
     const onPopState = () => {
-      if (ownPop.current) {
-        ownPop.current = false;
-        return;
-      }
-      if (entry.current === null) return;
+      const id = entry.current;
+      // Ours to step over, or Back from an overlay stacked on top of the guard's entry: nothing to ask.
+      if (dropping.current || id === null || onHistoryEntry(KEY, id)) return;
       // Back took the person off the guard's entry onto the review itself: ask before going further.
       entry.current = null;
       setLeaving({ kind: "back" });
@@ -100,10 +114,9 @@ export function useUnsavedChangesGuard(dirty: boolean): { dialog: ReactNode; dis
       window.removeEventListener("beforeunload", onBeforeUnload);
       window.removeEventListener("click", onClick, true);
       window.removeEventListener("popstate", onPopState);
-      ownPop.current = false;
-      const href = entry.current;
+      const id = entry.current;
       entry.current = null;
-      if (href !== null && window.location.href === href) window.history.back();
+      if (id !== null && onHistoryEntry(KEY, id)) window.history.back();
     };
   }, [active, pushEntry]);
 
