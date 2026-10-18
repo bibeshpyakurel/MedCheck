@@ -194,6 +194,21 @@ describe("what Gemini is asked for", () => {
     expect(EXTRACTION_INSTRUCTIONS).toMatch(/several sides .* return it once/i);
   });
 
+  // One brand and strength is sold as caplets, Liqui-Gels and chewables, one FDA label each: the form
+  // word printed on the package is what tells them apart.
+  it("asks for the form word printed on the package, never shortened to tablet or capsule", () => {
+    expect(EXTRACTION_INSTRUCTIONS).toMatch(/dosageForm/);
+    expect(EXTRACTION_INSTRUCTIONS).toMatch(/Liqui-Gels/);
+    expect(EXTRACTION_INSTRUCTIONS).toMatch(/never shorten/i);
+    expect(EXTRACTION_INSTRUCTIONS).toMatch(/fl oz or mL.*liquid/i);
+  });
+
+  // "Ibuprofen Tablets, 200 mg (Provided as Ibuprofen Sodium 256 mg)": the FDA label lists ibuprofen 200 mg.
+  it("asks for the active ingredient's own strength, not the salt it is provided as", () => {
+    expect(EXTRACTION_INSTRUCTIONS).toMatch(/provided as/i);
+    expect(EXTRACTION_INSTRUCTIONS).toMatch(/Active ingredient/);
+  });
+
   it("keeps the verbatim, no-inference rules", () => {
     expect(EXTRACTION_INSTRUCTIONS).toMatch(/exactly as printed/);
     expect(EXTRACTION_INSTRUCTIONS).toMatch(/Never infer, guess, convert, round or calculate/);

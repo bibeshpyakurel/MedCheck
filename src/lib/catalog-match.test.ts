@@ -274,6 +274,64 @@ describe("rankCatalogMatches", () => {
   });
 });
 
+// The same brand and strength often comes as tablets, caplets, Liqui-Gels and chewables: one label each.
+// Ids are chosen so that an id tie-break would pick the wrong one.
+describe("rankCatalogMatches: the dosage form printed on the package", () => {
+  const IBU = (per: string) => ing("Ibuprofen", "ibuprofen", s(200, "mg", 1, per));
+  const liquigels = formulation("a-liquigels", "Advil", "Ibuprofen", "capsule", [IBU("capsule")]);
+  const tablets = formulation("b-tablets", "Advil", "Ibuprofen", "tablet", [IBU("tablet")]);
+  const caplets = formulation("c-caplets", "Motrin IB", "Ibuprofen", "caplet", [IBU("caplet")]);
+  const motrinGels = formulation("a-motrin-gels", "Motrin IB", "Ibuprofen", "capsule", [IBU("capsule")]);
+  const chewables = formulation("a-chewables", "Advil", "Ibuprofen", "chewable tablet", [IBU("chewable tablet")]);
+  const tabletsFirst = { ...tablets, id: "0-tablets" };
+  const pick = (r: PhotoRead, candidates: Formulation[]) => preselectMatch(rankCatalogMatches(r, candidates))?.formulation.id;
+  const ibuprofen200 = (per: string): [string, Strength][] => [["Ibuprofen", s(200, "mg", 1, per)]];
+
+  it("tablets and caplets are not Liqui-Gels: a tablet photo pre-selects the tablet label", () => {
+    expect(pick(read("Advil", "Coated Tablets", ibuprofen200("tablet")), [liquigels, tablets])).toBe("b-tablets");
+    expect(pick(read("Advil", "Caplets", ibuprofen200("caplet")), [liquigels, tablets])).toBe("b-tablets");
+    expect(pick(read("Motrin IB", "Caplets", ibuprofen200("caplet")), [motrinGels, caplets])).toBe("c-caplets");
+  });
+
+  it("a Liqui-Gels, liquid gels or softgels photo pre-selects the capsule label", () => {
+    for (const form of ["Liqui-Gels", "liquid gels", "Softgels", "liquid filled capsules"]) {
+      expect(pick(read("Advil", form, ibuprofen200("capsule")), [tabletsFirst, liquigels])).toBe("a-liquigels");
+    }
+  });
+
+  it("caplets and tablets count as the same form (the FDA files caplets as tablets); the word printed breaks the tie", () => {
+    const tabletRow = { ...caplets, id: "a-tablets", dosageForm: "tablet" };
+    const fromCaplets = rankCatalogMatches(read("Motrin IB", "Coated Caplets", ibuprofen200("caplet")), [tabletRow, caplets]);
+    expect(fromCaplets.map((m) => m.formulation.id)).toEqual(["c-caplets", "a-tablets"]);
+    const fromTablets = rankCatalogMatches(read("Motrin IB", "tablets", ibuprofen200("tablet")), [caplets, tabletRow]);
+    expect(fromTablets.map((m) => m.formulation.id)).toEqual(["a-tablets", "c-caplets"]);
+    // Within one point: a hand-checked caplet label (+2) still wins over an unreviewed tablet one.
+    expect(Math.abs(fromCaplets[0].score - fromCaplets[1].score)).toBe(1);
+    const checked = { ...caplets, id: "z-checked", reviewed: true };
+    expect(rankCatalogMatches(read("Motrin IB", "tablets", ibuprofen200("tablet")), [tabletRow, checked])[0].formulation.id).toBe("z-checked");
+  });
+
+  it("chewable tablets are not plain tablets", () => {
+    expect(pick(read("Advil", "chewable tablets", ibuprofen200("tablet")), [tablets, chewables])).toBe("a-chewables");
+    expect(pick(read("Advil", "tablets", ibuprofen200("tablet")), [chewables, tablets])).toBe("b-tablets");
+  });
+
+  it("reads the form from the product name when Gemini gave no dosage form", () => {
+    expect(pick(read("Advil Liqui-Gels", null, ibuprofen200("capsule")), [tabletsFirst, liquigels])).toBe("a-liquigels");
+  });
+
+  it("a different form never outweighs a strength that disagrees", () => {
+    const strong = formulation("a-400", "Advil", "Ibuprofen", "tablet", [ing("Ibuprofen", "ibuprofen", s(400, "mg", 1, "tablet"))]);
+    expect(pick(read("Advil", "tablets", ibuprofen200("tablet")), [strong, liquigels])).toBe("a-liquigels");
+  });
+
+  it("among equally good labels, prefers the one sold in more package sizes (the brand owner's, not a travel-pack relabeler's)", () => {
+    const travel = { ...tablets, id: "a-travel", ndcPackages: ["11111111111"] };
+    const owner = { ...tablets, id: "z-owner", ndcPackages: ["22222222201", "22222222202", "22222222203"] };
+    expect(ids(read("Advil", "tablets", ibuprofen200("tablet")), [travel, owner])).toEqual(["z-owner", "a-travel"]);
+  });
+});
+
 describe("searchTermsFor", () => {
   it("lists the brand as read, then each ingredient name, without repeats", () => {
     const r = read("Children's TYLENOL", null, [["Acetaminophen USP", s(160, "mg", 5, "mL")], ["acetaminophen", null], [null, null]]);
