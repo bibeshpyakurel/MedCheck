@@ -387,6 +387,50 @@ export type Database = {
           },
         ]
       }
+      vital_readings: {
+        Row: {
+          created_at: string
+          heart_rate_bpm: number | null
+          heart_rate_confidence: number
+          id: string
+          measured_at: string
+          method: string
+          patient_id: string
+          respiratory_rate_bpm: number | null
+          respiratory_rate_confidence: number
+        }
+        Insert: {
+          created_at?: string
+          heart_rate_bpm?: number | null
+          heart_rate_confidence: number
+          id?: string
+          measured_at?: string
+          method?: string
+          patient_id: string
+          respiratory_rate_bpm?: number | null
+          respiratory_rate_confidence: number
+        }
+        Update: {
+          created_at?: string
+          heart_rate_bpm?: number | null
+          heart_rate_confidence?: number
+          id?: string
+          measured_at?: string
+          method?: string
+          patient_id?: string
+          respiratory_rate_bpm?: number | null
+          respiratory_rate_confidence?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vital_readings_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
