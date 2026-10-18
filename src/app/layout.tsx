@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Inter, Inter_Tight } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { Suspense } from "react";
+import { NavigationTracker } from "@/components/navigation-tracker";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -35,6 +37,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           {children}
           <Toaster position="top-center" />
+          <Suspense fallback={null}>
+            <NavigationTracker />
+          </Suspense>
         </ThemeProvider>
       </body>
     </html>

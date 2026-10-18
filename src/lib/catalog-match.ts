@@ -45,10 +45,32 @@ export function isReadable(read: PhotoRead): boolean {
   return text(read.productName) !== null || read.ingredients.some((i) => text(i.name) !== null);
 }
 
-/** Search terms to send to search_formulations, most specific first (brand as read, then ingredient names). */
+// Package words that many products share; searched alone they drown out the brand
+// ("Rolaids Extra Strength" ranked store-brand "Extra Strength" antacids first).
+const STRENGTH = /\b\d+(?:\.\d+)?\s*(?:mg|mcg|g|ml|%)(?=\W|$)/gi;
+const FORM = "liqui-?gels?|liquid ?gels?|tablets?|caplets?|capsules?|softgels?|gelcaps?|geltabs?|chewables?|liquid|suspension";
+const PACKAGE_WORDS = new RegExp(
+  `\\b(?:extra|maximum|max|regular|original|ultra|strength|fast|acting|rapid|relief|formula|advanced|plus|${FORM})\\b`,
+  "gi",
+);
+// The dosage form, which names may spell out ("Tylenol Extra Strength (caplets)"); it's scored on its own.
+const FORM_WORDS = new RegExp(`\\b(?:${FORM})\\b`, "gi");
+
+/** "Zantac 360 Maximum Strength" → "Zantac 360"; null when nothing distinctive is left. */
+function brandOnly(name: string | null): string | null {
+  if (!name) return null;
+  const core = name.replace(STRENGTH, " ").replace(PACKAGE_WORDS, " ").replace(/\s+/g, " ").trim();
+  return core && core.toLowerCase() !== name.toLowerCase() ? core : null;
+}
+
+/**
+ * Search terms to send to search_formulations, most specific first: brand as read, the brand alone
+ * (no strength, marketing or form words), then ingredient names.
+ */
 export function searchTermsFor(read: PhotoRead): string[] {
   const terms = [
     text(read.productName),
+    brandOnly(text(read.productName)),
     ...read.ingredients.map((i) => {
       const name = text(i.name);
       return name ? normalizeIngredient(name) : null;
@@ -118,9 +140,9 @@ function strengthAgreement(read: PhotoRead, f: Formulation): StrengthAgreement {
 // Weights (higher is better):
 //   ingredients  40 when the read names are exactly the label's set, else 30 × Jaccard overlap; 0 if none read
 //   strength     +30 agrees, 0 not_read, −40 disagrees
-//   brand        25 × Dice similarity of name tokens (read name vs brand, or vs generic name)
+//   brand        25 × Dice similarity of name tokens (read name vs brand, or vs generic name), form words left out
 //   dosage form  +8 same family (liquid / solid unit / same word), −8 when both known and different
-//   reviewed     +2 for a hand-checked row
+//   reviewed     +2 for a hand-checked row: it wins when the substance (ingredients, strength, brand, form) ties
 // Ties break on formulation id, so the order never depends on the candidates' order.
 const STRENGTH_POINTS: Record<StrengthAgreement, number> = { agrees: 30, not_read: 0, disagrees: -40 };
 
@@ -134,9 +156,12 @@ function ingredientOverlap(read: PhotoRead, f: Formulation): { points: number; s
   return { points: (30 * shared) / (r.size + c.size - shared), shared };
 }
 
-/** "Children's TYLENOL" → {childrens, tylenol}. */
+/**
+ * "Children's TYLENOL" → {childrens, tylenol}. Form words are left out: the form is scored on its own,
+ * and hand-checked rows name theirs ("… (caplets)"), which mustn't count against their brand.
+ */
 function tokens(name: string): Set<string> {
-  const words = name.toLowerCase().replace(/['’]/g, "").split(/[^a-z0-9]+/);
+  const words = name.toLowerCase().replace(/['’]/g, "").replace(FORM_WORDS, " ").split(/[^a-z0-9]+/);
   return new Set(words.filter(Boolean));
 }
 

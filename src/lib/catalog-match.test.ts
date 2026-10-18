@@ -251,6 +251,26 @@ describe("rankCatalogMatches", () => {
     const r = read("Tylenol Extra Strength", null, [["Acetaminophen", s(500, "mg", 1, "caplet")]]);
     expect(ids(r, [unreviewed, tylenolExtra])).toEqual(["f-tylenol-es", "a-copy"]);
   });
+
+  // Hand-checked rows name their form ("… (caplets)"); the form is scored on its own, so it doesn't
+  // also count against the brand. An equally good unreviewed label then loses to the hand-checked one.
+  it("pre-selects the hand-checked label over an unreviewed one that matches as well", () => {
+    const checked = formulation("f-checked", "Tylenol Extra Strength (caplets)", "Acetaminophen", "caplet", [APAP(s(500, "mg", 1, "caplet"))], true);
+    const capsule = formulation("a-capsule", "TYLENOL Extra Strength", "Acetaminophen", "capsule", [APAP(s(500, "mg", 1, "capsule"))]);
+    const r = read("TYLENOL Extra Strength", "caplets", [["Acetaminophen", s(500, "mg", 1, "caplet")]]);
+    expect(preselectMatch(rankCatalogMatches(r, [capsule, checked]))?.formulation.id).toBe("f-checked");
+  });
+
+  it("a hand-checked label never beats a better match", () => {
+    const checkedRegular = formulation("f-checked-reg", "Tylenol Regular Strength (tablets)", "Acetaminophen", "tablet", [APAP(s(325, "mg", 1, "tablet"))], true);
+    const extra = formulation("a-extra", "TYLENOL Extra Strength", "Acetaminophen", "tablet", [APAP(s(500, "mg", 1, "tablet"))]);
+    // The strength on the photo decides…
+    const withStrength = read("Tylenol", "tablets", [["Acetaminophen", s(500, "mg", 1, "tablet")]]);
+    expect(preselectMatch(rankCatalogMatches(withStrength, [checkedRegular, extra]))?.formulation.id).toBe("a-extra");
+    // …and without one, "Extra" vs "Regular" in the name still does.
+    const nameOnly = read("Tylenol Extra Strength", null, [["Acetaminophen", null]]);
+    expect(preselectMatch(rankCatalogMatches(nameOnly, [checkedRegular, extra]))?.formulation.id).toBe("a-extra");
+  });
 });
 
 describe("searchTermsFor", () => {
@@ -263,5 +283,15 @@ describe("searchTermsFor", () => {
   });
   it("is empty for an unreadable read", () => {
     expect(searchTermsFor(read(null, null, []))).toEqual([]);
+  });
+  it("adds the brand alone, without strength, marketing or form words, right after the read", () => {
+    expect(searchTermsFor(read("Rolaids Extra Strength", null, []))).toEqual(["Rolaids Extra Strength", "Rolaids"]);
+    expect(searchTermsFor(read("Zantac 360 Maximum Strength", null, []))).toEqual(["Zantac 360 Maximum Strength", "Zantac 360"]);
+    expect(searchTermsFor(read("Pepcid AC 10 mg Original Strength", null, []))).toEqual(["Pepcid AC 10 mg Original Strength", "Pepcid AC"]);
+    expect(searchTermsFor(read("Advil Liqui-Gels", null, []))).toEqual(["Advil Liqui-Gels", "Advil"]);
+  });
+  it("adds no brand-only term when nothing is left or nothing changes", () => {
+    expect(searchTermsFor(read("Extra Strength", null, []))).toEqual(["Extra Strength"]);
+    expect(searchTermsFor(read("Claritin", null, []))).toEqual(["Claritin"]);
   });
 });

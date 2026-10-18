@@ -26,19 +26,27 @@ export function PhotoForm({
   patientId,
   initialKind,
   action,
+  discardAction,
   otherWaysHref,
   source,
 }: {
   patientId: string;
   initialKind: PhotoKind;
   action: PhotoAction;
+  discardAction: (input: { patientId: string; entryIds: string[] }) => Promise<void>;
   otherWaysHref: string;
   source?: PhotoSource;
 }) {
   const [kind, setKind] = useState<PhotoKind>(initialKind);
 
   return (
-    <PhotoCapture action={action} submitLabel="Read this photo" otherWaysHref={otherWaysHref} source={source}>
+    <PhotoCapture
+      action={action}
+      discardAction={(entryIds) => discardAction({ patientId, entryIds })}
+      submitLabel="Read this photo"
+      otherWaysHref={otherWaysHref}
+      source={source}
+    >
       <input type="hidden" name="patientId" value={patientId} />
       <fieldset className="space-y-2">
         <legend className="mb-3 text-base font-semibold">What is this a photo of?</legend>

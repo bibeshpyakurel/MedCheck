@@ -2,6 +2,7 @@
 
 import { ArrowLeftIcon, CameraIcon, ImageIcon, ImageUpIcon, LoaderCircleIcon } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useEffectEvent, useRef, useState, useTransition, type ReactNode } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -30,23 +31,29 @@ async function downscaleToJpeg(file: File): Promise<Blob> {
   throw new Error("Photo too large");
 }
 
-export type PhotoAction = (formData: FormData) => Promise<{ error: string } | void>;
+export type PhotoAction = (formData: FormData) => Promise<{ error: string } | { next: string; entryIds: string[] }>;
+
+const READ_FAILED = "We couldn't read the photo. Check your connection and try again.";
 
 /**
  * Take or choose a photo, preview it, and submit it (downscaled) with the surrounding form's
  * fields to a Server Action. The photo is sent as `photo`. A photo picked on the capture page
  * arrives already loaded; otherwise `source` puts the camera or the library button first. When
  * reading fails the photo stays, the button becomes "Try again", and `otherWaysHref` offers
- * another way to add the medicine.
+ * another way to add the medicine. On success this page is replaced in history by the action's
+ * `next` page, so Back skips the photo step. Cancel while reading returns to the chosen photo; the
+ * read can't be stopped on the server, so its drafts go to `discardAction` when it finishes.
  */
 export function PhotoCapture({
   action,
+  discardAction,
   children,
   submitLabel = "Read this photo",
   otherWaysHref,
   source,
 }: {
   action: PhotoAction;
+  discardAction: (entryIds: string[]) => Promise<void>;
   children?: ReactNode;
   submitLabel?: string;
   otherWaysHref: string;
@@ -58,8 +65,12 @@ export function PhotoCapture({
   // The action failed with this photo: offer the same photo again rather than a fresh start.
   const [failed, setFailed] = useState(false);
   const [preparing, setPreparing] = useState(false);
-  const [pending, startTransition] = useTransition();
+  const [reading, setReading] = useState(false);
+  const [leaving, startLeaving] = useTransition();
+  // Each read gets a number; Cancel bumps it, so a read that finishes afterwards is known to be cancelled.
+  const attempt = useRef(0);
   const formRef = useRef<HTMLFormElement>(null);
+  const router = useRouter();
 
   useEffect(() => () => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -97,7 +108,7 @@ export function PhotoCapture({
     if (file) queueMicrotask(() => loadPhoto(file));
   }, []);
 
-  function submit(event: React.FormEvent<HTMLFormElement>) {
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!photo || !formRef.current) return;
     const formData = new FormData(formRef.current);
@@ -105,15 +116,28 @@ export function PhotoCapture({
     formData.delete("library");
     formData.set("photo", photo, photo.type === "image/jpeg" ? "label.jpg" : "label");
     setError(null);
-    startTransition(async () => {
-      const result = await action(formData);
-      if (result?.error) {
-        setError(result.error);
-        setFailed(true);
-      }
-    });
+    setReading(true);
+    const id = ++attempt.current;
+    const result = await action(formData).catch((): { error: string } => ({ error: READ_FAILED }));
+    if (id !== attempt.current) {
+      if ("entryIds" in result) void discardAction(result.entryIds).catch(console.error);
+      return;
+    }
+    if ("error" in result) {
+      setReading(false);
+      setError(result.error);
+      setFailed(true);
+      return;
+    }
+    startLeaving(() => router.replace(result.next));
   }
 
+  function cancel() {
+    attempt.current++;
+    setReading(false);
+  }
+
+  const pending = reading || leaving;
   const busy = preparing || pending;
 
   return (
@@ -184,6 +208,11 @@ export function PhotoCapture({
           submitLabel
         )}
       </Button>
+      {reading && !leaving && (
+        <Button type="button" variant="outline" size="lg" className="h-12 w-full text-base" onClick={cancel}>
+          Cancel
+        </Button>
+      )}
       {failed && !busy && (
         <Button variant="outline" size="lg" className="h-12 w-full text-base" nativeButton={false} render={<Link href={otherWaysHref} />}>
           <ArrowLeftIcon aria-hidden /> Choose another way
