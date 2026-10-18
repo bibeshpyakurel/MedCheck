@@ -12,6 +12,8 @@ import type { EntryFields, Evidence, IngredientFields } from "@/lib/domain/schem
 import { cn } from "@/lib/utils";
 import { DoseEditor, StrengthEditor, TextEditor } from "./editors";
 import { FieldRow } from "./field-row";
+import { hasUnsavedChanges } from "./unsaved";
+import { useUnsavedChangesGuard } from "./use-unsaved-changes-guard";
 import {
   confirmationSummary,
   groupFields,
@@ -25,7 +27,13 @@ import {
   type ReviewSource,
 } from "./review-status";
 
-type SubmitInput = { patientId: string; entryId: string; fields: EntryFields; document: DocumentDetails | null };
+type SubmitInput = {
+  patientId: string;
+  entryId: string;
+  fields: EntryFields;
+  document: DocumentDetails | null;
+  from: "entry" | null;
+};
 type SubmitAction = (input: SubmitInput) => Promise<{ error: string } | void>;
 
 const text = (v: string) => v;
@@ -112,6 +120,7 @@ export function ReviewForm({
   newRowEvidence,
   confirmAction,
   saveAction,
+  from = null,
 }: {
   patientId: string;
   entryId: string;
@@ -124,12 +133,16 @@ export function ReviewForm({
   newRowEvidence: Evidence;
   confirmAction: SubmitAction;
   saveAction: SubmitAction;
+  /** "entry": opened from the medicine's detail page; Confirm and Save for later return there. */
+  from?: "entry" | null;
 }) {
   const [fields, setFields] = useState(initialFields);
   const [doc, setDoc] = useState(initialDocument);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const docId = useId();
+  const [loaded] = useState({ fields: initialFields, document: initialDocument });
+  const guard = useUnsavedChangesGuard(hasUnsavedChanges(loaded, { fields, document: doc }));
 
   const set = <K extends keyof EntryFields>(key: K) => (value: EntryFields[K]) => setFields((f) => ({ ...f, [key]: value }));
   // Stable React keys for ingredient rows, so removing one doesn't shift another row's edit state.
@@ -200,13 +213,19 @@ export function ReviewForm({
   function submit(action: SubmitAction) {
     setError(null);
     startTransition(async () => {
-      const result = await action({ patientId, entryId, fields, document: doc });
-      if (result?.error) setError(result.error);
+      // Saving leaves the page on purpose: no "Discard your changes?" for that.
+      await guard.disarm();
+      const result = await action({ patientId, entryId, fields, document: doc, from });
+      if (result?.error) {
+        setError(result.error);
+        guard.rearm();
+      }
     });
   }
 
   return (
     <div className="space-y-6">
+      {guard.dialog}
       <ReviewGroup {...groupProps("medicine", 1)}>
         <div className="divide-y">
           <FieldRow

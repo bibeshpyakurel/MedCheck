@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
 import { AppShell } from "@/components/app-shell";
+import { ExplainerFooter, explainerHome } from "@/components/explainer-footer";
 import { PageHeader } from "@/components/page-header";
+import { getAccount } from "@/lib/auth";
 
 export const metadata: Metadata = { title: "Why it matters" };
 
-// Public and static: no session, no data access.
-export default function WhyPage() {
+// Public: no data access beyond who is signed in, for the way back.
+export default async function WhyPage() {
+  const account = await getAccount();
   return (
     <AppShell>
       <PageHeader
+        back={{ href: explainerHome(account).href, label: "Back", toPrevious: true }}
         title="Why it matters"
         description="Caregivers have it hardest. MedCheck is built for the moment a second medicine comes into the house."
       />
@@ -16,6 +20,7 @@ export default function WhyPage() {
         <Stat value="63M" label="Americans care for someone else" source="AARP, 2025" />
         <Stat value="1 in 5" label="caregivers has any training in managing their medicines" source="AARP, 2025" />
       </dl>
+      <ExplainerFooter account={account} />
     </AppShell>
   );
 }

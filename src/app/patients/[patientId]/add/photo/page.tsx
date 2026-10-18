@@ -1,15 +1,14 @@
-import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
-import { RecordHeader } from "@/components/records/record-header";
+import { AddFlowBar } from "@/components/records/add-flow-bar";
 import { requireUser } from "@/lib/auth";
-import { getPatient } from "@/lib/records";
-import { uploadPhotoAction } from "./actions";
+import { findPatient, patientMetadata } from "@/lib/page-lookup";
+import { discardReadAction, uploadPhotoAction } from "./actions";
 import { PhotoForm, type PhotoKind } from "./photo-form";
 
-export const metadata: Metadata = { title: "Photo of the label" };
+export const generateMetadata = ({ params }: PageProps<"/patients/[patientId]/add/photo">) => patientMetadata(params, "Photo of the label");
 
 // Extraction runs inside the upload Server Action; give Gemini time on slow networks.
 export const maxDuration = 60;
@@ -26,7 +25,7 @@ export default async function PhotoPage({ params, searchParams }: PageProps<"/pa
   const { patientId } = await params;
   const query = await searchParams;
   if (!z.guid().safeParse(patientId).success) notFound();
-  const patient = await getPatient(patientId);
+  const patient = await findPatient(patientId);
   if (!patient) notFound();
 
   const kindParam = kindSchema.safeParse(query.kind);
@@ -35,10 +34,9 @@ export default async function PhotoPage({ params, searchParams }: PageProps<"/pa
 
   return (
     <AppShell>
-      <RecordHeader patient={patient} current="medicines" />
+      <AddFlowBar patientId={patient.id} screen="photo" />
       <div className="mx-auto max-w-xl space-y-8">
         <PageHeader
-          back={{ href: `/patients/${patientId}/add`, label: "Back" }}
           title="Photo of the label"
           description="Say what the photo shows, then MedCheck reads it. Nothing is saved until you confirm it."
         />
@@ -46,6 +44,7 @@ export default async function PhotoPage({ params, searchParams }: PageProps<"/pa
           patientId={patientId}
           initialKind={kind}
           action={uploadPhotoAction}
+          discardAction={discardReadAction}
           otherWaysHref={`/patients/${patientId}/add`}
           source={sourceParam.success ? sourceParam.data : undefined}
         />

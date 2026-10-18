@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 
 /**
  * Where Google sign-in and the emailed sign-in link come back to. Swaps the one-time `code` (or an
- * email `token_hash`) for a session, saves the person's name from the account, and opens their capture page.
+ * email `token_hash`) for a session, saves the person's name from the account, and opens their home.
  */
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;

@@ -1,26 +1,24 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { CameraIcon, KeyboardIcon } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
-import { BackLink } from "@/components/page-header";
-import { RecordHeader } from "@/components/records/record-header";
+import { AddFlowBar } from "@/components/records/add-flow-bar";
 import { SubmitButton } from "@/components/records/submit-button";
 import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth";
-import { recordTitle } from "@/lib/record-format";
-import { getEntry, getPatient, signedPhotoUrl } from "@/lib/records";
+import { entryMetadata, findEntry, findPatient } from "@/lib/page-lookup";
+import { signedPhotoUrl } from "@/lib/records";
 import { isUuid } from "@/lib/uuid";
 import { retakePhotoAction } from "../match/actions";
 
-export const metadata: Metadata = { title: "Retake the photo" };
+export const generateMetadata = ({ params }: PageProps<"/patients/[patientId]/entries/[entryId]/retake">) => entryMetadata(params, "Retake the photo");
 
 /** A medicine-package photo Gemini couldn't read (no name, no ingredient): retake it, or type the name. */
 export default async function RetakePage({ params }: PageProps<"/patients/[patientId]/entries/[entryId]/retake">) {
   await requireUser();
   const { patientId, entryId } = await params;
   if (!isUuid(patientId) || !isUuid(entryId)) notFound();
-  const [patient, entry] = await Promise.all([getPatient(patientId), getEntry(entryId)]);
+  const [patient, entry] = await Promise.all([findPatient(patientId), findEntry(entryId)]);
   if (!patient || !entry || entry.patientId !== patient.id) notFound();
   if (entry.status !== "draft") redirect(`/patients/${patientId}/entries/${entryId}`);
   const doc = entry.sourceDocument;
@@ -29,9 +27,8 @@ export default async function RetakePage({ params }: PageProps<"/patients/[patie
 
   return (
     <AppShell>
-      <RecordHeader patient={patient} current="medicines" />
+      <AddFlowBar patientId={patient.id} screen="retake" draftId={entry.id} />
       <div className="mx-auto max-w-xl space-y-6">
-        <BackLink href={`/patients/${patientId}`}>{recordTitle(patient)}</BackLink>
         <header className="space-y-2">
           <h1 className="font-display text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
             We couldn&apos;t read this label — retake the photo
@@ -57,7 +54,8 @@ export default async function RetakePage({ params }: PageProps<"/patients/[patie
             size="lg"
             className="h-12 w-full text-base"
             nativeButton={false}
-            render={<Link href={`/patients/${patientId}/entries/${entryId}/match?search=1`} />}
+            // Replace: once the medicine is saved, Back shouldn't return to "We couldn't read this label".
+            render={<Link href={`/patients/${patientId}/entries/${entryId}/match?search=1`} replace />}
           >
             <KeyboardIcon aria-hidden className="size-5" /> Type it in instead
           </Button>

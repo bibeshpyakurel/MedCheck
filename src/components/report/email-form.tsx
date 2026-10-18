@@ -17,11 +17,11 @@ type Status = { kind: "idle" } | { kind: "sending" } | { kind: "sent"; to: strin
 type EmailProps = { patientId: string; defaultSubject: string; defaultBody: string };
 
 /** "Send by email" button that opens the email form. Only rendered when email sending is configured. */
-export function EmailDialog(props: EmailProps & { className?: string }) {
-  const { className, ...form } = props;
+export function EmailDialog(props: EmailProps & { className?: string; disabled?: boolean }) {
+  const { className, disabled = false, ...form } = props;
   return (
     <Dialog>
-      <DialogTrigger render={<Button variant="outline" className={cn(ACTION_CLASS, className)} />}>
+      <DialogTrigger disabled={disabled} render={<Button variant="outline" className={cn(ACTION_CLASS, className)} />}>
         <MailIcon aria-hidden /> Send by email
       </DialogTrigger>
       <DialogContent className="max-h-[90dvh] overflow-y-auto">

@@ -1,14 +1,16 @@
 import "server-only";
 
 import { redirect } from "next/navigation";
-import { capturePath, emailLocalPart } from "@/lib/account";
-import { ensureSelfPatient, getCaregiver, upsertCaregiver } from "@/lib/records";
+import { cache } from "react";
+import { emailLocalPart, homePathFor } from "@/lib/account";
+import { isSelf } from "@/lib/record-format";
+import { ensureSelfPatient, getCaregiver, hasEntries, listPatients, upsertCaregiver } from "@/lib/records";
 import { createClient } from "@/lib/supabase/server";
 
 export type CurrentUser = { id: string; isAnonymous: boolean; email: string | null };
 
-/** What the ☰ menu shows about who is signed in. */
-export type Account = { isGuest: true } | { isGuest: false; label: string };
+/** What the page chrome knows about who is signed in. `patientId`: their own record, once it exists. */
+export type Account = ({ isGuest: true } | { isGuest: false; label: string }) & { patientId: string | null };
 
 /** The signed-in (possibly anonymous, i.e. guest) user, or null. Verifies the JWT. */
 export async function getCurrentUser(): Promise<CurrentUser | null> {
@@ -30,18 +32,19 @@ export async function requireUser(): Promise<CurrentUser> {
   return user;
 }
 
-/** The signed-in account for the page chrome, or null when signed out. */
-export async function getAccount(): Promise<Account | null> {
+/** The signed-in account for the page chrome, or null when signed out. Once per request. */
+export const getAccount = cache(async (): Promise<Account | null> => {
   const user = await getCurrentUser();
   if (!user) return null;
-  if (user.isAnonymous) return { isGuest: true };
-  const caregiver = await getCaregiver();
-  return { isGuest: false, label: caregiver?.displayName || user.email || "your account" };
-}
+  const [caregiver, patients] = await Promise.all([user.isAnonymous ? null : getCaregiver(), listPatients()]);
+  const patientId = (patients.find(isSelf) ?? patients[0])?.id ?? null;
+  if (user.isAnonymous) return { isGuest: true, patientId };
+  return { isGuest: false, label: caregiver?.displayName || user.email || "your account", patientId };
+});
 
 /**
- * The signed-in person's capture page (add a medicine to their own record), creating their record
- * if it is missing. Signed-out visitors go to the landing page.
+ * The signed-in person's home: their Medicines page once anything is on file, otherwise adding the
+ * first medicine. Creates their record if it is missing. Signed-out visitors go to the landing page.
  */
 export async function homePath(): Promise<string> {
   const user = await requireUser();
@@ -50,12 +53,12 @@ export async function homePath(): Promise<string> {
     ? "Guest"
     : caregiver?.displayName || (user.email ? emailLocalPart(user.email) : "Me");
   const self = await ensureSelfPatient(fallbackName);
-  return capturePath(self.id);
+  return homePathFor(self.id, await hasEntries(self.id));
 }
 
 /**
  * Finishes signing in with an account (Google or email): saves the person's name when one is known
- * (it shows on the pharmacist report), makes sure they have their own record, and returns its capture page.
+ * (it shows on the pharmacist report), makes sure they have their own record, and returns their home (see homePath).
  */
 export async function completeSignIn(name: string | null): Promise<string> {
   await requireUser();

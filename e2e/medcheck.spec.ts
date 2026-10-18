@@ -66,6 +66,13 @@ async function openTab(page: Page, name: "Medicines" | "Medicine report") {
   await page.waitForURL(name === "Medicines" ? /\/patients\/[0-9a-f-]{36}$/ : /\/export$/);
 }
 
+/** Opens "My medicines" or "Medicine report" from the ☰ menu (the add flow shows no tabs). */
+async function openFromMenu(page: Page, name: "My medicines" | "Medicine report") {
+  await page.getByRole("button", { name: "Menu" }).click();
+  await page.getByRole("navigation", { name: "Menu" }).getByRole("link", { name, exact: true }).click();
+  await page.waitForURL(name === "My medicines" ? /\/patients\/[0-9a-f-]{36}$/ : /\/export$/);
+}
+
 async function openMenu(page: Page) {
   await page.getByRole("button", { name: "Menu" }).click();
   const account = page.getByRole("region", { name: "Account" });
@@ -149,9 +156,16 @@ test.describe("guest", () => {
   });
 
   test("the report starts empty", async () => {
-    await openTab(page, "Medicine report");
+    // The capture page is part of adding a medicine: Cancel and its steps instead of the tabs.
+    await expect(page.getByText("Step 1 of 3 · Photo")).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Record" })).toHaveCount(0);
+    await openFromMenu(page, "Medicine report");
     await expect(page.getByRole("heading", { level: 1, name: "Medicine report" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "You haven't added any medicines yet" })).toBeVisible();
+    // Nothing to share yet: every action waits for a confirmed medicine.
+    await expect(page.getByRole("button", { name: "Preview report" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Download PDF" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Send by email" })).toBeDisabled();
   });
 
   test("two medicines by photo share acetaminophen → a warning on the Medicines tab", async ({ browser }) => {
@@ -185,8 +199,28 @@ test.describe("guest", () => {
     await page.waitForURL(/\/entries\/[0-9a-f-]{36}\/review(\?|$)/, { timeout: 60_000 });
     await expect(page.getByRole("heading", { level: 1, name: "Check the details" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Confirm medicine" })).toBeVisible();
+    await expect(page.getByText("Step 2 of 3 · Check the details")).toBeVisible();
 
-    await openTab(page, "Medicines");
+    // Leaving with a change asks first; Discard changes goes on (the draft keeps waiting).
+    await typeText(page, "Product name", "Half-typed name");
+    await page.getByRole("button", { name: "Menu" }).click();
+    await page.getByRole("navigation", { name: "Menu" }).getByRole("link", { name: "My medicines" }).click();
+    const discard = page.getByRole("alertdialog", { name: "Discard your changes?" });
+    await expect(discard).toBeVisible();
+    await expect(page).toHaveURL(/\/review(\?|$)/);
+    await discard.getByRole("button", { name: "Keep editing" }).click();
+    await expect(discard).toBeHidden();
+    // The menu is still open: Back closes it, and asks nothing.
+    await page.goBack();
+    await expect(page.getByRole("navigation", { name: "Menu" })).toBeHidden();
+    await expect(discard).toBeHidden();
+    // Back again would leave the page: it asks.
+    await page.goBack();
+    await expect(discard).toBeVisible();
+    // Back was heading to Add a medicine (the photo step was replaced by the review).
+    await discard.getByRole("button", { name: "Discard changes" }).click();
+    await page.waitForURL(/\/add$/);
+    await openFromMenu(page, "My medicines");
     const waiting = page.getByRole("region", { name: /Waiting for your review/ });
     await expect(waiting.getByRole("heading", { name: "Waiting for your review (1)" })).toBeVisible();
     await expect(waiting.getByRole("link", { name: /Check details/ })).toHaveAttribute("href", /\/review$/);
@@ -207,11 +241,19 @@ test.describe("guest", () => {
       page.getByText("1 medicine is waiting for you to check its details. It'll appear in the report once you confirm it."),
     ).toBeVisible();
 
-    const preview = page.locator("a", { hasText: "Preview report" });
-    await expect(preview).toHaveAttribute("href", new RegExp(`^/api/patients/${patientId}/report\\.pdf\\?(.*&)?inline=1`));
-    await expect(preview).toHaveAttribute("target", "_blank");
-    await expect(page.getByRole("button", { name: "Share" })).toBeVisible();
+    // Headless Chromium can't share files and this run has no email sender, so Share would only repeat
+    // Send by email (download + your email app): it isn't shown.
     await expect(page.getByRole("button", { name: "Send by email" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^(Share|Download and email)$/ })).toHaveCount(0);
+
+    // The preview is a MedCheck page, with the way back and the actions below.
+    await page.getByRole("button", { name: "Preview report" }).click();
+    await page.waitForURL(new RegExp(`/patients/${patientId}/export/preview`));
+    await expect(page.getByText("This is what the PDF contains.")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Warnings" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Download PDF" })).toBeVisible();
+    await page.getByRole("main").getByRole("link", { name: "Medicine report" }).last().click();
+    await page.waitForURL(/\/export$/);
 
     const [download] = await Promise.all([page.waitForEvent("download"), page.locator("a[download]").click()]);
     expect(download.suggestedFilename()).toMatch(/^Medicine-report.*\.pdf$/);
@@ -228,6 +270,16 @@ test.describe("guest", () => {
     await expect(help.locator('a[href="tel:18002221222"]')).toBeVisible();
     await help.getByRole("button", { name: "Close" }).click();
     await expect(help).toBeHidden();
+    // Closing steps back over Get help's history entry (device Back closes it); let that land.
+    await page.waitForFunction(() => !(history.state as { medcheckOverlay?: number } | null)?.medcheckOverlay);
+  });
+
+  test("a medicine that isn't there: the 404 page, titled Page not found, leads to My medicines", async () => {
+    await page.goto(`${base}/entries/${GHOST_ID}`);
+    await expect(page.getByRole("heading", { level: 1, name: "We couldn't find that page" })).toBeVisible();
+    await expect(page).toHaveTitle("Page not found · MedCheck");
+    await page.getByRole("button", { name: "Back to my medicines" }).click();
+    await page.waitForURL(new RegExp(`${base}$`));
   });
 
   test("☰ → Leave guest session asks, then signs out and the record is gone", async () => {
@@ -270,7 +322,9 @@ async function readPackagePhoto(page: Page, browser: Browser, base: string, scen
   await page.getByRole("button", { name: "Read this photo" }).click();
 }
 
-const ENTRY_WITH_CARD = /\/entries\/[0-9a-f-]{36}\?card=new$/;
+// `?card=new` opens the just-added card, then drops off the URL.
+const ENTRY_WITH_CARD = /\/entries\/[0-9a-f-]{36}(\?card=new)?$/;
+const GHOST_ID = "00000000-0000-4000-8000-000000000000";
 
 // The fast path for store-bought medicines, against the hand-checked Tylenol rows in the catalog.
 test.describe("medicine package photo", () => {
@@ -310,8 +364,16 @@ test.describe("medicine package photo", () => {
     const regular = page.getByRole("radio", { name: /Tylenol Regular Strength/ });
     await expect(regular).not.toBeChecked();
     await expect(page.locator("label", { has: regular })).toContainText("Acetaminophen 325 mg per tablet");
-    await expect(page.getByRole("button", { name: "None of these — type it in" })).toBeVisible();
     await expect(page.getByRole("main")).not.toContainText(/pharmacist|\bsafe\b/i);
+    await expect(page.getByText("Step 2 of 3 · Match")).toBeVisible();
+
+    // "Type it in" has its own address; browser Back returns to the matches, still pre-selected.
+    await page.getByRole("button", { name: "None of these — type it in" }).click();
+    await page.waitForURL(/\/match\?search=1$/);
+    await expect(page.getByRole("link", { name: "Matches" })).toBeVisible();
+    await page.goBack();
+    await page.waitForURL(/\/match$/);
+    await expect(best).toBeChecked();
 
     await page.getByRole("button", { name: "Confirm", exact: true }).click();
     await page.waitForURL(ENTRY_WITH_CARD);
@@ -319,6 +381,7 @@ test.describe("medicine package photo", () => {
     await expect(card).toBeVisible();
     await expect(card).toContainText("Acetaminophen 500 mg per caplet");
     await expect(card.locator('a[href="tel:18002221222"]')).toBeVisible();
+    await expect(card).toContainText("Step 3 of 3 · Saved");
     await card.getByRole("button", { name: "Done" }).click();
 
     await page.waitForURL(new RegExp(`${base}$`));
@@ -346,7 +409,22 @@ test.describe("medicine package photo", () => {
     await regular.check();
     await page.getByRole("button", { name: "Confirm", exact: true }).click();
     await page.waitForURL(ENTRY_WITH_CARD);
-    await page.getByRole("dialog", { name: "Tylenol Regular Strength (tablets)" }).getByRole("button", { name: "Done" }).click();
+    const card = page.getByRole("dialog", { name: "Tylenol Regular Strength (tablets)" });
+    await expect(card).toBeVisible();
+
+    // Device Back closes the card and stays on the medicine…
+    await page.goBack();
+    await expect(card).toBeHidden();
+    await expect(page).toHaveURL(/\/entries\/[0-9a-f-]{36}$/);
+    // …and Back again skips the answered steps (retake, "Type it in") to Add a medicine.
+    await page.goBack();
+    await page.waitForURL(/\/add$/);
+    await page.goForward();
+    await page.waitForURL(/\/entries\/[0-9a-f-]{36}$/);
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+
+    // With medicines on file, the logo opens My medicines.
+    await page.getByRole("banner").getByRole("link").first().click();
     await page.waitForURL(new RegExp(`${base}$`));
     await expect(page.getByText("2 medicines on file")).toBeVisible();
   });
@@ -370,6 +448,14 @@ test.describe("medicine package photo", () => {
     await page.goto(base);
     const waiting = page.getByRole("region", { name: /Waiting for your review/ });
     await expect(waiting.getByRole("link", { name: /Check details/ })).toHaveAttribute("href", /\/entries\/[0-9a-f-]{36}\/match$/);
+
+    // Cancel in the add flow asks, then deletes the medicine that was waiting.
+    await waiting.getByRole("link", { name: /Check details/ }).click();
+    await page.waitForURL(/\/match$/);
+    await page.getByRole("button", { name: "Cancel" }).click();
+    await page.getByRole("alertdialog", { name: "Discard this medicine?" }).getByRole("button", { name: "Discard" }).click();
+    await page.waitForURL(new RegExp(`${base}$`));
+    await expect(page.getByRole("region", { name: /Waiting for your review/ })).toHaveCount(0);
   });
 
   test("the type-in search never offers fictional demo products", async () => {

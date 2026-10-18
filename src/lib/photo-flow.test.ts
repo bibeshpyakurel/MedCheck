@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { CatalogMatch } from "./catalog-match";
 import { emptyEntryFields, isFullyReviewed, suggestedField } from "./domain/fields";
 import type { EntryFields, Evidence, Formulation, Strength } from "./domain/schema";
-import { draftPath, matchChoices, photoNextPath, toMatchOption, typedNameFields, withoutFictional } from "./photo-flow";
+import { draftPath, matchChoices, matchOptionLabel, photoNextPath, toMatchOption, typedNameFields, withoutFictional } from "./photo-flow";
 
 const photo: Evidence = { kind: "photo", sourceDocumentId: "doc-1" };
 const s500: Strength = { amount: 500, unit: "mg", perAmount: 1, perUnit: "caplet" };
@@ -203,5 +203,38 @@ describe("draftPath (Waiting for your review)", () => {
     expect(draftPath("p-1", draft("prescription_label"))).toBe("/patients/p-1/entries/e-1/review");
     expect(draftPath("p-1", draft("discharge_list"))).toBe("/patients/p-1/entries/e-1/review");
     expect(draftPath("p-1", draft(null))).toBe("/patients/p-1/entries/e-1/review");
+  });
+});
+
+describe("draftPath fromEntry", () => {
+  const draft = (kind: "otc_package" | "prescription_label") => ({ id: "e-1", sourceDocument: { kind } });
+
+  it("a review opened from the medicine's detail page says so, to return there", () => {
+    expect(draftPath("p-1", draft("prescription_label"), { fromEntry: true })).toBe("/patients/p-1/entries/e-1/review?from=entry");
+  });
+
+  it("a medicine-package draft still goes to the match step", () => {
+    expect(draftPath("p-1", draft("otc_package"), { fromEntry: true })).toBe("/patients/p-1/entries/e-1/match");
+  });
+});
+
+describe("matchOptionLabel (what a screen reader says for a match)", () => {
+  it("is the brand name with each ingredient's strength", () => {
+    expect(
+      matchOptionLabel({
+        id: "0b5c1c9e-6b1e-4d7e-9a43-0d6f2b8c1a11",
+        brandName: "Tylenol Extra Strength (caplets)",
+        ingredients: [{ name: "Acetaminophen", strength: "500 mg per caplet" }],
+        dosageForm: "CAPLET",
+        labelerName: "Kenvue",
+        strengthDiffers: false,
+      }),
+    ).toBe("Tylenol Extra Strength (caplets), Acetaminophen 500 mg per caplet");
+  });
+
+  it("is just the brand name when no ingredient is listed", () => {
+    expect(
+      matchOptionLabel({ id: "x", brandName: "Calm Tea", ingredients: [], dosageForm: "", labelerName: null, strengthDiffers: false }),
+    ).toBe("Calm Tea");
   });
 });

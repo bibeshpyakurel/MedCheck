@@ -8,8 +8,13 @@ import { AccountControls } from "@/components/account-controls";
 import { BrandLogo } from "@/components/brand";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { useBackToClose } from "@/components/use-back-to-close";
 import type { Account } from "@/lib/auth";
 
+const recordLinks = (patientId: string) => [
+  { href: `/patients/${patientId}`, label: "My medicines" },
+  { href: `/patients/${patientId}/export`, label: "Medicine report" },
+];
 const ABOUT_LINKS = [
   { href: "/how-it-works", label: "How MedCheck works" },
   { href: "/why", label: "Why it matters" },
@@ -20,10 +25,18 @@ const THEMES = [
   { value: "dark", label: "Dark", icon: MoonIcon },
 ];
 
-/** The header's ☰ menu: the explainer pages, kept off the home page so it stays short, account controls, and the appearance setting. */
+/**
+ * The header's ☰ menu: the person's medicines and report, the explainer pages kept off the home page so it stays short, account controls,
+ * and the appearance setting. Device Back closes it; its links replace the menu's history entry.
+ */
 export function SiteMenu({ account = null }: { account?: Account | null }) {
   const [open, setOpen] = useState(false);
-  const close = () => setOpen(false);
+  const release = useBackToClose(open, () => setOpen(false));
+  // For links: the page they open takes the menu's history entry.
+  const close = () => {
+    release();
+    setOpen(false);
+  };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -38,7 +51,8 @@ export function SiteMenu({ account = null }: { account?: Account | null }) {
             <span className="sr-only">Menu</span>
           </SheetTitle>
         </SheetHeader>
-        <nav aria-label="Menu" className="flex flex-col gap-4 p-2">
+        <nav aria-label="Menu" className="flex flex-col gap-2 p-2 [&>ul+ul]:border-t [&>ul+ul]:pt-2">
+          {account?.patientId ? <MenuGroup links={recordLinks(account.patientId)} onNavigate={close} /> : null}
           <MenuGroup links={ABOUT_LINKS} onNavigate={close} />
         </nav>
         <AccountControls account={account} onNavigate={close} />
@@ -56,6 +70,7 @@ function MenuGroup({ links, onNavigate }: { links: { href: string; label: string
         <li key={link.href}>
           <Link
             href={link.href}
+            replace
             onClick={onNavigate}
             className="flex min-h-11 items-center justify-between gap-3 rounded-lg px-3 text-base font-medium transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
           >

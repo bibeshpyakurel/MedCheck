@@ -256,6 +256,17 @@ export async function getEntry(entryId: string): Promise<MedicationEntry | null>
   return data ? rowToEntry(data) : null;
 }
 
+/** Whether the person has any medicine on file, confirmed or waiting for review. */
+export async function hasEntries(patientId: string): Promise<boolean> {
+  const supabase = await createClient();
+  const { count, error } = await supabase
+    .from("medication_entries")
+    .select("id", { count: "exact", head: true })
+    .eq("patient_id", patientId);
+  if (error) throw error;
+  return (count ?? 0) > 0;
+}
+
 export async function listEntries(
   patientId: string,
   opts: { status?: "draft" | "confirmed" } = {},

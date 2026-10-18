@@ -1,25 +1,8 @@
-import { ArrowLeftIcon } from "lucide-react";
-import Link from "next/link";
 import type { ReactNode } from "react";
+import { BackLink } from "@/components/back-link";
 import { cn } from "@/lib/utils";
 
-/** "← Back" link used above page titles. Large enough to tap. */
-export function BackLink({ href, children, className }: { href: string; children: ReactNode; className?: string }) {
-  return (
-    <Link
-      href={href}
-      className={cn(
-        "group -ml-2 inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
-        className,
-      )}
-    >
-      <span className="grid size-6 place-items-center rounded-md border bg-card shadow-xs transition-transform group-hover:-translate-x-0.5">
-        <ArrowLeftIcon aria-hidden className="size-3.5" />
-      </span>
-      {children}
-    </Link>
-  );
-}
+export { BackLink };
 
 /** Consistent page title block: optional back link, eyebrow, title, description, meta and actions. */
 export function PageHeader({
@@ -31,7 +14,7 @@ export function PageHeader({
   actions,
   className,
 }: {
-  back?: { href: string; label: ReactNode };
+  back?: { href: string; label: ReactNode; toPrevious?: boolean };
   eyebrow?: ReactNode;
   title: ReactNode;
   description?: ReactNode;
@@ -41,7 +24,11 @@ export function PageHeader({
 }) {
   return (
     <header className={cn("space-y-3", className)}>
-      {back ? <BackLink href={back.href}>{back.label}</BackLink> : null}
+      {back ? (
+        <BackLink href={back.href} toPrevious={back.toPrevious}>
+          {back.label}
+        </BackLink>
+      ) : null}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0 space-y-2">
           {eyebrow ? <p className="text-sm font-semibold text-primary">{eyebrow}</p> : null}

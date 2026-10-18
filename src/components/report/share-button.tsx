@@ -1,16 +1,17 @@
 "use client";
 
 import { DownloadIcon, EyeIcon, Loader2Icon, MailIcon, Share2Icon, type LucideIcon } from "lucide-react";
-import { useState } from "react";
+import Link from "next/link";
+import { useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import { allowLeave } from "@/components/guest-leave-guard";
 import { Button } from "@/components/ui/button";
 import { cn } from "cn";
 import { useTimeZone } from "./local-time";
+import { shareMode } from "./share-mode";
 
-export function reportPdfUrl(patientId: string, timeZone: string | null, opts: { inline?: boolean } = {}): string {
+export function reportPdfUrl(patientId: string, timeZone: string | null): string {
   const params = new URLSearchParams();
-  if (opts.inline) params.set("inline", "1");
   if (timeZone) params.set("tz", timeZone);
   const query = params.toString();
   return `/api/patients/${patientId}/report.pdf${query ? `?${query}` : ""}`;
@@ -38,38 +39,56 @@ function saveFile(file: File) {
   setTimeout(() => URL.revokeObjectURL(href), 30_000);
 }
 
-/** Opens the current PDF in a new tab, in the browser's own PDF viewer (iOS Safari included). */
-export function PreviewButton({ patientId, className }: { patientId: string; className?: string }) {
+/** `disabled`: there's nothing to share yet (no confirmed medicine). */
+type ActionProps = { patientId: string; className?: string; disabled?: boolean };
+
+/** Opens the report preview inside MedCheck (with the way back to the report page and its actions). */
+export function PreviewButton({ patientId, className, disabled = false }: ActionProps) {
   const timeZone = useTimeZone();
+  const href = `/patients/${patientId}/export/preview${timeZone ? `?tz=${encodeURIComponent(timeZone)}` : ""}`;
   return (
     <Button
-      nativeButton={false}
-      render={<a href={reportPdfUrl(patientId, timeZone, { inline: true })} target="_blank" rel="noopener" />}
       variant="outline"
       className={cn(ACTION_CLASS, className)}
+      disabled={disabled}
+      {...(disabled ? {} : { nativeButton: false, render: <Link href={href} /> })}
     >
       <EyeIcon aria-hidden /> Preview report
     </Button>
   );
 }
 
-export function DownloadButton({ patientId, className }: { patientId: string; className?: string }) {
+export function DownloadButton({ patientId, className, disabled = false }: ActionProps) {
   const timeZone = useTimeZone();
   return (
     <Button
-      nativeButton={false}
-      render={<a href={reportPdfUrl(patientId, timeZone)} download />}
       variant="outline"
       className={cn(ACTION_CLASS, className)}
+      disabled={disabled}
+      {...(disabled ? {} : { nativeButton: false, render: <a href={reportPdfUrl(patientId, timeZone)} download /> })}
     >
       <DownloadIcon aria-hidden /> Download PDF
     </Button>
   );
 }
 
+const noop = () => () => {};
+let canShareFilesCache: boolean | undefined;
+
+/** Whether this browser can hand a PDF file to the share sheet (phones); null during the server render. */
+function useCanShareFiles(): boolean | null {
+  return useSyncExternalStore(
+    noop,
+    () =>
+      (canShareFilesCache ??=
+        navigator.canShare?.({ files: [new File([""], "report.pdf", { type: "application/pdf" })] }) ?? false),
+    () => null,
+  );
+}
+
 type ShareState = { kind: "idle" } | { kind: "preparing" } | { kind: "ready"; file: File } | { kind: "mailto" };
 
-type ShareProps = { patientId: string; title: string; subject: string; body: string; className?: string };
+type ShareProps = { patientId: string; title: string; subject: string; body: string; className?: string; disabled?: boolean };
 
 /**
  * Shares the PDF with the phone's share sheet (Mail, Messages, AirDrop…). Where files can't be
@@ -81,6 +100,7 @@ function ShareAction({
   subject,
   body,
   className,
+  disabled = false,
   label,
   readyLabel,
   icon: Icon,
@@ -124,7 +144,7 @@ function ShareAction({
 
   return (
     <div className={cn("flex flex-col", className)}>
-      <Button variant="outline" onClick={onClick} disabled={state.kind === "preparing"} className={ACTION_CLASS}>
+      <Button variant="outline" onClick={onClick} disabled={disabled || state.kind === "preparing"} className={ACTION_CLASS}>
         {state.kind === "preparing" ? <Loader2Icon aria-hidden className="animate-spin" /> : <Icon aria-hidden />}
         {state.kind === "ready" ? readyLabel : state.kind === "preparing" ? "Preparing…" : label}
       </Button>
@@ -137,8 +157,16 @@ function ShareAction({
   );
 }
 
-export function ShareButton(props: ShareProps) {
-  return <ShareAction {...props} label="Share" readyLabel="Tap to share PDF" icon={Share2Icon} />;
+/**
+ * "Share" with the share sheet where the PDF file can be shared. Elsewhere it can only download the PDF
+ * and open a prefilled email, so it says "Download and email" — or isn't shown when "Send by email"
+ * (`emailConfigured` false: your own email app) already does exactly that.
+ */
+export function ShareButton({ emailConfigured, ...props }: ShareProps & { emailConfigured: boolean }) {
+  const mode = shareMode({ canShareFiles: useCanShareFiles(), emailConfigured });
+  if (mode === "hidden") return null;
+  const label = mode === "share" ? "Share" : "Download and email";
+  return <ShareAction {...props} label={label} readyLabel="Tap to share PDF" icon={Share2Icon} />;
 }
 
 /**

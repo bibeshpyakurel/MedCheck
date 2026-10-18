@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BadgeCheckIcon, FileTextIcon, PencilIcon, TriangleAlertIcon } from "lucide-react";
@@ -15,10 +14,12 @@ import { entryLabel, formatDose, formatStrength } from "@/lib/domain/fields";
 import type { Field, SourceDocumentKind } from "@/lib/domain/schema";
 import { sanitizeDosageTable } from "@/lib/openfda";
 import { catalogLabelSource, formatDocDate, recordTitle } from "@/lib/record-format";
-import { getEntry, getPatient, signedPhotoUrl } from "@/lib/records";
+import { draftPath } from "@/lib/photo-flow";
+import { entryMetadata, findEntry, findPatient } from "@/lib/page-lookup";
+import { signedPhotoUrl } from "@/lib/records";
 import { isUuid } from "@/lib/uuid";
 
-export const metadata: Metadata = { title: "Details and label" };
+export const generateMetadata = ({ params }: PageProps<"/patients/[patientId]/entries/[entryId]">) => entryMetadata(params, "Details and label");
 
 const DOCUMENT_KIND: Record<SourceDocumentKind, string> = {
   otc_package: "Medicine package",
@@ -67,7 +68,7 @@ export default async function EntryLabelPage({ params, searchParams }: PageProps
   const { patientId, entryId } = await params;
   const { card } = await searchParams;
   if (!isUuid(patientId) || !isUuid(entryId)) notFound();
-  const [patient, entry] = await Promise.all([getPatient(patientId), getEntry(entryId)]);
+  const [patient, entry] = await Promise.all([findPatient(patientId), findEntry(entryId)]);
   if (!patient || !entry || entry.patientId !== patient.id) notFound();
 
   const formulation = entry.formulationId ? await getFormulation(entry.formulationId) : null;
@@ -122,7 +123,7 @@ export default async function EntryLabelPage({ params, searchParams }: PageProps
                 <Button
                   className="h-11 shrink-0 px-4 text-base"
                   nativeButton={false}
-                  render={<Link href={`/patients/${patient.id}/entries/${entry.id}/review`} />}
+                  render={<Link href={draftPath(patient.id, entry, { fromEntry: true })} />}
                 >
                   Check details
                 </Button>
@@ -142,7 +143,7 @@ export default async function EntryLabelPage({ params, searchParams }: PageProps
                     variant="outline"
                     className="h-11 px-4"
                     nativeButton={false}
-                    render={<Link href={`/patients/${patient.id}/entries/${entry.id}/review`} />}
+                    render={<Link href={`/patients/${patient.id}/entries/${entry.id}/review?from=entry`} />}
                   >
                     <PencilIcon aria-hidden /> Check or change the details
                   </Button>
