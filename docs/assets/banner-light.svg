@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="360" viewBox="0 0 1280 360" role="img" aria-label="MedCheck — Know your drugs. Evidence, not advice.">
+  <defs>
+    <radialGradient id="glowA" cx="18%" cy="30%" r="55%">
+      <stop offset="0" stop-color="#2aa7a1" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#2aa7a1" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="85%" cy="80%" r="50%">
+      <stop offset="0" stop-color="#e0952b" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#e0952b" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1280" height="360" rx="24" fill="#f7f9fb"/>
+  <rect width="1280" height="360" rx="24" fill="url(#glowA)"/>
+  <rect width="1280" height="360" rx="24" fill="url(#glowB)"/>
+  <rect x="0.5" y="0.5" width="1279" height="359" rx="23.5" fill="none" stroke="#0f172a" stroke-opacity="0.08"/>
+
+  <!-- The overlap mark: two medicines, one shared ingredient. -->
+  <g transform="translate(110 90) scale(1.5)">
+    <circle cx="70" cy="60" r="44" fill="none" stroke="#00716e" stroke-width="7"/>
+    <circle cx="130" cy="60" r="44" fill="none" stroke="#3d6b70" stroke-width="7"/>
+    <path d="M100 27.81 A44 44 0 0 1 100 92.19 A44 44 0 0 1 100 27.81 Z" fill="#d9821a"/>
+  </g>
+
+  <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Helvetica, Arial, sans-serif">
+    <text x="470" y="132" font-size="76" font-weight="800" letter-spacing="-2.5" fill="#0f172a">MedCheck</text>
+    <text x="472" y="184" font-size="30" font-weight="600" fill="#0f172a">Know your <tspan fill="#a85d0e">drugs.</tspan></text>
+    <text x="472" y="226" font-size="21" fill="#526070">Photograph your medicine labels. See what they share,</text>
+    <text x="472" y="256" font-size="21" fill="#526070">straight from the FDA label.</text>
+    <rect x="472" y="280" width="226" height="36" rx="18" fill="#00716e" fill-opacity="0.08" stroke="#00716e" stroke-opacity="0.4"/>
+    <text x="585" y="304" font-size="16" font-weight="600" text-anchor="middle" fill="#00716e">Evidence, not advice.</text>
+  </g>
+</svg>
