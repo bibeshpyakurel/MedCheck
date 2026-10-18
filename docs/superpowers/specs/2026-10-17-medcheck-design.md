@@ -18,7 +18,7 @@ Out (later phases): other ingredients, weekly openFDA pipeline, RxNorm (dropped:
 
 ## 2. Delivery and git workflow
 
-Repo: `github.com/bibeshpyakurel/MedCheck` (public). Branching, CI and deploys follow `AGENTS.md` § Git: `dev` is the working and production branch; `main` mirrors what is live.
+Repo: `github.com/bibeshpyakurel/MedCheck` (public). Branching, CI and deploys follow `AGENTS.md` § Git: `dev` is the working branch and production is deployed from it by hand (no deploy on push or PR); `main` mirrors what is live.
 
 ## 3. Stack
 

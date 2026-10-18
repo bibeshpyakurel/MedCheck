@@ -2,7 +2,7 @@
 // pixels: the browser re-encodes every photo as JPEG before upload, so only the pixels survive.
 // Shared by the stand-in and e2e/support.ts.
 
-export const FAKE_GEMINI_PORT = 3999;
+export const FAKE_GEMINI_PORT = Number(process.env.FAKE_GEMINI_PORT) || 3999;
 
 /** Photo width → scenario. Any other width reads as "no medicine found" (kind unsure: a package). */
 export const SCENARIO_WIDTHS = {
