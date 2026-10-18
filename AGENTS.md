@@ -63,11 +63,14 @@ Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` and `docs/superpower
 - A server action that finishes a step (upload, confirm, save, discard) redirects with `RedirectType.replace`, so Back skips the finished step.
 - Pure logic gets Vitest tests next to it (`*.test.ts`), written first.
 - Before pushing: `npm run lint && npm run typecheck && npm test && npm run build`.
+- Test locally before merging, against the same Supabase project production uses: `vercel env pull .env.local` (or copy another worktree's `.env.local`), then `npm run build && npm start` or `npm run dev`, and `npm run e2e`. That database is production's: create data only as guest users and delete what you create (the e2e suite deletes its users). Supabase allows about 30 guest sign-ins an hour per IP, shared by every worktree on this machine.
+- Run e2e on ports of your own: `E2E_PORT=31xx FAKE_GEMINI_PORT=49xx npm run e2e`. Playwright reuses any server already listening on its port, so two worktrees on the defaults (3000 / 3999) silently test each other's code.
 
 ## Git
-- `dev` is the working branch **and** Vercel's production branch. Branch `feat/<name>` off `dev`; PR into `dev` (pass `--base dev` — GitHub's default base is `main`). Merging requires the `verify` and `e2e` checks and an up-to-date branch; once green, merge it.
-- `main` is a mirror of what is live: `.github/workflows/promote-main.yml` fast-forwards it to each `dev` commit Vercel deploys successfully. Never push to, open PRs into, or merge into `main`. Vercel doesn't build `main` (`vercel.json`) and CI doesn't run on it.
-- A failed Vercel build of `dev` leaves the previous production deploy live and `main` untouched; fix forward with a new PR.
-- Apply a feature's Supabase migration to the project before merging its PR — merged code goes live immediately.
+- `dev` is the working branch; production is deployed from it **by hand**. Branch `feat/<name>` off `dev`; PR into `dev` (pass `--base dev` — GitHub's default base is `main`). Merging requires the `verify` and `e2e` checks and an up-to-date branch; once green, merge it.
+- **Deploys are manual. Never trigger one unless the user asks.** Vercel builds nothing on push, PR or merge (`vercel.json` `git.deploymentEnabled: false`): there are no PR previews and merging into `dev` doesn't go live. When the user asks, `npm run deploy:prod` deploys the head of `origin/dev` (committed files only) and fast-forwards `main` to it. Vercel's Hobby plan caps deploys per day; don't use `vercel deploy` for previews either.
+- `main` is a mirror of what is live, moved only by `npm run deploy:prod`. Never push to, open PRs into, or merge into `main`. CI doesn't run on it.
+- A failed deploy leaves the previous production deploy live and `main` untouched; fix forward with a new PR.
+- Supabase is shared by local testing and production: a migration applied to the project is live in production at once, whatever is deployed. Keep migrations backward-compatible with the deployed code.
 - Ingredient synonyms live in `normalizeIngredient()`; don't add RxNorm or other external normalization services.
 - Commit messages: conventional (`feat:`, `fix:`, `docs:`, `test:`, `chore:`).

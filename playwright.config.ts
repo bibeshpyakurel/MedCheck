@@ -5,7 +5,9 @@ import { FAKE_GEMINI_PORT } from "./e2e/fake-gemini-scenarios.mjs";
 // Local runs read the Supabase keys from .env.local; CI passes them as environment variables.
 if (existsSync(".env.local")) process.loadEnvFile(".env.local");
 
-const PORT = 3000;
+// Override both ports per worktree (E2E_PORT, FAKE_GEMINI_PORT): a server already listening on a port is
+// reused, so two worktrees on the same ports would silently test each other's code.
+const PORT = Number(process.env.E2E_PORT) || 3000;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -43,6 +45,7 @@ export default defineConfig({
       // Gemini is the stand-in above, so photo tests never depend on what a model reads (one model, no fallback).
       // No Resend: the report page offers "Send by email" through the user's own email app.
       env: {
+        PORT: String(PORT),
         GOOGLE_GENERATIVE_AI_API_KEY: "e2e-fake-key",
         GOOGLE_GENERATIVE_AI_BASE_URL: `http://localhost:${FAKE_GEMINI_PORT}/v1beta`,
         GEMINI_MODEL: "fake-gemini",
