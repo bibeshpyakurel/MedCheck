@@ -6,12 +6,11 @@ import { z } from "zod";
 import { AppShell } from "@/components/app-shell";
 import { PageHeader } from "@/components/page-header";
 import { RecordHeader } from "@/components/records/record-header";
-import { EmailDialog } from "@/components/report/email-form";
-import { DownloadButton, EmailYourselfButton, PreviewButton, ShareButton } from "@/components/report/share-button";
+import { ReportActions } from "@/components/report/report-actions";
 import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth";
 import { getPatient } from "@/lib/records";
-import { emailDraft, NO_WARNINGS, type Report } from "@/lib/report/build-report";
+import { NO_WARNINGS, type Report } from "@/lib/report/build-report";
 import { isEmailConfigured } from "@/lib/report/email-config";
 import { loadReport } from "@/lib/report/load-report";
 
@@ -32,8 +31,6 @@ export default async function ExportPage({ params }: PageProps<"/patients/[patie
   const [patient, loaded] = await Promise.all([getPatient(patientId), loadReport(patientId)]);
   if (!patient || !loaded) notFound();
   const { report } = loaded;
-  const draft = emailDraft(report);
-  const share = { patientId, title: report.title, subject: draft.subject, body: draft.body };
   // Guests send with their own email app; the in-app sender is for accounts only (see the email route).
   const configured = isEmailConfigured() && !user.isAnonymous;
   const summary = contents(report);
@@ -73,19 +70,7 @@ export default async function ExportPage({ params }: PageProps<"/patients/[patie
           </div>
         ) : null}
 
-        <section aria-label="Report actions" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <PreviewButton patientId={patientId} />
-          <DownloadButton patientId={patientId} />
-          <ShareButton {...share} />
-          {configured ? (
-            <EmailDialog patientId={patientId} defaultSubject={draft.subject} defaultBody={draft.body} />
-          ) : (
-            <EmailYourselfButton {...share} />
-          )}
-        </section>
-        {configured ? null : (
-          <p className="text-sm text-muted-foreground">Send by email uses your own email app.</p>
-        )}
+        <ReportActions patientId={patientId} report={report} emailConfigured={configured} />
       </div>
     </AppShell>
   );

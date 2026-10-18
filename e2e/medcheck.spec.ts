@@ -162,6 +162,10 @@ test.describe("guest", () => {
     await openFromMenu(page, "Medicine report");
     await expect(page.getByRole("heading", { level: 1, name: "Medicine report" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "You haven't added any medicines yet" })).toBeVisible();
+    // Nothing to share yet: every action waits for a confirmed medicine.
+    await expect(page.getByRole("button", { name: "Preview report" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Download PDF" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Send by email" })).toBeDisabled();
   });
 
   test("two medicines by photo share acetaminophen → a warning on the Medicines tab", async ({ browser }) => {
@@ -218,11 +222,19 @@ test.describe("guest", () => {
       page.getByText("1 medicine is waiting for you to check its details. It'll appear in the report once you confirm it."),
     ).toBeVisible();
 
-    const preview = page.locator("a", { hasText: "Preview report" });
-    await expect(preview).toHaveAttribute("href", new RegExp(`^/api/patients/${patientId}/report\\.pdf\\?(.*&)?inline=1`));
-    await expect(preview).toHaveAttribute("target", "_blank");
-    await expect(page.getByRole("button", { name: "Share" })).toBeVisible();
+    // Headless Chromium can't share files and this run has no email sender, so Share would only repeat
+    // Send by email (download + your email app): it isn't shown.
     await expect(page.getByRole("button", { name: "Send by email" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^(Share|Download and email)$/ })).toHaveCount(0);
+
+    // The preview is a MedCheck page, with the way back and the actions below.
+    await page.getByRole("button", { name: "Preview report" }).click();
+    await page.waitForURL(new RegExp(`/patients/${patientId}/export/preview`));
+    await expect(page.getByText("This is what the PDF contains.")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Warnings" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Download PDF" })).toBeVisible();
+    await page.getByRole("main").getByRole("link", { name: "Medicine report" }).last().click();
+    await page.waitForURL(/\/export$/);
 
     const [download] = await Promise.all([page.waitForEvent("download"), page.locator("a[download]").click()]);
     expect(download.suggestedFilename()).toMatch(/^Medicine-report.*\.pdf$/);
