@@ -216,6 +216,29 @@ export async function confirmEntry(entryId: string, fields: EntryFields): Promis
   if (error) throw error;
 }
 
+/**
+ * Confirms a draft in one update: its fields, the catalog label it was matched to (or null) and its
+ * status. Only a draft is touched; throws when no draft of the user's has this id. Callers must
+ * ensure nothing is `pending`. `input_method` is left as it was.
+ */
+export async function confirmDraftEntry(entryId: string, fields: EntryFields, formulationId: string | null): Promise<void> {
+  const parsed = entryFieldsSchema.parse(fields);
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("medication_entries")
+    .update({
+      fields: parsed as unknown as Json,
+      formulation_id: formulationId,
+      status: "confirmed",
+      confirmed_at: new Date().toISOString(),
+    })
+    .eq("id", entryId)
+    .eq("status", "draft")
+    .select("id");
+  if (error) throw error;
+  if (data.length === 0) throw new Error("No draft entry to confirm");
+}
+
 export async function deleteEntry(entryId: string): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase.from("medication_entries").delete().eq("id", entryId);

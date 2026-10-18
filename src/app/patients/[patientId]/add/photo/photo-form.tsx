@@ -17,7 +17,7 @@ const KINDS: { value: PhotoKind; title: string; detail: string }[] = [
   {
     value: "otc_package",
     title: "Medicine package",
-    detail: "A store-bought package, or its Drug Facts panel — the box listing ingredients and directions.",
+    detail: "A store-bought medicine. Photograph the front of the package; MedCheck finds it in the FDA list.",
   },
 ];
 

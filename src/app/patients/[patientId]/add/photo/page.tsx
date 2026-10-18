@@ -40,7 +40,7 @@ export default async function PhotoPage({ params, searchParams }: PageProps<"/pa
         <PageHeader
           back={{ href: `/patients/${patientId}/add`, label: "Back" }}
           title="Photo of the label"
-          description="Say what the photo shows, then MedCheck reads it. You check each detail before anything is used."
+          description="Say what the photo shows, then MedCheck reads it. Nothing is saved until you confirm it."
         />
         <PhotoForm
           patientId={patientId}
