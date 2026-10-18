@@ -37,6 +37,7 @@ export function AccountControls({ account, onNavigate }: { account: Account | nu
           </ConfirmAction>
           <Link
             href="/sign-in"
+            replace
             onClick={onNavigate}
             className="flex min-h-11 items-center justify-center rounded-lg px-3 text-sm font-medium underline-offset-4 hover:underline focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
           >

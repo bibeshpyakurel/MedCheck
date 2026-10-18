@@ -1,7 +1,9 @@
 "use client";
 
 import { LifeBuoyIcon, PhoneIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { useBackToClose } from "@/components/use-back-to-close";
 import { cn } from "@/lib/utils";
 
 /** The fixed message. Wording is a product decision — do not change it or add guidance. */
@@ -31,15 +33,27 @@ const DESCRIPTION = "MedCheck can't tell you what to do next. A person can.";
  * The header's "Get help": the same fixed message, on every screen. A native popover rather than a
  * Dialog, so it opens on the first tap even before the page's JavaScript has loaded — the moment
  * someone needs it is not the moment to wait for hydration. It never navigates, so nothing in progress
- * (like a review) is lost.
+ * (like a review) is lost. Once the page is interactive, device Back closes it.
  */
 export function GetHelp() {
+  const popover = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const el = popover.current;
+    if (!el) return;
+    const onToggle = (e: ToggleEvent) => setOpen(e.newState === "open");
+    el.addEventListener("toggle", onToggle);
+    return () => el.removeEventListener("toggle", onToggle);
+  }, []);
+  useBackToClose(open, () => popover.current?.hidePopover());
+
   return (
     <>
       <button type="button" popoverTarget="get-help" className={cn(buttonVariants({ variant: "ghost" }), "h-11 px-3")}>
         <LifeBuoyIcon aria-hidden /> Get help
       </button>
       <div
+        ref={popover}
         id="get-help"
         popover="auto"
         role="dialog"
