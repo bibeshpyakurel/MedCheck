@@ -3,7 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { LABEL_SECTION_KEYS, labelSectionsSchema } from "@/lib/domain/schema";
 import { allFixtureNames, fixtureLabel, type FixtureName } from "./__fixtures__";
-import { LABEL_SECTION_FIELDS, isPlaceholder, labelSections, labelSourceTexts, sectionText, splitSection } from "./sections";
+import { LABEL_SECTION_FIELDS, dropRepeatedBlocks, isPlaceholder, labelSections, labelSourceTexts, sectionText, splitSection } from "./sections";
 import { parseSpl, type SplSections } from "./spl";
 
 const GLYPH = /[■●•▪◼◆♦►▶✓✔□○‣⁃·∙￭]/u;
@@ -223,6 +223,58 @@ describe("labelSections — purpose and heading leftovers", () => {
       "adults: take 2 tablets (do not take more than 2 tablets in 24 hours)",
       "children under 12 years ask a doctor",
     ]);
+  });
+});
+
+describe("labelSections — safety text and duplicates (full-catalog scan)", () => {
+  it("G: keeps the Reye's syndrome warning whole — 'When using this product, if…' is part of it (Pepto Bismol)", () => {
+    const s = labelSections(fixtureLabel("pepto-bismol-reyes"));
+    expect(s.warnings).toContain(
+      "When using this product, if changes in behavior with nausea and vomiting occur, consult a doctor because these symptoms could be an early sign of Reye's syndrome, a rare but serious illness.",
+    );
+    expect(s.when_using).toEqual(["a temporary, but harmless, darkening of the stool and/or tongue may occur"]);
+  });
+
+  it("G: drops only exactly repeated blocks of several bullets, never a lone repeated bullet", () => {
+    expect(dropRepeatedBlocks(["sneezing", "runny nose", "itchy eyes", "sneezing", "cough"])).toEqual(["sneezing", "runny nose", "itchy eyes", "sneezing", "cough"]);
+    expect(dropRepeatedBlocks(["a", "b", "c", "x", "a", "b", "c"])).toEqual(["a", "b", "c", "x"]);
+  });
+
+  it.each([
+    ["warnings", "Ask a doctor before use if you have ■ fever ■ mucus in the stool", ["Ask a doctor before use if you have fever", "mucus in the stool"]],
+    ["ask_doctor", "Ask a doctor before us e if you have ■ liver disease", ["you have liver disease"]],
+    ["directions", "Directions (Packet Only) dissolve 1 packet in water", ["dissolve 1 packet in water"]],
+    ["stop_use", "Stop use and ask a doctorif symptoms get worse", ["symptoms get worse"]],
+    ["inactive_ingredients", "Inactive ingredients (Bottle Only) ■ sucrose, water", ["sucrose, water"]],
+  ] as const)("H: %s heading scraps — %s", (key, text, expected) => {
+    expect(splitSection(key, text)).toEqual(expected);
+  });
+});
+
+describe("labelSections — age lines and parentheses (allergy/cold scan)", () => {
+  it("K: each age line carries its own instruction; lowercase instructions are never taken for headings (Xyzal)", () => {
+    const s = labelSections(fixtureLabel("xyzal-age-lines"));
+    expect(s.directions).toEqual(
+      expect.arrayContaining([
+        "adults 65 years of age and older ask a doctor",
+        "children under 6 years of age do not use",
+        "consumers with kidney disease do not use",
+      ]),
+    );
+    expect(s.directions?.some((b) => /^ask a doctor adults/.test(b))).toBe(false);
+  });
+
+  it("K: an age group starts a bullet in flattened directions", () => {
+    expect(splitSection("directions", "adults 65 years and over ask a doctor adults and children 12-64 years take 1 tablet daily children under 6 years do not use")).toEqual([
+      "adults 65 years and over ask a doctor",
+      "adults and children 12-64 years take 1 tablet daily",
+      "children under 6 years do not use",
+    ]);
+  });
+
+  it("M: a subheading inside parentheses ends nothing (Allegra 180: '(see Directions)')", () => {
+    const s = labelSections(fixtureLabel("allegra-180-when-using-see"));
+    for (const b of Object.values(s).flat()) expect(b, b).not.toMatch(/\(see$/);
   });
 });
 

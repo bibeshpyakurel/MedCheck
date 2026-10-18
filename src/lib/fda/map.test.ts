@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { formatStrength } from "@/lib/domain/fields";
+import { ndc11FromHyphenated } from "@/lib/ndc";
 import { formulationToRow } from "@/lib/openfda";
 import { allFixtureNames, allFixtureProducts, fixtureLabel, fixtureProducts, type FixtureName } from "./__fixtures__";
 import { indexNdcProducts } from "./join";
 import { importLabels, mapLabel, otcSlug, plausibleStrength, type MapResult } from "./map";
 
 const index = indexNdcProducts(allFixtureProducts());
-const map = (name: FixtureName): MapResult => mapLabel(fixtureLabel(name), index);
+const mapOne = (...args: Parameters<typeof mapLabel>): MapResult => mapLabel(...args)[0];
+const map = (name: FixtureName): MapResult => mapOne(fixtureLabel(name), index);
 const ok = (name: FixtureName) => {
   const r = map(name);
   if (!r.ok) throw new Error(`${name} rejected: ${r.reason}`);
@@ -35,6 +37,8 @@ describe("mapLabel — rows", () => {
     expect(f.activeIngredients).toEqual([
       { name: "Acetaminophen", normalized: "acetaminophen", strength: { amount: 500, unit: "mg", perAmount: 1, perUnit: "caplet" } },
     ]);
+    expect(ok("nicotine-gum-dot-leaders").activeIngredients[0].name).toBe("Nicotine Polacrilex");
+    expect(ok("allegra-60-180").activeIngredients[0].name).toBe("Fexofenadine HCl");
     expect(f.ndcPackages.length).toBeGreaterThan(0);
     for (const ndc of f.ndcPackages) expect(ndc).toMatch(/^\d{11}$/);
     expect(f.sourceLinks).toEqual([
@@ -83,11 +87,12 @@ describe("mapLabel — rows", () => {
       "doxylamine 6.25 mg per caplet",
       "phenylephrine 5 mg per caplet",
     ]);
-    expect(f.activeIngredients.map((i) => i.name)).toEqual([
-      "Acetaminophen",
-      "Dextromethorphan Hydrobromide",
-      "Doxylamine Succinate",
-      "Phenylephrine Hydrochloride",
+    // L: the names as the label prints them; `normalized` is unchanged.
+    expect(f.activeIngredients.map((i) => [i.name, i.normalized])).toEqual([
+      ["Acetaminophen", "acetaminophen"],
+      ["Dextromethorphan HBr", "dextromethorphan"],
+      ["Doxylamine succinate", "doxylamine"],
+      ["Phenylephrine HCl", "phenylephrine"],
     ]);
     expect(f.max24hText).toBe("do not exceed 8 caplets per 24 hrs");
     expect(f.warningsQuotes.length).toBeGreaterThan(0);
@@ -137,7 +142,7 @@ describe("mapLabel — strengths are the label's own (NDC values only confirm th
   it("keeps the label's own per-unit: per fl oz, per dose", () => {
     const label = fixtureLabel("theraflu-syrup-count-strength");
     label.active_ingredient = ["Active ingredient (in each fl oz) Acetaminophen 650 mg Dextromethorphan HBr 20 mg Guaifenesin 400 mg Phenylephrine HCl 10 mg"];
-    const r = mapLabel(label, index);
+    const r = mapOne(label, index);
     expect(r).toMatchObject({ ok: true });
     if (r.ok) expect(r.formulation.activeIngredients.map((i) => formatStrength(i.strength))[0]).toBe("650 mg per fl oz");
   });
@@ -145,9 +150,66 @@ describe("mapLabel — strengths are the label's own (NDC values only confirm th
   it("converts a percent only when the basis is stated or the NDC confirms it", () => {
     const label = fixtureLabel("fluoride-rinse-ion-basis");
     label.active_ingredient = ["Active ingredient Sodium fluoride 0.02% w/v"];
-    expect(mapLabel(label, index)).toMatchObject({ ok: true });
-    const r = mapLabel(label, index);
+    expect(mapOne(label, index)).toMatchObject({ ok: true });
+    const r = mapOne(label, index);
     if (r.ok) expect(formatStrength(r.formulation.activeIngredients[0].strength)).toBe("0.2 mg per mL");
+  });
+});
+
+describe("mapLabel — verifier findings (full-catalog scan)", () => {
+  const rows = (name: FixtureName) => mapLabel(fixtureLabel(name), index);
+  const summary = (name: FixtureName) =>
+    rows(name).map((r) => (r.ok ? `${r.formulation.slug.replace(/^otc-[0-9a-f-]{36}/, "otc-…")} ${r.formulation.activeIngredients.map((i) => `${i.normalized} ${formatStrength(i.strength)}`).join(" + ")}` : r.reason));
+
+  it("B: reads amounts after dot leaders at their real scale", () => {
+    expect(strengths("nighttime-softgel-dot-leaders")).toEqual([
+      "acetaminophen 325 mg per softgel",
+      "dextromethorphan 15 mg per softgel",
+      "doxylamine 6.25 mg per softgel",
+    ]);
+    expect(strengths("tussin-dm-dot-leaders")).toEqual(["dextromethorphan 10 mg per softgel", "guaifenesin 200 mg per softgel"]);
+    expect(strengths("nicotine-gum-dot-leaders")).toEqual(["nicotine 4 mg per piece"]);
+    expect(strengths("peg-3350-dot-leaders")).toEqual(["polyethylene glycol 17 g per dose"]);
+  });
+
+  it("C: keeps a per-dose quantity of several units (3 mini-tablets)", () => {
+    expect(ok("mylanta-gas-minis-3-tablet-dose").activeIngredients).toEqual([
+      expect.objectContaining({ name: "Simethicone", strength: { amount: 125, unit: "mg", perAmount: 3, perUnit: "chewable tablet" } }),
+    ]);
+  });
+
+  it("D: takes the active amount, not the emulsion's", () => {
+    expect(ok("mylanta-all-family-emulsion").activeIngredients.map((i) => `${i.name} ${formatStrength(i.strength)}`)).toEqual([
+      "Calcium carbonate 800 mg per 10 mL",
+      "Simethicone 80 mg per 10 mL",
+    ]);
+  });
+
+  it("E: rejects an amount it can't read cleanly ('650 mgr') instead of borrowing a neighbour's", () => {
+    expect(map("xl3-mgr-typo")).toMatchObject({ ok: false, reason: "strength_not_on_label" });
+  });
+
+  it("A: a label printing several strengths gives each NDC product's own (Zantac 10/20 mg → the 20 mg product)", () => {
+    expect(summary("zantac-360-two-strengths-one-product")).toEqual(["otc-… famotidine 20 mg per tablet"]);
+    expect(summary("allegra-60-180")).toEqual(["otc-… fexofenadine 180 mg per tablet"]);
+    expect(summary("diphenhydramine-25-50")).toEqual(["otc-… diphenhydramine 50 mg per capsule"]);
+    expect(summary("guaifenesin-pse-600-1200")).toEqual(["otc-… guaifenesin 600 mg per extended-release tablet + pseudoephedrine 60 mg per extended-release tablet"]);
+    expect(summary("nicorette-lozenge-two-strengths")).toEqual(["otc-… nicotine 2 mg per lozenge"]);
+  });
+
+  it("A: package NDCs come only from the row's own NDC products", () => {
+    const f = ok("zantac-360-two-strengths-one-product");
+    const own = fixtureProducts("zantac-360-two-strengths-one-product").flatMap((p) => (p.packaging ?? []).map((k) => ndc11FromHyphenated(k.package_ndc!)));
+    expect([...f.ndcPackages].sort()).toEqual([...new Set(own)].sort());
+  });
+
+  it("A: products of different strengths on one label become one row per strength, each with its own NDCs", () => {
+    const label = fixtureLabel("nicotine-two-strengths");
+    const out = mapLabel(label, index).filter((r) => r.ok).map((r) => (r.ok ? r.formulation : null)!);
+    expect(out.map((f) => f.slug)).toEqual([`otc-${label.set_id}-2mg`, `otc-${label.set_id}-4mg`]);
+    expect(out.map((f) => formatStrength(f.activeIngredients[0].strength))).toEqual(["2 mg per lozenge", "4 mg per lozenge"]);
+    const [a, b] = out.map((f) => new Set(f.ndcPackages));
+    expect([...a].some((n) => b.has(n))).toBe(false);
   });
 });
 
@@ -165,7 +227,6 @@ describe("mapLabel — rejects, with a reason", () => {
   it.each<[FixtureName, string]>([
     ["homeopathic-pellets", "homeopathic"],
     ["dayquil-nyquil-kit", "kit_or_multi_product"],
-    ["nicotine-two-strengths", "multiple_strengths"],
     ["fenbendazole-mg-per-mol", "unknown_unit"],
   ])("%s → %s", (name, reason) => {
     expect(map(name)).toMatchObject({ ok: false, reason });
@@ -173,30 +234,30 @@ describe("mapLabel — rejects, with a reason", () => {
 
   it("rejects products that aren't finished", () => {
     const products = fixtureProducts("advil-liquigel").map((p) => ({ ...p, finished: false }));
-    expect(mapLabel(fixtureLabel("advil-liquigel"), indexNdcProducts(products))).toMatchObject({ ok: false, reason: "not_finished" });
+    expect(mapOne(fixtureLabel("advil-liquigel"), indexNdcProducts(products))).toMatchObject({ ok: false, reason: "not_finished" });
   });
 
   it("rejects a route outside oral, sublingual and buccal", () => {
     const label = fixtureLabel("advil-liquigel");
     label.openfda = { ...label.openfda, route: ["TOPICAL"] };
-    expect(mapLabel(label, index)).toMatchObject({ ok: false, reason: "route" });
+    expect(mapOne(label, index)).toMatchObject({ ok: false, reason: "route" });
   });
 
   it("rejects a count strength on a liquid when the label gives no volume", () => {
     const label = fixtureLabel("theraflu-syrup-count-strength");
     label.active_ingredient = label.active_ingredient!.map((t) => t.replace(/\(in each 30 mL\)/, ""));
-    expect(mapLabel(label, index)).toMatchObject({ ok: false, reason: "unclear_per_unit" });
+    expect(mapOne(label, index)).toMatchObject({ ok: false, reason: "unclear_per_unit" });
   });
 
   it("without an NDC join, reads strengths from the label text, else rejects", () => {
     const empty = indexNdcProducts([]);
-    const fromLabel = mapLabel(fixtureLabel("tylenol-extra-strength-caplet"), empty);
+    const fromLabel = mapOne(fixtureLabel("tylenol-extra-strength-caplet"), empty);
     expect(fromLabel).toMatchObject({ ok: true, join: "none" });
     if (fromLabel.ok) expect(fromLabel.formulation.activeIngredients.map((i) => formatStrength(i.strength))).toEqual(["500 mg per caplet"]);
 
     const label = fixtureLabel("tylenol-extra-strength-caplet");
     label.active_ingredient = ["Active ingredient Acetaminophen"];
-    expect(mapLabel(label, empty)).toMatchObject({ ok: false, reason: "no_join_no_strength" });
+    expect(mapOne(label, empty)).toMatchObject({ ok: false, reason: "no_join_no_strength" });
   });
 });
 
@@ -205,7 +266,8 @@ describe("importLabels", () => {
 
   it("counts rows, rejects by reason and join methods", () => {
     const result = importLabels(labels, index, new Set());
-    expect(result.rows.length + Object.values(result.rejects).reduce((a, b) => a + b, 0)).toBe(labels.length);
+    // A label gives one row per strength set, so rows + rejects can exceed the label count.
+    expect(result.rows.length + Object.values(result.rejects).reduce((a, b) => a + b, 0)).toBeGreaterThanOrEqual(labels.length);
     expect(result.rejects.homeopathic).toBe(1);
     expect(result.joins.spl_id).toBe(labels.length);
     expect(new Set(result.rows.map((r) => r.slug)).size).toBe(result.rows.length);

@@ -60,15 +60,15 @@ const OTHER_INFO_HEADING = /^(?:other (?:safety )?[il]nformation|storage(?: and 
 const HEADINGS: Partial<Record<LabelSectionKey, RegExp>> = {
   uses: /^(?:uses?(?:\s*\(s\))?|indications?(?: (?:and|&) usage)?)(?![\p{L}'])/iu,
   purpose: /^(?:active ingredients?(?:\s*\([^)]*\))?\s*)?purposes?(?![\p{L}'])/iu,
-  directions: /^(?:directions?(?: for use)?|dosage (?:and|&) administration|suggested use)(?![\p{L}'])/iu,
+  directions: /^(?:directions?(?: for use)?|dosage (?:and|&) administration|suggested use)(?![\p{L}'])(?:\s*\([^)]*\bonly\))?/iu,
   do_not_use: /^do not use(?![\p{L}'])/iu,
-  ask_doctor: /^ask (?:a )?doctor(?: before use)?(?: if)?(?![\p{L}'])/iu,
+  ask_doctor: /^ask (?:a )?doctor(?: before us ?e)?(?: if)?(?![\p{L}'])/iu,
   ask_doctor_or_pharmacist: /^ask (?:a )?doctor or pharmacist(?: before use)?(?: if)?(?![\p{L}'])/iu,
   when_using: /^when using this product(?![\p{L}'])/iu,
-  stop_use: /^stop use and ask a doctor(?: if)?(?![\p{L}'])/iu,
+  stop_use: /^stop use and ask a doctor ?(?:if)?(?![\p{L}'])/iu,
   pregnancy_or_breast_feeding: /^(?:pregnancy(?:\s*(?:\/|or)\s*breast-?feeding)?|breast-?feeding)(?![\p{L}'])/iu,
   warnings: /^warnings?(?![\p{L}'])/iu,
-  inactive_ingredients: /^inactive(?: ingredients?)?(?![\p{L}'])/iu,
+  inactive_ingredients: /^inactive(?: ingredients?)?(?![\p{L}'])(?:\s*\([^)]*\bonly\))?/iu,
   storage: OTHER_INFO_HEADING,
   other_information: OTHER_INFO_HEADING,
   questions: /^questions(?: or comments)?\s*\??/iu,
@@ -77,7 +77,7 @@ const DRUG_FACTS = /^drug facts(?:\s*\(continued\))?(?![\p{L}'])/iu;
 
 /** A bullet that is nothing but a heading (or a scrap of one) is dropped. */
 const HEADING_ONLY =
-  /^(?:drug facts(?:\s*\(continued\))?|drug|facts|\(s\)|uses?(?:\s*\(s\))?|indications?(?: (?:and|&) usage)?|purposes?|directions?|warnings?|other (?:safety )?[il]nformation|storage(?: and handling)?|inactive(?: ingredients?)?|active ingredients?(?:\s*\([^)]*\))?(?:\s*purposes?)?|ask (?:a )?doctor(?: or pharmacist)?(?: before use)?(?: if)?|do not use|stop use(?: and ask a doctor)?(?: if)?|when using this product|pregnancy(?:\s*(?:\/|or)\s*breast-?feeding)?|breast-?feeding|questions(?: or comments)?\??)[\s:.)\-–*]*$/iu;
+  /^(?:drug facts(?:\s*\(continued\))?|drug|facts|\(s\)|uses?(?:\s*\(s\))?|indications?(?: (?:and|&) usage)?|purposes?|directions?|warnings?|other (?:safety )?[il]nformation|storage(?: and handling)?|inactive(?: ingredients?)?|active ingredients?(?:\s*\([^)]*\))?(?:\s*purposes?)?|ask (?:a )?doctor(?: or pharmacist)?(?: before use)?(?: if)?|do not use|stop use(?: and ask a doctor)?(?: if)?|when using this product|pregnancy(?:\s*(?:\/|or)\s*breast-?feeding)?|breast-?feeding|questions(?: or comments)?\??|\([^)]*\bonly\)|(?:directions?|inactive ingredients?)\s*\([^)]*\bonly\)|(?:ask (?:a )?doctor(?: or pharmacist)? )?before us ?e(?: if)?(?: you (?:have|are)| your child (?:has|is))?|stop use and ask a doctor ?if)[\s:.)\-–*]*$/iu;
 
 /** Drug Facts subheadings as printed (capitalized). Where they appear inside a section, a new bullet starts. */
 const SUBHEADINGS: [string, LabelSectionKey | null][] = [
@@ -125,7 +125,6 @@ const NO_CUT_AFTER = new Set(
 /** Patterns that start a new item in flattened (glyph-less, XML-less) sections. */
 const ITEM_STARTS: Partial<Record<LabelSectionKey, RegExp[]>> = {
   directions: [
-    /\b(?:adults(?: and children)?|children|infants|teens|teenagers)\s+(?:\d|under\b|over\b|ages?\b|from\b|\()/gi,
     /\bdo not (?:take|give|use|exceed|administer)\b/gi,
     /\b(?:shake well|take only|use only)\b/gi,
   ],
@@ -138,6 +137,12 @@ const ITEM_STARTS: Partial<Record<LabelSectionKey, RegExp[]>> = {
     /\b(?:store|protect from|keep (?:in|at|tightly|away)|do not use if|each [\p{L} .]{1,25}? contains|retain|read all|see (?:end|side|top|bottom|back) panel|avoid excessive)\b/giu,
   ],
 };
+
+const AGE_LINE = /^(?:adults|children|infants|teens|teenagers|consumers|persons|people)\b/i;
+const INSTRUCTION = /\b(?:take|give|use|ask|chew|dissolve|swallow|drink|mix|place|consult|apply|do not|repeat|shake|see)\b/i;
+
+/** An age group starts a directions line ("adults and children 12-64 years", "children under 6 years"). */
+const AGE_GROUP = /\b(?:(?:adults(?: and children)?|children|infants|teens|teenagers)\s+(?:\d|under\b|over\b|ages?\b|from\b|\()|(?:consumers|persons|people) with\b)/gi;
 
 /** OTC monograph list items: in flattened text a new item starts at each (never mid-parenthesis). */
 const MONOGRAPH_ITEMS: Partial<Record<LabelSectionKey, string[]>> = {
@@ -367,6 +372,12 @@ export function splitSection(key: LabelSectionKey, text: string, options: SplitO
     for (const m of text.matchAll(STARTERS)) if (!subheadingEnds.has(m.index!)) soft(m.index!);
     for (const m of text.matchAll(/(?<=\s)[-–](?=\p{L})/gu)) soft(m.index!); // "-the common cold" dash bullets
   }
+  if (!xml && key === "directions") {
+    for (const m of text.matchAll(AGE_GROUP)) {
+      if (NO_CUT_AFTER.has(previousWord(text, m.index!)) || previousChar(text, m.index!) === ":") continue;
+      soft(m.index!);
+    }
+  }
   if (!xml && !glyphs) {
     // Flattened lists: "…ask a doctor or pharmacist. if you are allergic…" — a new lowercase item.
     for (const m of text.matchAll(/[.!?](?=\s+\p{Ll})/gu)) {
@@ -417,8 +428,13 @@ export function splitSection(key: LabelSectionKey, text: string, options: SplitO
     if (p.product) return false;
     const t = stripGlyphs(text.slice(p.a, p.b));
     if (/:$/.test(t) || LEAD_IN_END.test(t) || SHORT_LEAD_IN.test(t)) return true;
+    // "adults 65 years of age and older" ■ "ask a doctor": an age line joins its instruction.
+    if (key === "directions" && AGE_LINE.test(t) && !INSTRUCTION.test(t) && t.split(/\s+/).length <= 12) return true;
     const end = headingSpans.get(p.a);
-    return end !== undefined && p.b <= end + 1 && !/[.!?]$/.test(t);
+    if (end === undefined || /[.!?]$/.test(t)) return false;
+    // "Ask a doctor before use if you have" ■ … : a subheading with a short opening joins its first item.
+    const tail = text.slice(end, p.b).trim();
+    return p.b <= end + 1 || (tail.split(/\s+/).length <= 5 && /(?:^|\s)(?:if|you|have|are|has|is|taking|you have|you are)$/i.test(tail));
   };
   const joined: Span[] = [];
   for (let i = 0; i < pieces.length; i++) {
@@ -439,16 +455,35 @@ export function splitSection(key: LabelSectionKey, text: string, options: SplitO
   }
 
   const bullets: string[] = [];
-  let seen = new Set<string>();
   for (const [a, b] of joined) {
     const bullet = stripGlyphs(text.slice(a, b)).replace(TRIM_START, "").replace(TRIM_END, "");
-    if (bullet.length < 2 || !/\p{L}/u.test(bullet) || HEADING_ONLY.test(bullet)) continue;
-    if (products.has(a)) seen = new Set(); // repeated lines under each product are each kept
-    if (seen.has(bullet)) continue;
-    seen.add(bullet);
+    // Headings are capitalized: a lowercase "ask a doctor" / "do not use" is an instruction and stays.
+    if (bullet.length < 2 || !/\p{L}/u.test(bullet) || (/^[\p{Lu}(]/u.test(bullet) && HEADING_ONLY.test(bullet))) continue;
+    if (bullets[bullets.length - 1] === bullet) continue; // the same line twice in a row
     bullets.push(bullet);
   }
-  return bullets;
+  return dropRepeatedBlocks(bullets);
+}
+
+/** Remove a run of 2+ bullets that exactly repeats an earlier run; a lone repeated bullet stays ("sneezing"). */
+export function dropRepeatedBlocks(bullets: string[]): string[] {
+  const out: string[] = [];
+  const key = (list: string[]) => list.join("\u0000");
+  for (let i = 0; i < bullets.length; ) {
+    let skip = 0;
+    for (let k = Math.min(bullets.length - i, out.length); k >= 2 && !skip; k--) {
+      const block = key(bullets.slice(i, i + k));
+      for (let j = 0; j + k <= out.length; j++) {
+        if (key(out.slice(j, j + k)) === block) {
+          skip = k;
+          break;
+        }
+      }
+    }
+    if (skip) i += skip;
+    else out.push(bullets[i++]);
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -467,12 +502,28 @@ function tableText(html: string): string {
   return tidy(text);
 }
 
-/** Regions (subheading → next subheading) whose subheading belongs to one of `keys`. */
-function regions(text: string, keys: Set<LabelSectionKey>): Span[] {
-  const hits = [...text.matchAll(SUBHEADING_RE)].map((m) => ({ index: m.index!, key: subheadingKey(m[0]) }));
+const comparable = (t: string) => stripGlyphs(t).toLowerCase().replace(/[^\p{L}\d]+/gu, " ").trim();
+
+/**
+ * Regions (subheading → next subheading) whose subheading belongs to one of `keys` and whose text really
+ * is that section's (`sections` given): "When using this product, if changes in behavior…" inside the
+ * Reye's syndrome warning is not the label's When-using section and stays.
+ */
+function regions(text: string, keys: Set<LabelSectionKey>, sections?: Map<LabelSectionKey, string>): Span[] {
+  const depth = parenDepths(text);
+  const hits = [...text.matchAll(SUBHEADING_RE)]
+    .filter((m) => depth[m.index!] === 0) // "(see Directions)" is a reference, not a heading
+    .map((m) => ({ index: m.index!, phrase: m[0], key: subheadingKey(m[0]) }));
   const out: Span[] = [];
   hits.forEach((hit, i) => {
-    if (hit.key && keys.has(hit.key)) out.push([hit.index, hits[i + 1]?.index ?? text.length]);
+    if (!hit.key || !keys.has(hit.key)) return;
+    const span: Span = [hit.index, hits[i + 1]?.index ?? text.length];
+    const target = sections?.get(hit.key);
+    if (sections && target !== undefined) {
+      const body = comparable(text.slice(span[0] + hit.phrase.length, span[1]));
+      if (body && !comparable(target).includes(body)) return;
+    }
+    out.push(span);
   });
   return out;
 }
@@ -510,7 +561,7 @@ export function labelSections(label: FdaLabel, options: SectionOptions = {}): La
       }
     }
     if (key === "warnings") {
-      exclude.push(...regions(text, new Set([...present].filter((k) => k !== "warnings"))));
+      exclude.push(...regions(text, new Set([...present].filter((k) => k !== "warnings")), texts));
     }
     if (key !== "questions") {
       const q = regions(text, new Set<LabelSectionKey>(["questions"]));
@@ -518,7 +569,7 @@ export function labelSections(label: FdaLabel, options: SectionOptions = {}): La
       exclude.push(...q);
     }
     if (key === "inactive_ingredients" || key === "directions") {
-      exclude.push(...regions(text, new Set([...present].filter((k) => k === "other_information"))));
+      exclude.push(...regions(text, new Set([...present].filter((k) => k === "other_information")), texts));
     }
 
     const bullets = splitSection(key, text, {

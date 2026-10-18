@@ -2,6 +2,12 @@
 // Every catalog strength must be traceable to this text: the NDC Directory's structured value is only
 // used to confirm it (it carries typos like "200 mg/1201", ion-basis values under salt names, and
 // whole-package amounts).
+//
+// An amount belongs to an ingredient only when it follows that ingredient's own name directly — with
+// nothing in between but salt words and abbreviations ("HCl", "USP", "polacrilex"), dot leaders,
+// punctuation, a parenthetical without numbers ("(NSAID)"), an apothecary amount before a metric one
+// ("10 gr (648 mg)"), or "(equal to …)". Anything else — another word, an unreadable unit ("650 mgr") —
+// means the label doesn't print an amount for it there.
 import type { CatalogIngredient, Strength } from "@/lib/domain/schema";
 import { normalizeIngredient } from "@/lib/domain/ingredients";
 import { labelPers } from "./strength";
@@ -17,17 +23,26 @@ export type Printed = {
   basis: "w/v" | "w/w" | null;
   /** "Ranitidine 75 mg (as ranitidine hydrochloride 84 mg)": the label's leading name, which names this amount. */
   baseName: string | null;
+  /** The ingredient name as the label prints it at this occurrence. */
+  printedName: string;
   /** Where the name starts and the amount ends in the text. */
   start: number;
   end: number;
 };
 
-const AMOUNT = /(\d[\d,]*(?:\.\d+)?|\.\d+)\s*(milligrams?|micrograms?|grams?|mg|mcg|µg|μg|g|%)(?![\p{L}\d])/giu;
+const UNIT = String.raw`(milligrams?|micrograms?|grams?|mg|mcg|µg|μg|g|%)(?![\p{L}\d])`;
+const AMOUNT_AT = new RegExp(String.raw`^(\d[\d,]*(?:\.\d+)?|\.\d+)\s*${UNIT}`, "iu");
+const ANY_NUMBER_AT = /^(\d[\d,]*(?:\.\d+)?|\.\d+)\s*([\p{L}%]*)/u;
 const UNIT_WORDS: Record<string, PrintedUnit> = { milligram: "mg", microgram: "mcg", gram: "g", µg: "mcg", μg: "mcg" };
 
-/** Between a name and a parenthesized amount: a few words and maybe an apothecary amount ("10 gr"). */
-const GAP_BEFORE_PAREN = /^[\s,]*(?:[\p{L}-]+[\s,]+){0,3}(?:\d+(?:\.\d+)?\s*(?:gr|grains?)\s*)?$/iu;
-/** A parenthetical that restates the amount: "(648 mg)", "(equal to 4 mg nicotine)". */
+/** Words allowed between a name and its amount. */
+const QUALIFIERS = new Set(
+  (
+    "usp nf hcl hbr hci hydrochloride hydrobromide dihydrochloride sodium potassium calcium magnesium succinate maleate citrate " +
+    "sulfate tartrate bitartrate polacrilex monohydrate dihydrate trihydrate sesquihydrate anhydrous base acetate carbonate " +
+    "phosphate gluconate bromide chloride fumarate mesylate besylate salicylate equal equivalent to as micronized"
+  ).split(" "),
+);
 const PAREN_AMOUNT_PREFIX = /^\(\s*(?:equal to|equivalent to|as|providing|contains)?\s*$/i;
 
 function escapeRegExp(text: string): string {
@@ -61,60 +76,123 @@ function candidates(ndcName: string, others: string[]): string[] {
   return [...new Set(list.filter((c) => c.length >= 3))];
 }
 
-/**
- * The amount printed for one ingredient: its name outside parentheses, then the first amount after it
- * (outside parentheses, within 80 characters, before any other ingredient's name). Null when not printed.
- */
-export function findPrinted(activeText: string, ndcName: string, otherNames: string[]): Printed | null {
-  const text = activeText;
-  const lower = text.toLowerCase();
-  const depth = parenDepths(text);
-  const otherStarts = otherNames
-    .flatMap((o) => [...lower.matchAll(new RegExp(`(?<![\\p{L}])${escapeRegExp(words(o).join(" "))}(?![\\p{L}])`, "gu"))].map((m) => m.index!))
-    .sort((a, b) => a - b);
+function readAmount(text: string, at: number): { amount: number; unit: PrintedUnit; end: number } | null {
+  const m = text.slice(at).match(AMOUNT_AT);
+  if (!m) return null;
+  const word = m[2].toLowerCase().replace(/s$/, "");
+  return { amount: Number(m[1].replace(/,/g, "")), unit: (UNIT_WORDS[word] ?? word) as PrintedUnit, end: at + m[0].length };
+}
 
-  for (const name of candidates(ndcName, otherNames)) {
-    const re = new RegExp(`(?<![\\p{L}])${escapeRegExp(name)}(?![\\p{L}])`, "gu");
-    for (const m of lower.matchAll(re)) {
-      const start = m.index!;
-      if (depth[start] > 0) continue;
-      const after = start + m[0].length;
-      const limit = Math.min(text.length, after + 80, otherStarts.find((s) => s > after) ?? Infinity);
-      AMOUNT.lastIndex = after;
-      let a: RegExpExecArray | null;
-      while ((a = AMOUNT.exec(text)) && a.index < limit) {
-        if (depth[a.index] > depth[start]) {
-          // Only "(648 mg)" right after the name (or after "10 gr"), or "(equal to 4 mg …)".
-          const open = text.lastIndexOf("(", a.index);
-          if (depth[a.index] - depth[start] !== 1 || !GAP_BEFORE_PAREN.test(text.slice(after, open)) || !PAREN_AMOUNT_PREFIX.test(text.slice(open, a.index))) {
-            continue;
-          }
-        }
-        const end = a.index + a[0].length;
-        const rest = text.slice(end);
-        const word = a[2].toLowerCase().replace(/s$/, "");
-        const unit = (UNIT_WORDS[word] ?? word) as PrintedUnit;
-        const perVolume = rest.match(/^\s*(?:\/|per|in each|in)\s*(\d+(?:\.\d+)?)\s*ml\b/i);
-        const basis = unit === "%" ? (rest.match(/^\s*\(?\s*(w\/v|w\/w)\b/i)?.[1].toLowerCase() as "w/v" | "w/w" | undefined) : undefined;
-        const asBase = /^\s*\(\s*(?:as|equivalent to|equal to)\b/i.test(rest);
-        return {
-          amount: Number(a[1].replace(/,/g, "")),
-          unit,
-          perVolume: perVolume ? Number(perVolume[1]) : null,
-          basis: basis ?? null,
-          baseName: asBase ? text.slice(start, a.index).replace(/[\s,:-]+$/, "").trim() || null : null,
-          start,
-          end,
-        };
-      }
+/** From just after a name, the amount that belongs to it, or null (see the file comment). */
+function amountAfterName(text: string, from: number): { amount: number; unit: PrintedUnit; at: number; end: number } | null {
+  let p = from;
+  let qualifiers = 0;
+  for (let guard = 0; guard < 40 && p < text.length; guard++) {
+    const ch = text[p];
+    if (/\s/.test(ch)) {
+      p++;
+      continue;
     }
+    // "….325 mg" after dot leaders is 325; " .5 mg" after a space is 0.5.
+    if (ch === "." && /\d/.test(text[p + 1] ?? "") && !/[.…]/.test(text[p - 1] ?? "")) {
+      const a = readAmount(text, p);
+      return a ? { ...a, at: p } : null;
+    }
+    if (/[,:;*…·.\-–—/_]/.test(ch)) {
+      p++;
+      continue;
+    }
+    if (ch === "(") {
+      const close = text.indexOf(")", p);
+      if (close < 0) return null;
+      const inner = text.slice(p, close + 1);
+      if (!/\d/.test(inner)) {
+        p = close + 1;
+        continue;
+      }
+      // "(648 mg)", "(equal to 4 mg nicotine)": the amount inside counts.
+      const m = inner.match(/\d|\.\d/);
+      const at = p + (m?.index ?? 0);
+      if (!PAREN_AMOUNT_PREFIX.test(text.slice(p, at))) return null;
+      const a = readAmount(text, at);
+      return a ? { ...a, at } : null;
+    }
+    if (/\d/.test(ch)) {
+      const a = readAmount(text, p);
+      if (a) return { ...a, at: p };
+      // "10 gr (648 mg)": skip the apothecary amount, the metric one follows in parentheses.
+      const n = text.slice(p).match(ANY_NUMBER_AT);
+      if (n && /^(?:gr|grains?)$/i.test(n[2]) && text.slice(p + n[0].length).trimStart().startsWith("(")) {
+        p += n[0].length;
+        continue;
+      }
+      return null; // "650 mgr", "3350" with no unit, "1000 IU"
+    }
+    const w = text.slice(p).match(/^[\p{L}'’]+/u)?.[0];
+    if (!w) return null;
+    const isAbbreviation = /^[A-Z][A-Za-z]{1,4}$/.test(w) && (w.match(/[A-Z]/g) ?? []).length >= 2; // HCl, HBr, USP
+    if (!(QUALIFIERS.has(w.toLowerCase()) || isAbbreviation) || ++qualifiers > 4) return null;
+    p += w.length;
   }
   return null;
 }
 
+/** "Dextromethorphan HBr ......", "Famotidine USP", "Nicotine polacrilex (" → the name as the label prints it. */
+function displayName(raw: string): string {
+  const name = raw
+    .replace(/\([^)]*\)?/g, " ")
+    .replace(/\d+(?:\.\d+)?\s*(?:gr|grains?)\b/gi, " ")
+    .replace(/[.…·_:;,*]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/(?:\s+(?:usp|nf|equal to|equivalent to|as))+$/i, "")
+    .trim();
+  if (name === name.toUpperCase()) return name.toLowerCase().replace(/(^|[\s(/-])(\p{L})/gu, (_, sep: string, ch: string) => sep + ch.toUpperCase());
+  return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
+/** Every amount the label prints for one ingredient (a label may print several strengths). */
+export function findAllPrinted(activeText: string, ndcName: string, otherNames: string[]): Printed[] {
+  const text = activeText;
+  const lower = text.toLowerCase();
+  const depth = parenDepths(text);
+  for (const name of candidates(ndcName, otherNames)) {
+    const found: Printed[] = [];
+    for (const m of lower.matchAll(new RegExp(`(?<![\\p{L}])${escapeRegExp(name)}(?![\\p{L}])`, "gu"))) {
+      const start = m.index!;
+      if (depth[start] > 0) continue;
+      const a = amountAfterName(text, start + m[0].length);
+      if (!a) continue;
+      const rest = text.slice(a.end);
+      const perVolume = rest.match(/^\s*(?:\/|per|in each|in)\s*(\d+(?:\.\d+)?)\s*ml\b/i);
+      const basis = a.unit === "%" ? (rest.match(/^\s*\(?\s*(w\/v|w\/w)\b/i)?.[1].toLowerCase() as "w/v" | "w/w" | undefined) : undefined;
+      const printedName = displayName(text.slice(start, a.at));
+      found.push({
+        amount: a.amount,
+        unit: a.unit,
+        perVolume: perVolume ? Number(perVolume[1]) : null,
+        basis: basis ?? null,
+        baseName: /^\s*\(\s*(?:as|equivalent to|equal to)\b/i.test(rest) ? text.slice(start, a.at).replace(/[\s,:.…-]+$/, "").trim() || null : null,
+        printedName,
+        start,
+        end: a.end,
+      });
+    }
+    if (found.length > 0) return found;
+  }
+  return [];
+}
+
+/** The first amount the label prints for an ingredient, or null. */
+export function findPrinted(activeText: string, ndcName: string, otherNames: string[]): Printed | null {
+  return findAllPrinted(activeText, ndcName, otherNames)[0] ?? null;
+}
+
+const MG = { mg: 1, mcg: 0.001, g: 1000 } as const;
+
 /** mg per mL, mg per g, or mg per count unit — for comparing two statements of one strength. */
 function canonical(s: Strength): { kind: string; value: number } | null {
-  const mg = { mg: 1, mcg: 0.001, g: 1000 }[s.unit as "mg" | "mcg" | "g"];
+  const mg = MG[s.unit as keyof typeof MG];
   if (mg === undefined) return null;
   const per = s.perAmount ?? 1;
   const unit = s.perUnit ?? "";
@@ -142,19 +220,30 @@ export function labelVolume(activeText: string): number | null {
   return volumes.length === 1 ? volumes[0] : null;
 }
 
+/** The single count the label's "(in each 3 mini-tablet dose)" gives, if any (1 when it names one unit). */
+export function labelCount(activeText: string): number | null {
+  const counts = [...new Set(labelPers(activeText).flatMap((p) => (p.kind === "count" ? [p.amount ?? 1] : [])))];
+  return counts.length === 1 ? counts[0] : null;
+}
+
 /**
- * Whole-run gate: the stored strength is the ingredient's own printed amount — same number and unit, or a
- * percent restated as mg per 1 mL / 1 g — with the label's per-volume when the label gives one.
+ * Whole-run gate: the stored strength is one of the amounts printed right after this ingredient's own
+ * name — same amount in mg, or a percent restated as mg per 1 mL / 1 g — with the label's own
+ * per-quantity ("in each 5 mL", "in each 3 mini-tablet dose", or one unit of a solid).
  */
 export function strengthIsTraceable(ingredient: CatalogIngredient, otherNames: string[], activeText: string): boolean {
-  const p = findPrinted(activeText, ingredient.name, otherNames);
-  if (!p) return false;
   const s = ingredient.strength;
-  if (p.unit === "%") {
-    return s.unit === "mg" && s.perAmount === 1 && (s.perUnit === "mL" || s.perUnit === "g") && close(s.amount, p.amount * 10);
-  }
-  if (p.unit !== s.unit || !close(p.amount, s.amount)) return false;
-  const volume = p.perVolume ?? labelVolume(activeText);
-  if (volume !== null) return s.perUnit === "mL" && close(s.perAmount ?? 1, volume);
-  return true;
+  const mg = MG[s.unit as keyof typeof MG];
+  const printed = findAllPrinted(activeText, ingredient.name, otherNames);
+  return printed.some((p) => {
+    if (p.unit === "%") {
+      return s.unit === "mg" && s.perAmount === 1 && (s.perUnit === "mL" || s.perUnit === "g") && close(s.amount, p.amount * 10);
+    }
+    if (mg === undefined || !close(s.amount * mg, p.amount * MG[p.unit])) return false;
+    const volume = p.perVolume ?? labelVolume(activeText);
+    if (volume !== null) return s.perUnit === "mL" && close(s.perAmount ?? 1, volume);
+    if (s.perUnit === "fl oz") return /\bfl\.? ?oz\b|fluid ounce/i.test(activeText);
+    if (s.perUnit === "mL" || s.perUnit === "L" || s.perUnit === "g" || s.perUnit === "mg") return false; // the label gives no per-quantity
+    return close(s.perAmount ?? 1, labelCount(activeText) ?? 1);
+  });
 }

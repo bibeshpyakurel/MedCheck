@@ -1276,6 +1276,1045 @@
    ]
   }
  ],
+ "aleve-tablet": [
+  {
+   "product_ndc": "0280-6010",
+   "spl_id": "4526b265-424f-3e71-e063-6294a90a21a8",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Aleve",
+   "generic_name": "NAPROXEN SODIUM",
+   "labeler_name": "Bayer HealthCare LLC.",
+   "dosage_form": "TABLET",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "NAPROXEN SODIUM",
+     "strength": "220 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "0280-6010-01"
+    },
+    {
+     "package_ndc": "0280-6010-02"
+    },
+    {
+     "package_ndc": "0280-6010-03"
+    },
+    {
+     "package_ndc": "0280-6010-04"
+    },
+    {
+     "package_ndc": "0280-6010-05"
+    },
+    {
+     "package_ndc": "0280-6010-06"
+    },
+    {
+     "package_ndc": "0280-6010-07"
+    },
+    {
+     "package_ndc": "0280-6010-09"
+    },
+    {
+     "package_ndc": "0280-6010-10"
+    },
+    {
+     "package_ndc": "0280-6010-24"
+    },
+    {
+     "package_ndc": "0280-6010-50"
+    }
+   ]
+  }
+ ],
+ "bayer-genuine-aspirin": [
+  {
+   "product_ndc": "70264-013",
+   "spl_id": "43cb3193-0671-d065-e063-6394a90afd47",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Bayer Genuine Aspirin",
+   "generic_name": "Aspirin",
+   "labeler_name": "R J General Corporation",
+   "dosage_form": "TABLET",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "ASPIRIN",
+     "strength": "325 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "70264-013-01"
+    }
+   ]
+  }
+ ],
+ "bayer-low-dose": [
+  {
+   "product_ndc": "0280-2100",
+   "spl_id": "4526b594-84b4-b981-e063-6294a90a1aed",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Bayer Low Dose",
+   "generic_name": "Aspirin",
+   "labeler_name": "Bayer HealthCare LLC.",
+   "dosage_form": "TABLET",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "ASPIRIN",
+     "strength": "81 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "0280-2100-12"
+    },
+    {
+     "package_ndc": "0280-2100-20"
+    },
+    {
+     "package_ndc": "0280-2100-30"
+    },
+    {
+     "package_ndc": "0280-2100-32"
+    },
+    {
+     "package_ndc": "0280-2100-40"
+    }
+   ]
+  }
+ ],
+ "midol-complete-gelcaps": [
+  {
+   "product_ndc": "0280-8015",
+   "spl_id": "4526be49-a733-1db7-e063-6394a90a1937",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Midol Complete Gelcaps",
+   "generic_name": "Midol Complete",
+   "labeler_name": "Bayer HealthCare LLC",
+   "dosage_form": "TABLET, COATED",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "CAFFEINE",
+     "strength": "60 mg/1"
+    },
+    {
+     "name": "PYRILAMINE MALEATE",
+     "strength": "15 mg/1"
+    },
+    {
+     "name": "ACETAMINOPHEN",
+     "strength": "500 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "0280-8015-24"
+    }
+   ]
+  }
+ ],
+ "nicorette-fruit-chill-gum": [
+  {
+   "product_ndc": "0135-0242",
+   "spl_id": "1e6cbf12-d37d-1a4b-e063-6394a90ade6a",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Nicorette Fruit Chill",
+   "generic_name": "nicotine polacrilex",
+   "labeler_name": "Haleon US Holdings LLC",
+   "dosage_form": "GUM, CHEWING",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "NICOTINE",
+     "strength": "4 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "0135-0242-02"
+    },
+    {
+     "package_ndc": "0135-0242-05"
+    },
+    {
+     "package_ndc": "0135-0242-06"
+    },
+    {
+     "package_ndc": "0135-0242-08"
+    },
+    {
+     "package_ndc": "0135-0242-11"
+    },
+    {
+     "package_ndc": "0135-0242-17"
+    },
+    {
+     "package_ndc": "0135-0242-18"
+    },
+    {
+     "package_ndc": "0135-0242-19"
+    }
+   ]
+  },
+  {
+   "product_ndc": "0135-0241",
+   "spl_id": "1e6cbf12-d37d-1a4b-e063-6394a90ade6a",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Nicorette Fruit Chill",
+   "generic_name": "nicotine polacrilex",
+   "labeler_name": "Haleon US Holdings LLC",
+   "dosage_form": "GUM, CHEWING",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "NICOTINE",
+     "strength": "2 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "0135-0241-02"
+    },
+    {
+     "package_ndc": "0135-0241-05"
+    },
+    {
+     "package_ndc": "0135-0241-06"
+    },
+    {
+     "package_ndc": "0135-0241-08"
+    },
+    {
+     "package_ndc": "0135-0241-17"
+    },
+    {
+     "package_ndc": "0135-0241-18"
+    },
+    {
+     "package_ndc": "0135-0241-19"
+    }
+   ]
+  }
+ ],
+ "nicotine-lozenge-heb": [
+  {
+   "product_ndc": "37808-674",
+   "spl_id": "f186f7fc-7b7a-4029-a404-99e5f2e1f557",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "nicotine lozenge",
+   "generic_name": "nicotine polacrilex",
+   "labeler_name": "H E B",
+   "dosage_form": "LOZENGE",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "NICOTINE",
+     "strength": "2 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "37808-674-03"
+    },
+    {
+     "package_ndc": "37808-674-10"
+    }
+   ]
+  }
+ ],
+ "zzzquil-liquicaps": [
+  {
+   "product_ndc": "66715-9746",
+   "spl_id": "2733bf33-a0be-9d8a-e063-6294a90a26ad",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "ZzzQuil",
+   "generic_name": "Diphenhydramine Hydrochloride",
+   "labeler_name": "Lil' Drug Store Products, Inc.",
+   "dosage_form": "CAPSULE, LIQUID FILLED",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "DIPHENHYDRAMINE HYDROCHLORIDE",
+     "strength": "50 mg/21"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "66715-9746-1"
+    }
+   ]
+  }
+ ],
+ "advil-pm-caplet": [
+  {
+   "product_ndc": "0573-0148",
+   "spl_id": "57c5339d-4ab8-ce7f-e063-6394a90a75a5",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "ADVIL PM",
+   "generic_name": "diphenhydramine HCl, ibuprofen",
+   "labeler_name": "Haleon US Holdings LLC",
+   "dosage_form": "CAPSULE, LIQUID FILLED",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "DIPHENHYDRAMINE HYDROCHLORIDE",
+     "strength": "25 mg/1"
+    },
+    {
+     "name": "IBUPROFEN",
+     "strength": "200 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "0573-0148-06"
+    },
+    {
+     "package_ndc": "0573-0148-07"
+    }
+   ]
+  },
+  {
+   "product_ndc": "0573-0167",
+   "spl_id": "57c5339d-4ab8-ce7f-e063-6394a90a75a5",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "ADVIL PM",
+   "generic_name": "diphenhydramine HCl, ibuprofen",
+   "labeler_name": "Haleon US Holdings LLC",
+   "dosage_form": "CAPSULE, LIQUID FILLED",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "DIPHENHYDRAMINE HYDROCHLORIDE",
+     "strength": "25 mg/1"
+    },
+    {
+     "name": "IBUPROFEN",
+     "strength": "200 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "0573-0167-25"
+    },
+    {
+     "package_ndc": "0573-0167-26"
+    },
+    {
+     "package_ndc": "0573-0167-43"
+    },
+    {
+     "package_ndc": "0573-0167-44"
+    },
+    {
+     "package_ndc": "0573-0167-55"
+    },
+    {
+     "package_ndc": "0573-0167-56"
+    }
+   ]
+  }
+ ],
+ "tylenol-pm-extra-strength": [
+  {
+   "product_ndc": "50580-608",
+   "spl_id": "57301337-05f3-6afe-e063-6394a90aa4dd",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Tylenol PM Extra Strength",
+   "generic_name": "acetaminophen and diphenhydramine hydrochloride",
+   "labeler_name": "Kenvue Brands LLC",
+   "dosage_form": "TABLET, FILM COATED",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "ACETAMINOPHEN",
+     "strength": "500 mg/1"
+    },
+    {
+     "name": "DIPHENHYDRAMINE HYDROCHLORIDE",
+     "strength": "25 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "50580-608-01"
+    },
+    {
+     "package_ndc": "50580-608-02"
+    },
+    {
+     "package_ndc": "50580-608-03"
+    },
+    {
+     "package_ndc": "50580-608-04"
+    },
+    {
+     "package_ndc": "50580-608-05"
+    },
+    {
+     "package_ndc": "50580-608-06"
+    },
+    {
+     "package_ndc": "50580-608-07"
+    },
+    {
+     "package_ndc": "50580-608-08"
+    }
+   ]
+  }
+ ],
+ "motrin-ib": [
+  {
+   "product_ndc": "50580-230",
+   "spl_id": "4003a46c-d99c-72f4-e063-6394a90ab2db",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Motrin IB",
+   "generic_name": "Ibuprofen",
+   "labeler_name": "Kenvue Brands LLC",
+   "dosage_form": "TABLET, FILM COATED",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "IBUPROFEN",
+     "strength": "200 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "50580-230-01"
+    },
+    {
+     "package_ndc": "50580-230-02"
+    },
+    {
+     "package_ndc": "50580-230-03"
+    },
+    {
+     "package_ndc": "50580-230-04"
+    },
+    {
+     "package_ndc": "50580-230-05"
+    },
+    {
+     "package_ndc": "50580-230-06"
+    },
+    {
+     "package_ndc": "50580-230-07"
+    },
+    {
+     "package_ndc": "50580-230-08"
+    },
+    {
+     "package_ndc": "50580-230-09"
+    }
+   ]
+  }
+ ],
+ "zantac-360-two-strengths-one-product": [
+  {
+   "product_ndc": "41167-0361",
+   "spl_id": "efcd0b2f-86c9-43c6-889f-7962e191a9cb",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Zantac 360",
+   "generic_name": "Famotidine",
+   "labeler_name": "Chattem, Inc.",
+   "dosage_form": "TABLET, FILM COATED",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "FAMOTIDINE",
+     "strength": "20 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "41167-0361-0"
+    },
+    {
+     "package_ndc": "41167-0361-1"
+    },
+    {
+     "package_ndc": "41167-0361-2"
+    },
+    {
+     "package_ndc": "41167-0361-4"
+    },
+    {
+     "package_ndc": "41167-0361-6"
+    },
+    {
+     "package_ndc": "41167-0361-8"
+    },
+    {
+     "package_ndc": "41167-0361-9"
+    }
+   ]
+  }
+ ],
+ "nicorette-lozenge-two-strengths": [
+  {
+   "product_ndc": "0135-0508",
+   "spl_id": "12f1fec8-003a-8788-e063-6394a90a298a",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "NICORETTE",
+   "generic_name": "nicotine polacrilex",
+   "labeler_name": "Haleon US Holdings LLC",
+   "dosage_form": "LOZENGE",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "NICOTINE",
+     "strength": "2 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "0135-0508-02"
+    },
+    {
+     "package_ndc": "0135-0508-03"
+    },
+    {
+     "package_ndc": "0135-0508-04"
+    }
+   ]
+  }
+ ],
+ "diphenhydramine-25-50": [
+  {
+   "product_ndc": "0904-2056",
+   "spl_id": "4b432cbb-d3d9-2f88-e063-6294a90a7ed5",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Diphenhydramine Hydrochloride",
+   "generic_name": "Diphenhydramine Hydrochloride",
+   "labeler_name": "Major Pharmaceuticals",
+   "dosage_form": "CAPSULE",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "DIPHENHYDRAMINE HYDROCHLORIDE",
+     "strength": "50 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "0904-2056-61"
+    }
+   ]
+  }
+ ],
+ "allegra-60-180": [
+  {
+   "product_ndc": "50090-1234",
+   "spl_id": "9840fda7-e713-4573-8029-046a50c67462",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "ALLEGRA ALLERGY",
+   "generic_name": "fexofenadine hydrochloride",
+   "labeler_name": "A-S Medication Solutions",
+   "dosage_form": "TABLET, FILM COATED",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "FEXOFENADINE HYDROCHLORIDE",
+     "strength": "180 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "50090-1234-0"
+    }
+   ]
+  }
+ ],
+ "guaifenesin-pse-600-1200": [
+  {
+   "product_ndc": "70677-1011",
+   "spl_id": "af2b26c5-be4e-5866-6215-d6d0bcbd90cd",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Guaifenesin and Pseudoephedrine HCl",
+   "generic_name": "Guaifenesin and Pseudoephedrine HCL",
+   "labeler_name": "Strategic Sourcing Services, LLC",
+   "dosage_form": "TABLET, EXTENDED RELEASE",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "GUAIFENESIN",
+     "strength": "600 mg/1"
+    },
+    {
+     "name": "PSEUDOEPHEDRINE HYDROCHLORIDE",
+     "strength": "60 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "70677-1011-1"
+    }
+   ]
+  }
+ ],
+ "nighttime-softgel-dot-leaders": [
+  {
+   "product_ndc": "55301-603",
+   "spl_id": "4652ed1a-8024-2fa2-e063-6394a90a8d0f",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Nighttime Cold/Flu Relief",
+   "generic_name": "ACETAMINOPHEN, DEXTROMETHORPHAN HBr, DOXYLAMINE SUCCINATE",
+   "labeler_name": "ARMY AND AIR FORCE EXCHANGE SERVICE",
+   "dosage_form": "CAPSULE, LIQUID FILLED",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "ACETAMINOPHEN",
+     "strength": "325 mg/1"
+    },
+    {
+     "name": "DEXTROMETHORPHAN HYDROBROMIDE",
+     "strength": "15 mg/1"
+    },
+    {
+     "name": "DOXYLAMINE SUCCINATE",
+     "strength": "6.25 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "55301-603-03"
+    }
+   ]
+  }
+ ],
+ "tussin-dm-dot-leaders": [
+  {
+   "product_ndc": "76281-601",
+   "spl_id": "e2f34ff2-7880-4bdf-9193-5873515400f3",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Maximum Strength Tussin DM Liquid filled Softgels",
+   "generic_name": "DEXTROMETHORPHAN HBr, GUAIFENESIN",
+   "labeler_name": "AptaPharma Inc.",
+   "dosage_form": "CAPSULE, LIQUID FILLED",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "DEXTROMETHORPHAN HYDROBROMIDE",
+     "strength": "10 mg/1"
+    },
+    {
+     "name": "GUAIFENESIN",
+     "strength": "200 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "76281-601-02"
+    }
+   ]
+  }
+ ],
+ "nicotine-gum-dot-leaders": [
+  {
+   "product_ndc": "55319-966",
+   "spl_id": "f4825c27-4253-4314-aa55-4d9819030f30",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Nicotine Polacrilex",
+   "generic_name": "Nicotine Polacrilex",
+   "labeler_name": "Family Dollar (FAMILY WELLNESS)",
+   "dosage_form": "GUM, CHEWING",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "NICOTINE",
+     "strength": "4 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "55319-966-20"
+    }
+   ]
+  }
+ ],
+ "peg-3350-dot-leaders": [
+  {
+   "product_ndc": "72090-036",
+   "spl_id": "cb9c7757-d81e-4e31-8390-2102e2f3f182",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Polyethylene Glycol 3350",
+   "generic_name": "Polyethylene Glycol 3350",
+   "labeler_name": "PIONEER LIFE SCIENCES, LLC",
+   "dosage_form": "POWDER, FOR SOLUTION",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "POLYETHYLENE GLYCOL 3350",
+     "strength": "17 g/17g"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "72090-036-01"
+    },
+    {
+     "package_ndc": "72090-036-02"
+    },
+    {
+     "package_ndc": "72090-036-03"
+    }
+   ]
+  }
+ ],
+ "mylanta-gas-minis-3-tablet-dose": [
+  {
+   "product_ndc": "62372-800",
+   "spl_id": "0bb21396-9aaa-5edc-e063-6294a90a43bf",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Mylanta Gas Minis Mint Flavor",
+   "generic_name": "Simethicone",
+   "labeler_name": "Infirst Healthcare Inc.",
+   "dosage_form": "TABLET, CHEWABLE",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "DIMETHICONE",
+     "strength": "125 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "62372-800-50"
+    }
+   ]
+  }
+ ],
+ "mylanta-all-family-emulsion": [
+  {
+   "product_ndc": "62372-520",
+   "spl_id": "19118884-2017-e86e-e063-6294a90a370c",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Mylanta All-Family Multi Symptom Stomach Remedy",
+   "generic_name": "calcium carbonate, simethicone",
+   "labeler_name": "Infirst Healthcare Inc.",
+   "dosage_form": "LIQUID",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "CALCIUM CARBONATE",
+     "strength": "800 mg/10mL"
+    },
+    {
+     "name": "DIMETHICONE",
+     "strength": "80 mg/10mL"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "62372-520-16"
+    }
+   ]
+  }
+ ],
+ "xl3-mgr-typo": [
+  {
+   "product_ndc": "76281-305",
+   "spl_id": "95f58511-c4d4-4a9d-b8be-ba0b464f2e59",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "XL-3 Xtreme",
+   "generic_name": "Acetaminophen, Dextromethorphan HBr, Doxylamine Succinate",
+   "labeler_name": "AptaPharma Inc.",
+   "dosage_form": "LIQUID",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "ACETAMINOPHEN",
+     "strength": "650 mg/30mL"
+    },
+    {
+     "name": "DEXTROMETHORPHAN HYDROBROMIDE",
+     "strength": "30 mg/30mL"
+    },
+    {
+     "name": "DOXYLAMINE SUCCINATE",
+     "strength": "12.5 mg/30mL"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "76281-305-28"
+    }
+   ]
+  },
+  {
+   "product_ndc": "76281-307",
+   "spl_id": "95f58511-c4d4-4a9d-b8be-ba0b464f2e59",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "XL-3 Xtreme",
+   "generic_name": "Acetaminophen, Dextromethorphan HBr, Doxylamine Succinate",
+   "labeler_name": "AptaPharma Inc.",
+   "dosage_form": "LIQUID",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "ACETAMINOPHEN",
+     "strength": "650 mg/30mL"
+    },
+    {
+     "name": "DEXTROMETHORPHAN HYDROBROMIDE",
+     "strength": "30 mg/30mL"
+    },
+    {
+     "name": "DOXYLAMINE SUCCINATE",
+     "strength": "12.5 mg/30mL"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "76281-307-25"
+    }
+   ]
+  }
+ ],
+ "pepto-bismol-reyes": [
+  {
+   "product_ndc": "67751-155",
+   "spl_id": "4efb4585-b90f-f303-e063-6294a90a4ba6",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Pepto Bismol",
+   "generic_name": "BISMUTH SUBSALICYLATE",
+   "labeler_name": "Navajo Manufacturing Company Inc.",
+   "dosage_form": "TABLET, CHEWABLE",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "BISMUTH SUBSALICYLATE",
+     "strength": "262 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "67751-155-01"
+    },
+    {
+     "package_ndc": "67751-155-02"
+    },
+    {
+     "package_ndc": "67751-155-06"
+    }
+   ]
+  }
+ ],
+ "xyzal-age-lines": [
+  {
+   "product_ndc": "41167-3511",
+   "spl_id": "f43bc46c-c507-4ccf-9b93-17eaeebf4ed5",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Xyzal Allergy 24HR",
+   "generic_name": "Levocetirizine dihydrochloride",
+   "labeler_name": "Chattem, Inc.",
+   "dosage_form": "TABLET",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "LEVOCETIRIZINE DIHYDROCHLORIDE",
+     "strength": "5 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "41167-3511-2"
+    },
+    {
+     "package_ndc": "41167-3511-8"
+    },
+    {
+     "package_ndc": "41167-3511-9"
+    }
+   ]
+  },
+  {
+   "product_ndc": "41167-3510",
+   "spl_id": "f43bc46c-c507-4ccf-9b93-17eaeebf4ed5",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Xyzal Allergy 24HR",
+   "generic_name": "Levocetirizine dihydrochloride",
+   "labeler_name": "Chattem, Inc.",
+   "dosage_form": "TABLET",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "LEVOCETIRIZINE DIHYDROCHLORIDE",
+     "strength": "5 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "41167-3510-0"
+    },
+    {
+     "package_ndc": "41167-3510-1"
+    },
+    {
+     "package_ndc": "41167-3510-2"
+    },
+    {
+     "package_ndc": "41167-3510-3"
+    },
+    {
+     "package_ndc": "41167-3510-4"
+    },
+    {
+     "package_ndc": "41167-3510-5"
+    },
+    {
+     "package_ndc": "41167-3510-6"
+    }
+   ]
+  },
+  {
+   "product_ndc": "41167-3513",
+   "spl_id": "f43bc46c-c507-4ccf-9b93-17eaeebf4ed5",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Xyzal Allergy 24HR",
+   "generic_name": "Levocetirizine dihydrochloride",
+   "labeler_name": "Chattem, Inc.",
+   "dosage_form": "TABLET",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "LEVOCETIRIZINE DIHYDROCHLORIDE",
+     "strength": "5 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "41167-3513-4"
+    }
+   ]
+  }
+ ],
+ "allegra-180-when-using-see": [
+  {
+   "product_ndc": "41167-4122",
+   "spl_id": "9bcf6745-5989-41ba-beef-1108fcecc020",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Allegra Allergy",
+   "generic_name": "Fexofenadine Hydrochloride",
+   "labeler_name": "Chattem, Inc.",
+   "dosage_form": "TABLET, COATED",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "FEXOFENADINE HYDROCHLORIDE",
+     "strength": "180 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "41167-4122-0"
+    },
+    {
+     "package_ndc": "41167-4122-2"
+    },
+    {
+     "package_ndc": "41167-4122-5"
+    }
+   ]
+  }
+ ],
  "homeopathic-pellets": [
   {
    "product_ndc": "15631-0404",

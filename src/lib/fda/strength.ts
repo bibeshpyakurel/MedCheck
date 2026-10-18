@@ -44,7 +44,7 @@ export function parseNdcStrength(raw: string): StrengthResult {
 }
 
 /** What the label says each strength is "in": a volume ("in each 5 mL") or a unit ("in each caplet"). */
-export type LabelPer = { kind: "volume"; amount: number } | { kind: "count"; noun: string };
+export type LabelPer = { kind: "volume"; amount: number } | { kind: "count"; noun: string; amount?: number };
 
 const IN_EACH = /\(\s*(?:in\s+)?(?:each|per)\s+([^()]+?)\s*\)/gi;
 
@@ -57,6 +57,11 @@ export function labelPers(activeIngredientText: string): LabelPer[] {
     let per: LabelPer | null = null;
     if (volume) per = { kind: "volume", amount: Number(volume[1]) };
     else if (/^[a-z][a-z -]*$/.test(inner)) per = { kind: "count", noun: inner.replace(/s$/, "").trim() };
+    else {
+      // "3 mini -tablet dose": several units per stated dose.
+      const counted = inner.match(/^(\d+)\s+([a-z][a-z -]*)$/);
+      if (counted && Number(counted[1]) > 1) per = { kind: "count", noun: counted[2].replace(/s$/, "").trim(), amount: Number(counted[1]) };
+    }
     if (!per) continue;
     const key = JSON.stringify(per);
     if (!found.some((f) => JSON.stringify(f) === key)) found.push(per);

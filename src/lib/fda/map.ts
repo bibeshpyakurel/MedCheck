@@ -14,7 +14,6 @@ import {
   isHomeopathic,
   parseDirections,
   parseIngredients,
-  parseMax24h,
   parseWarningsQuotes,
   sanitizeDosageTable,
   sentenceCase,
@@ -22,7 +21,8 @@ import {
 } from "@/lib/openfda";
 import { dosageFormFor, refineForm, type FormInfo } from "./dosage-form";
 import { joinLabel, type JoinMethod, type NdcIndex } from "./join";
-import { equivalent, findPrinted, labelVolume as labelVolumeOf, strengthIsTraceable, type Printed } from "./label-strength";
+import { equivalent, findAllPrinted, labelCount, labelVolume as labelVolumeOf, strengthIsTraceable, type Printed } from "./label-strength";
+import { max24hText } from "./max24h";
 import { activeIngredientText, fieldTexts, isPlaceholder, labelSections } from "./sections";
 import type { SplSections } from "./spl";
 import { labelPers, parseNdcStrength, type NdcStrength } from "./strength";
@@ -95,32 +95,30 @@ function ndcStrength(s: NdcStrength, form: FormInfo): Strength | null {
  * per-quantity, or a percent with its stated w/v or w/w basis). A percent on the form's usual basis needs
  * the NDC value to confirm it. Null when the label gives an amount but no per-quantity (liquids, gels).
  */
-function labelStrength(p: Printed, form: FormInfo, volume: number | null, nouns: string[]): { strength: Strength; explicit: boolean } | null {
+function labelStrength(p: Printed, form: FormInfo, per: LabelPerInfo): { strength: Strength; explicit: boolean } | null {
   if (p.unit === "%") {
     // A stated basis is the label's own; without one, the form's usual basis needs the NDC to agree.
     const basis = p.basis ?? (form.kind === "liquid" ? "w/v" : "w/w");
     const strength: Strength = { amount: round(p.amount * 10), unit: "mg", perAmount: 1, perUnit: basis === "w/v" ? "mL" : "g" };
     return { strength, explicit: p.basis !== null };
   }
-  const per = p.perVolume ?? volume;
-  if (per !== null) return { strength: { amount: p.amount, unit: p.unit, perAmount: per, perUnit: "mL" }, explicit: true };
-  if (form.kind !== "solid" && nouns.length === 1 && /^(?:fl\.? ?oz|fluid ounce)$/.test(nouns[0])) {
+  const volume = p.perVolume ?? per.volume;
+  if (volume !== null) return { strength: { amount: p.amount, unit: p.unit, perAmount: volume, perUnit: "mL" }, explicit: true };
+  if (form.kind !== "solid" && per.nouns.length === 1 && /^(?:fl\.? ?oz|fluid ounce)$/.test(per.nouns[0])) {
     return { strength: { amount: p.amount, unit: p.unit, perAmount: 1, perUnit: "fl oz" }, explicit: true };
   }
-  if (form.kind === "solid") return { strength: { amount: p.amount, unit: p.unit, perAmount: 1, perUnit: form.per ?? form.form }, explicit: true };
+  if (form.kind === "solid") {
+    return { strength: { amount: p.amount, unit: p.unit, perAmount: per.count ?? 1, perUnit: form.per ?? form.form }, explicit: true };
+  }
   return null;
 }
 
+type LabelPerInfo = { volume: number | null; count: number | null; nouns: string[] };
+
 /** One ingredient's strength from what the label prints, confirmed (or overruled) against the NDC. */
-function decideStrength(
-  p: Printed,
-  ndc: NdcStrength | null,
-  form: FormInfo,
-  volume: number | null,
-  nouns: string[],
-): { strength: Strength; source: StrengthSource } | RejectReason {
+function decideStrength(p: Printed, ndc: NdcStrength | null, form: FormInfo, per: LabelPerInfo): { strength: Strength; source: StrengthSource } | RejectReason {
   const fromNdc = ndc ? ndcStrength(ndc, form) : null;
-  const fromLabel = labelStrength(p, form, volume, nouns);
+  const fromLabel = labelStrength(p, form, per);
   if (fromLabel) {
     if (fromNdc !== null && equivalent(fromNdc, fromLabel.strength)) return { strength: fromLabel.strength, source: "label_and_ndc" };
     if (fromLabel.explicit) return { strength: fromLabel.strength, source: "label" };
@@ -131,6 +129,28 @@ function decideStrength(
   if (!fromNdc) return "unclear_per_unit";
   if (fromNdc.unit === p.unit && Math.abs(fromNdc.amount - p.amount) <= 1e-6 * Math.max(1, p.amount)) {
     return { strength: fromNdc, source: "ndc_per" };
+  }
+  return "strength_mismatch";
+}
+
+/**
+ * When the label prints several amounts for one ingredient (Zantac 360: 10 mg and 20 mg), the one this
+ * NDC product has; a single amount is decided as usual. Several amounts and no agreeing one → mismatch.
+ */
+function decideAmong(
+  printed: Printed[],
+  ndc: NdcStrength | null,
+  form: FormInfo,
+  per: LabelPerInfo,
+): { strength: Strength; source: StrengthSource; printed: Printed } | RejectReason {
+  const distinct = printed.filter((p, i) => printed.findIndex((q) => q.amount === p.amount && q.unit === p.unit) === i);
+  if (distinct.length === 1) {
+    const d = decideStrength(distinct[0], ndc, form, per);
+    return typeof d === "string" ? d : { ...d, printed: distinct[0] };
+  }
+  for (const p of distinct) {
+    const d = decideStrength(p, ndc, form, per);
+    if (typeof d !== "string" && d.source === "label_and_ndc") return { ...d, printed: p };
   }
   return "strength_mismatch";
 }
@@ -153,23 +173,22 @@ function labelOrder(ingredients: CatalogIngredient[], activeText: string): Catal
   return ingredients.map((i, n) => ({ i, n, at: at(i) })).sort((a, b) => a.at - b.at || a.n - b.n).map((x) => x.i);
 }
 
-/** "…take only one dose per day (24 hours": extend to the closing parenthesis in the source, else cut before it. */
-export function balanceParens(snippet: string | null, source: string | null): string | null {
-  if (!snippet) return snippet;
-  const open = (snippet.match(/\(/g) ?? []).length - (snippet.match(/\)/g) ?? []).length;
-  if (open <= 0) return snippet;
-  const at = source?.indexOf(snippet) ?? -1;
-  if (source && at >= 0) {
-    const close = source.indexOf(")", at + snippet.length);
-    if (close >= 0 && close - (at + snippet.length) <= 40) return source.slice(at, close + 1);
-  }
-  return snippet.slice(0, snippet.lastIndexOf("(")).trim() || null;
+/** "2mg", "600mg-60mg", "6p25mg" — a slug-safe key for one strength set. */
+function strengthKey(ingredients: CatalogIngredient[]): string {
+  return ingredients
+    .map((i) => `${Number(i.strength.amount.toFixed(4))}${i.strength.unit}`.toLowerCase().replace(/\./g, "p").replace(/[^a-z0-9p]/g, ""))
+    .join("-");
 }
 
-export function mapLabel(label: FdaLabel, index: NdcIndex, options: MapOptions = {}): MapResult {
+/**
+ * One FDA label → one catalog row per strength set. Most labels have one (slug otc-<set_id>); a label whose
+ * NDC products differ in strength (nicotine 2 mg and 4 mg) gives a row per strength, each with only its
+ * own products' package NDCs (slug otc-<set_id>-<strength key>).
+ */
+export function mapLabel(label: FdaLabel, index: NdcIndex, options: MapOptions = {}): MapResult[] {
   const o = label.openfda ?? {};
   const { method: join, products } = joinLabel(label, index);
-  const reject = (reason: RejectReason): MapResult => ({ ok: false, reason, join });
+  const reject = (reason: RejectReason): MapResult[] => [{ ok: false, reason, join }];
 
   if (!(o.product_type ?? []).includes("HUMAN OTC DRUG")) return reject("not_otc");
   if (!(o.route ?? []).some((r) => ALLOWED_ROUTES.has(r))) return reject("route");
@@ -187,89 +206,104 @@ export function mapLabel(label: FdaLabel, index: NdcIndex, options: MapOptions =
   }
   if (products.some((p) => p.finished === false)) return reject("not_finished");
   if (isPlaceholder(label)) return reject("placeholder_label");
+  if (!label.set_id) return reject("no_name");
 
   const activeText = activeIngredientText(label);
-  const nouns = labelPers(activeText).flatMap((p) => (p.kind === "count" ? [p.noun] : []));
-  const volume = labelVolumeOf(activeText);
-  const sources: StrengthSource[] = [];
+  const per: LabelPerInfo = {
+    volume: labelVolumeOf(activeText),
+    count: labelCount(activeText),
+    nouns: labelPers(activeText).flatMap((p) => (p.kind === "count" ? [p.noun] : [])),
+  };
 
-  let ingredients: CatalogIngredient[];
-  let dosageForm: string;
-  if (products.length === 0) {
-    const parsed = parseIngredients(label);
-    if (!parsed) return reject("no_join_no_strength");
-    ingredients = parsed.ingredients;
-    dosageForm = parsed.dosageForm;
-    sources.push(...ingredients.map((): StrengthSource => "label"));
-  } else {
-    if (new Set(products.map(ingredientKey)).size > 1) return reject("multiple_strengths");
-    const forms = products.map((p) => dosageFormFor(p.dosage_form ?? ""));
-    if (forms.some((f) => f === null)) return reject("unmapped_dosage_form");
-    if (new Set(forms.map((f) => f!.form)).size > 1) return reject("mixed_dosage_forms");
-    const form = refineForm(forms[0]!, nouns);
-    dosageForm = form.form;
-
-    ingredients = [];
-    const ndcIngredients = products[0].active_ingredients ?? [];
-    for (const i of ndcIngredients) {
-      const ndcName = (i.name ?? "").trim();
-      if (!ndcName) return reject("unreadable_strength");
-      const parsed = parseNdcStrength(i.strength ?? "");
-      if (!parsed.ok && parsed.reason === "unknown_unit") return reject("unknown_unit");
-      const others = ndcIngredients.map((x) => (x.name ?? "").trim()).filter((x) => x && x !== ndcName);
-      const printed = findPrinted(activeText, ndcName, others);
-      if (!printed) return reject("strength_not_on_label");
-      const decided = decideStrength(printed, parsed.ok ? parsed.value : null, form, volume, nouns);
-      if (typeof decided === "string") return reject(decided);
-      if (!plausibleStrength(decided.strength)) return reject("implausible_strength");
-      sources.push(decided.source);
-      const name = printed.baseName ?? titleCase(ndcName);
-      ingredients.push({ name, normalized: normalizeIngredient(name), strength: decided.strength });
-    }
-    ingredients = labelOrder(ingredients, activeText);
-  }
-
-  const brandName = (o.brand_name?.[0] ?? products[0]?.brand_name ?? "").trim();
-  if (!brandName || !label.set_id) return reject("no_name");
-
-  const ndcPackages = [
-    ...new Set(
-      [...products.flatMap((p) => (p.packaging ?? []).map((k) => k.package_ndc ?? "")), ...(o.package_ndc ?? [])]
-        .map(ndc11FromHyphenated)
-        .filter((n): n is string => n !== null),
-    ),
-  ];
-  // Multi-product labels repeat whole blocks in separate entries; use each block once.
+  // Shared label text, mapped once.
   const directionsText = parseDirections({ ...label, dosage_and_administration: fieldTexts(label, "dosage_and_administration") });
   const table = fieldTexts(label, "dosage_and_administration_table").join("\n");
   const dosageTableHtml = table.includes("<table") ? sanitizeDosageTable(table) || null : null;
   const date = label.effective_time?.match(/^(\d{4})(\d{2})(\d{2})/);
-  const generic = o.generic_name?.[0] ?? products[0]?.generic_name ?? ingredients.map((i) => i.name).join(", ");
+  const labelBrand = (o.brand_name?.[0] ?? products[0]?.brand_name ?? "").trim();
+  const setId = label.set_id;
 
-  return {
-    ok: true,
-    join,
-    sources,
-    formulation: {
-      slug: otcSlug(label.set_id),
-      brandName,
-      genericName: sentenceCase(generic),
-      dosageForm,
-      isFictional: false,
-      ndcPackages,
-      activeIngredients: ingredients,
-      directionsText,
-      max24hText: balanceParens(parseMax24h(directionsText), directionsText),
-      warningsQuotes: parseWarningsQuotes(label, ingredients),
-      dosageTableHtml,
-      source: "openfda",
-      openfdaSetId: label.set_id,
-      labelEffectiveDate: date ? `${date[1]}-${date[2]}-${date[3]}` : null,
-      labelerName: (products[0]?.labeler_name ?? o.manufacturer_name?.[0] ?? "").trim() || null,
-      labelSections: labelSections(label, { spl: options.spl ?? null, ingredientNames: ingredients.map((i) => i.name) }),
-      sourceLinks: [{ label: "FDA label (DailyMed)", url: dailyMedUrl(label.set_id) }],
-    },
+  const build = (
+    ingredients: CatalogIngredient[],
+    dosageForm: string,
+    groupProducts: NdcProduct[],
+    slug: string,
+    brandName: string,
+    sources: StrengthSource[],
+  ): MapResult => {
+    if (!brandName) return { ok: false, reason: "no_name", join };
+    const packages = groupProducts.length > 0 ? groupProducts.flatMap((p) => (p.packaging ?? []).map((k) => k.package_ndc ?? "")) : (o.package_ndc ?? []);
+    const generic = o.generic_name?.[0] ?? groupProducts[0]?.generic_name ?? ingredients.map((i) => i.name).join(", ");
+    return {
+      ok: true,
+      join,
+      sources,
+      formulation: {
+        slug,
+        brandName,
+        genericName: sentenceCase(generic),
+        dosageForm,
+        isFictional: false,
+        ndcPackages: [...new Set(packages.map(ndc11FromHyphenated).filter((n): n is string => n !== null))],
+        activeIngredients: ingredients,
+        directionsText,
+        max24hText: max24hText(directionsText),
+        warningsQuotes: parseWarningsQuotes(label, ingredients),
+        dosageTableHtml,
+        source: "openfda",
+        openfdaSetId: setId,
+        labelEffectiveDate: date ? `${date[1]}-${date[2]}-${date[3]}` : null,
+        labelerName: (groupProducts[0]?.labeler_name ?? o.manufacturer_name?.[0] ?? "").trim() || null,
+        labelSections: labelSections(label, { spl: options.spl ?? null, ingredientNames: ingredients.map((i) => i.name) }),
+        sourceLinks: [{ label: "FDA label (DailyMed)", url: dailyMedUrl(setId) }],
+      },
+    };
   };
+
+  if (products.length === 0) {
+    const parsed = parseIngredients(label);
+    if (!parsed) return reject("no_join_no_strength");
+    return [build(parsed.ingredients, parsed.dosageForm, [], otcSlug(setId), labelBrand, parsed.ingredients.map(() => "label"))];
+  }
+
+  const forms = products.map((p) => dosageFormFor(p.dosage_form ?? ""));
+  if (forms.some((f) => f === null)) return reject("unmapped_dosage_form");
+  if (new Set(forms.map((f) => f!.form)).size > 1) return reject("mixed_dosage_forms");
+  const form = refineForm(forms[0]!, per.nouns);
+
+  // Group products by strength set (most labels: one group).
+  const groups = new Map<string, NdcProduct[]>();
+  for (const p of products) groups.set(ingredientKey(p), [...(groups.get(ingredientKey(p)) ?? []), p]);
+  const groupBrands = [...groups.values()].map((g) => (g.every((p) => p.brand_name === g[0].brand_name) ? (g[0].brand_name ?? "").trim() : ""));
+  const brandsDiffer = new Set(groupBrands).size === groups.size && groupBrands.every(Boolean);
+
+  const mapped: { result: MapResult; first: number }[] = [];
+  [...groups.values()].forEach((group, g) => {
+    const ndcIngredients = group[0].active_ingredients ?? [];
+    const ingredients: CatalogIngredient[] = [];
+    const sources: StrengthSource[] = [];
+    for (const i of ndcIngredients) {
+      const ndcName = (i.name ?? "").trim();
+      if (!ndcName) return void mapped.push({ result: reject("unreadable_strength")[0], first: 0 });
+      const parsed = parseNdcStrength(i.strength ?? "");
+      if (!parsed.ok && parsed.reason === "unknown_unit") return void mapped.push({ result: reject("unknown_unit")[0], first: 0 });
+      const others = ndcIngredients.map((x) => (x.name ?? "").trim()).filter((x) => x && x !== ndcName);
+      const printed = findAllPrinted(activeText, ndcName, others);
+      if (printed.length === 0) return void mapped.push({ result: reject("strength_not_on_label")[0], first: 0 });
+      const decided = decideAmong(printed, parsed.ok ? parsed.value : null, form, per);
+      if (typeof decided === "string") return void mapped.push({ result: reject(decided)[0], first: 0 });
+      if (!plausibleStrength(decided.strength)) return void mapped.push({ result: reject("implausible_strength")[0], first: 0 });
+      sources.push(decided.source);
+      // The label's own name ("Dextromethorphan HBr", "Simethicone"); its base for "X 75 mg (as SALT 84 mg)".
+      const name = decided.printed.baseName ?? (decided.printed.printedName || titleCase(ndcName));
+      ingredients.push({ name, normalized: normalizeIngredient(decided.printed.baseName ?? ndcName), strength: decided.strength });
+    }
+    const ordered = labelOrder(ingredients, activeText);
+    const slug = groups.size === 1 ? otcSlug(setId) : `${otcSlug(setId)}-${strengthKey(ordered)}`;
+    const brand = groups.size > 1 && brandsDiffer ? groupBrands[g] : labelBrand;
+    mapped.push({ result: build(ordered, form.form, group, slug, brand, sources), first: ordered[0]?.strength.amount ?? 0 });
+  });
+  return mapped.sort((a, b) => a.first - b.first).map((m) => m.result);
 }
 
 /** Whole-run gate: every stored strength is the label's printed amount for that ingredient. */
@@ -315,7 +349,7 @@ export function importLabels(labels: FdaLabel[], index: NdcIndex, reviewedNdcs: 
     status: new Map(),
   };
   const count = (reason: RejectReason, label: FdaLabel) => {
-    if (label.set_id) result.status.set(label.set_id, reason);
+    if (label.set_id && result.status.get(label.set_id) !== "row") result.status.set(label.set_id, reason);
     result.rejects[reason] = (result.rejects[reason] ?? 0) + 1;
     const examples = (result.rejectExamples[reason] ??= []);
     if (examples.length < 5) examples.push(`${label.openfda?.brand_name?.[0] ?? "?"} (${label.set_id})`);
@@ -324,25 +358,27 @@ export function importLabels(labels: FdaLabel[], index: NdcIndex, reviewedNdcs: 
   for (const label of labels) {
     if (label.set_id && seen.has(label.set_id)) continue;
     if (label.set_id) seen.add(label.set_id);
-    const mapped = mapLabel(label, index, { spl: label.set_id ? options.spl?.get(label.set_id) : null });
-    result.joins[mapped.join]++;
-    if (!mapped.ok) {
-      count(mapped.reason, label);
-      continue;
+    const results = mapLabel(label, index, { spl: label.set_id ? options.spl?.get(label.set_id) : null });
+    result.joins[results[0].join]++;
+    for (const mapped of results) {
+      if (!mapped.ok) {
+        count(mapped.reason, label);
+        continue;
+      }
+      if (!rowIsTraceable(mapped.formulation, label)) {
+        count("untraceable_strength", label);
+        continue;
+      }
+      result.traceableRows++;
+      if (mapped.formulation.ndcPackages.some((n) => reviewedNdcs.has(n))) {
+        count("reviewed_ndc", label);
+        result.skippedForReviewed.push(mapped.formulation);
+        continue;
+      }
+      for (const s of mapped.sources) result.strengthSources[s]++;
+      result.status.set(label.set_id!, "row");
+      result.rows.push(mapped.formulation);
     }
-    if (!rowIsTraceable(mapped.formulation, label)) {
-      count("untraceable_strength", label);
-      continue;
-    }
-    result.traceableRows++;
-    if (mapped.formulation.ndcPackages.some((n) => reviewedNdcs.has(n))) {
-      count("reviewed_ndc", label);
-      result.skippedForReviewed.push(mapped.formulation);
-      continue;
-    }
-    for (const s of mapped.sources) result.strengthSources[s]++;
-    result.status.set(label.set_id!, "row");
-    result.rows.push(mapped.formulation);
   }
   return result;
 }
