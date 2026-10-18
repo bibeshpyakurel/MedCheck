@@ -34,8 +34,8 @@ Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` and `docs/superpower
 - `src/lib/catalog.ts` — catalog reads (`listFormulations`, `getFormulation(s)ByIds`). The catalog holds every US oral OTC label (thousands of rows): never load it whole in a request; search with the `search_formulations` RPC.
 - `src/lib/domain/fields.ts` — build/read `EntryFields` (`suggestedField`, `fieldsFromFormulation`, `isUsable`, `isFullyReviewed`, `formatStrength`, `entryLabel`).
 - `src/data/fictional-formulations.ts` — fictional formulations (Calmora) with their NDCs.
-- `src/lib/photo-flow.ts` — the OTC photo flow's decisions: `photoNextPath()` (package → `/match` or `/retake`; other photos → `/review`), the picker's options, "Save without a match" fields.
-- `e2e/fake-gemini.mjs` — the e2e Gemini stand-in (via `GOOGLE_GENERATIVE_AI_BASE_URL`); it picks a canned read by the photo's width (`e2e/fake-gemini-scenarios.mjs`).
+- `src/lib/photo-flow.ts` — the OTC photo flow's decisions: `photoNextPath()` (package → `/match` or `/retake`; other photos → `/review`), `PhotoReadResult` (what `uploadPhotoAction` returns), the picker's options, "Save without a match" fields. The user never picks a photo's kind: Gemini returns `documentKind` and `extractIntoDrafts()` saves it on the source document (`otc_package` when unsure or unavailable). A photo is read as soon as it's taken or chosen; `afterRead` in `src/components/capture/photo-capture.tsx` decides what follows.
+- `e2e/fake-gemini.mjs` — the e2e Gemini stand-in (via `GOOGLE_GENERATIVE_AI_BASE_URL`); it picks a canned read, with its `documentKind`, by the photo's width (`e2e/fake-gemini-scenarios.mjs`).
 - `src/components/already-gave-both.tsx` — the fixed "I already gave both" message; reuse it, never re-word it.
 - `src/components/back-link.tsx` — `BackLink` / `goBackTo()`: every "← …" link; goes back in history when the page before is its target (keeps scroll), else opens `href`.
 - `src/components/use-back-to-close.ts` — every overlay (sheet, dialog, popover) uses it, so device Back closes it; a link inside calls `release()` and navigates with `replace`.

@@ -42,7 +42,15 @@ const geminiMedicationSchema = z.object({
   max24h: text("The 24-hour maximum sentence, verbatim (e.g. 'do not give more than 5 times in 24 hours')"),
 });
 
-const geminiLabelSchema = z.object({
+/** What the photo shows, as Gemini judges it. The source document's `kind` is set from this. */
+const PHOTO_KINDS = ["otc_package", "prescription_label", "discharge_list"] as const satisfies readonly SourceDocumentKind[];
+export type PhotoKind = (typeof PHOTO_KINDS)[number];
+
+export const geminiLabelSchema = z.object({
+  documentKind: z
+    .enum(PHOTO_KINDS)
+    .nullable()
+    .describe("What the photo shows: otc_package, prescription_label or discharge_list. null if you are not sure."),
   document: z.object({
     documentDate: z.string().nullable().describe("Date printed on the document (fill or discharge date) as YYYY-MM-DD; null if none"),
     facility: z.string().nullable().describe("Hospital or clinic name as printed; null if none"),
@@ -56,24 +64,23 @@ export type GeminiMedication = z.infer<typeof geminiMedicationSchema>;
 export type GeminiLabel = z.infer<typeof geminiLabelSchema>;
 
 export type DocumentDetails = Pick<SourceDocument, "documentDate" | "facility" | "prescriber" | "pharmacy">;
-export type ExtractionResult = { document: DocumentDetails; medications: EntryFields[] };
+/** `documentKind` is null when Gemini wasn't sure what the photo shows. */
+export type ExtractionResult = { documentKind: PhotoKind | null; document: DocumentDetails; medications: EntryFields[] };
 
-const KIND_HINT: Record<SourceDocumentKind, string> = {
-  prescription_label: "a pharmacy prescription label (usually one medication)",
-  discharge_list: "a hospital discharge medication list (may list several medications — return each one)",
-  otc_package: "an over-the-counter medicine package or bottle (one product; read the Drug Facts panel if visible)",
-  drug_facts_photo: "the Drug Facts panel of an over-the-counter medicine (one product)",
-  description: "a medicine document",
-};
-
-const INSTRUCTIONS = `You read medicine labels and documents for a caregiver who will check every value you return.
+export const EXTRACTION_INSTRUCTIONS = `You read medicine labels and documents for a caregiver who will check every value you return.
+First say what the photo shows, as documentKind:
+- otc_package: an over-the-counter medicine package, box or bottle bought at a store (often with a Drug Facts panel).
+- prescription_label: the label a pharmacy puts on a prescription container (patient name, prescriber, pharmacy, Rx number, directions).
+- discharge_list: a medication list a hospital or clinic hands out at discharge or after a visit (may list several medications).
+- null if you are not sure.
 Rules:
 - Copy values exactly as printed. Never infer, guess, convert, round or calculate anything (no dose from age or weight, no unit conversion, no totals).
 - If a value is not printed, cut off, blurry or you are not sure, return null for it.
 - Split each strength into amount, unit, perAmount and perUnit as printed ("160 mg per 5 mL" → 160, mg, 5, mL; "325 mg in each caplet" → 325, mg, 1, caplet).
 - doseAsWritten is the amount the directions say to take or give, exactly as written in the directions, with its unit as written ("2 tsp" stays 2 tsp). If the directions depend on age or weight, or there is a table, return null.
 - For every value give box_2d [ymin, xmin, ymax, xmax] on a 0-1000 scale around the printed text, or null.
-- Return one medications item per distinct medication. Return an empty list if no medication is visible.`;
+- Return one medications item per distinct medication. For package photos, return every distinct product you can see; a product shown on several sides of one package (front, back, Drug Facts panel) is one product: return it once.
+- Return an empty list if no medication is visible.`;
 
 // ---------------------------------------------------------------------------
 // Pure mappers
@@ -116,35 +123,39 @@ export function toDocumentDetails(raw: GeminiLabel["document"]): DocumentDetails
   };
 }
 
+/** Gemini's answer → its kind (null when unsure), the document details, one EntryFields per medication. */
+export function toExtractionResult(raw: GeminiLabel, sourceDocumentId: string): ExtractionResult {
+  return {
+    documentKind: raw.documentKind,
+    document: toDocumentDetails(raw.document),
+    medications: raw.medications.map((m) => toEntryFields(m, sourceDocumentId)),
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Gemini call
 // ---------------------------------------------------------------------------
 
-/** Reads a label/document photo. Throws on any model or validation failure; callers fall back to manual entry. */
-export async function extractFromPhoto(
-  image: Uint8Array,
-  mediaType: string,
-  kind: SourceDocumentKind,
-  sourceDocumentId = "",
-): Promise<ExtractionResult> {
+/**
+ * Reads a label/document photo; Gemini also says what kind of photo it is. Throws on any model or
+ * validation failure; callers fall back to manual entry.
+ */
+export async function extractFromPhoto(image: Uint8Array, mediaType: string, sourceDocumentId = ""): Promise<ExtractionResult> {
   const { output } = await withGemini((settings) =>
     generateText({
       ...settings,
-      instructions: INSTRUCTIONS,
+      instructions: EXTRACTION_INSTRUCTIONS,
       output: Output.object({ schema: geminiLabelSchema }),
       messages: [
         {
           role: "user",
           content: [
-            { type: "text", text: `This photo is ${KIND_HINT[kind]}. Extract the values as printed.` },
+            { type: "text", text: "Say what this photo shows, then extract the values as printed." },
             { type: "file", mediaType, data: image },
           ],
         },
       ],
     }),
   );
-  return {
-    document: toDocumentDetails(output.document),
-    medications: output.medications.map((m) => toEntryFields(m, sourceDocumentId)),
-  };
+  return toExtractionResult(output, sourceDocumentId);
 }

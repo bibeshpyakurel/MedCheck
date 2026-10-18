@@ -2,7 +2,16 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-import { boxToBBox, toDocumentDetails, toEntryFields, type GeminiMedication } from "./extract-label";
+import {
+  boxToBBox,
+  EXTRACTION_INSTRUCTIONS,
+  geminiLabelSchema,
+  toDocumentDetails,
+  toEntryFields,
+  toExtractionResult,
+  type GeminiLabel,
+  type GeminiMedication,
+} from "./extract-label";
 
 const DOC = "doc-1";
 const noBox = { box_2d: null };
@@ -155,5 +164,61 @@ describe("toDocumentDetails", () => {
   it("rejects dates that are not valid YYYY-MM-DD", () => {
     expect(toDocumentDetails({ documentDate: "10/16/2026", facility: null, prescriber: null, pharmacy: null }).documentDate).toBeNull();
     expect(toDocumentDetails({ documentDate: "2026-02-31", facility: null, prescriber: null, pharmacy: null }).documentDate).toBeNull();
+  });
+});
+
+describe("what Gemini is asked for", () => {
+  const label = (documentKind: unknown) => ({
+    documentKind,
+    document: { documentDate: null, facility: null, prescriber: null, pharmacy: null },
+    medications: [medication()],
+  });
+
+  it("Gemini says what the photo shows: a package, a prescription label, a discharge list, or null when unsure", () => {
+    for (const kind of ["otc_package", "prescription_label", "discharge_list", null]) {
+      expect(geminiLabelSchema.safeParse(label(kind)).success).toBe(true);
+    }
+    expect(geminiLabelSchema.safeParse(label("description")).success).toBe(false);
+    expect(geminiLabelSchema.safeParse(label("drug_facts_photo")).success).toBe(false);
+  });
+
+  it("the prompt describes each kind, null when unsure", () => {
+    expect(EXTRACTION_INSTRUCTIONS).toMatch(/otc_package/);
+    expect(EXTRACTION_INSTRUCTIONS).toMatch(/prescription_label/);
+    expect(EXTRACTION_INSTRUCTIONS).toMatch(/discharge_list/);
+    expect(EXTRACTION_INSTRUCTIONS).toMatch(/null if you are not sure/i);
+  });
+
+  it("the prompt asks for every distinct product on a package photo, each product once", () => {
+    expect(EXTRACTION_INSTRUCTIONS).toMatch(/every distinct product/i);
+    expect(EXTRACTION_INSTRUCTIONS).toMatch(/several sides .* return it once/i);
+  });
+
+  it("keeps the verbatim, no-inference rules", () => {
+    expect(EXTRACTION_INSTRUCTIONS).toMatch(/exactly as printed/);
+    expect(EXTRACTION_INSTRUCTIONS).toMatch(/Never infer, guess, convert, round or calculate/);
+    expect(EXTRACTION_INSTRUCTIONS).toMatch(/return null/);
+    expect(EXTRACTION_INSTRUCTIONS).toMatch(/box_2d/);
+  });
+});
+
+describe("toExtractionResult", () => {
+  const read = (overrides: Partial<GeminiLabel> = {}): GeminiLabel => ({
+    documentKind: "prescription_label",
+    document: { documentDate: "2026-10-16", facility: null, prescriber: " Dr. Rivera ", pharmacy: null },
+    medications: [medication(), medication({ productName: { value: "Calmora Night", box_2d: null } })],
+    ...overrides,
+  });
+
+  it("carries Gemini's kind, the document details and one EntryFields per medication", () => {
+    const r = toExtractionResult(read(), DOC);
+    expect(r.documentKind).toBe("prescription_label");
+    expect(r.document).toEqual({ documentDate: "2026-10-16", facility: null, prescriber: "Dr. Rivera", pharmacy: null });
+    expect(r.medications.map((m) => m.productName.value)).toEqual(["Calmora Fever Relief", "Calmora Night"]);
+    expect(r.medications[0].productName.evidence).toMatchObject({ sourceDocumentId: DOC });
+  });
+
+  it("keeps an unsure kind as null (the caller decides the default)", () => {
+    expect(toExtractionResult(read({ documentKind: null }), DOC).documentKind).toBeNull();
   });
 });

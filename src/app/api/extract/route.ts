@@ -12,7 +12,8 @@ const bodySchema = z.object({
 
 /**
  * Body `{ sourceDocumentId }`. Runs extraction on the document's photo and creates
- * one draft entry per medication found → `{ entryIds, notice }`. Without Gemini, one blank draft.
+ * one draft entry per medication found → `{ entryIds, notice, kind }`; `kind` (what Gemini said the
+ * photo shows, `otc_package` when unsure) is saved on the document. Without Gemini, one blank draft.
  */
 export async function POST(request: NextRequest) {
   if (!(await getCurrentUser())) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
@@ -25,6 +26,6 @@ export async function POST(request: NextRequest) {
   if (!doc) return NextResponse.json({ error: "Document not found" }, { status: 404 });
   if (!doc.photoPath) return NextResponse.json({ error: "Document has no photo" }, { status: 400 });
 
-  const { entryIds, notice } = await extractIntoDrafts(doc);
-  return NextResponse.json({ entryIds, notice });
+  const { entryIds, notice, kind } = await extractIntoDrafts(doc);
+  return NextResponse.json({ entryIds, notice, kind });
 }
