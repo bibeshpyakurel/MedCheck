@@ -1,6 +1,7 @@
 // The checks. Deterministic rules over confirmed label facts → findings. Evidence, not advice:
 // nothing here computes a dose or says a combination is safe.
 // The schema's CHECK_IDS still lists "document_vs_bottle"; that check was retired and never runs.
+// "ingredient_family" is in the contract ahead of its check (photo-answers spec §4); it joins CHECKS with it.
 import { CHECK_IDS, type CheckId, type CheckInput, type CheckRun } from "@/lib/domain/schema";
 import { checkConcentration } from "./concentration";
 import { checkDatabaseVsBox } from "./database-vs-box";
@@ -11,7 +12,7 @@ import { checkUnits } from "./units";
 export { productIdentity } from "./identity";
 export { mgPerMl } from "./shared";
 
-type ActiveCheckId = Exclude<CheckId, "document_vs_bottle">;
+type ActiveCheckId = Exclude<CheckId, "document_vs_bottle" | "ingredient_family">;
 
 const CHECKS: Record<ActiveCheckId, (input: CheckInput) => CheckRun> = {
   ingredient_overlap: checkIngredientOverlap,

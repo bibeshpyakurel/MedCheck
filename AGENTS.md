@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # MedCheck — rules for every agent
 
-Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` and `docs/superpowers/specs/2026-10-17-otc-catalog-design.md` (the OTC catalog, photo match and medicine card; it wins where they disagree) before changing behavior.
+Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` and `docs/superpowers/specs/2026-10-17-otc-catalog-design.md` (the OTC catalog, photo match and medicine card) and `docs/superpowers/specs/2026-10-17-photo-answers-design.md` (one photo → confirm pop-up → quick answers or a comparison; the newest wins where they disagree) before changing behavior.
 
 ## Product boundaries (never cross)
 - Evidence, not advice. Never calculate a dose, volume or schedule; never infer a dose from age or weight; never say a combination is "safe"; never pick which product or amount is right.
