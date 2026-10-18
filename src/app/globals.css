@@ -43,6 +43,13 @@
     to { transform: translateY(-4px); }
   }
 
+  /* The photo scan: a beam sweeps the label, top to bottom and back, while it's read. */
+  --animate-scan: scan 1.6s ease-in-out infinite alternate;
+  @keyframes scan {
+    from { top: 0; }
+    to { top: calc(100% - 2px); }
+  }
+
   /* The aurora behind the landing and the record header: slow drift of soft color fields. */
   --animate-aurora: aurora 18s ease-in-out infinite alternate;
   @keyframes aurora {

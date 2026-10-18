@@ -12,6 +12,7 @@ import type { PhotoReadResult } from "@/lib/photo-flow";
 import { cn } from "@/lib/utils";
 import type { PhotoSource } from "./capture-options";
 import { takePendingPhoto } from "./pending-photo";
+import { ScanFrame } from "./scan-frame";
 
 const MAX_DIMENSION = 2000;
 const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
@@ -182,8 +183,7 @@ export function PhotoCapture({
     <form ref={formRef} onSubmit={readAgain} className="space-y-5">
       <div className="space-y-3">
         {previewUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element -- local object URL preview
-          <img src={previewUrl} alt="Your photo" className="max-h-64 w-full rounded-2xl border bg-muted object-contain shadow-xs" />
+          <ScanFrame src={previewUrl} scanning={pending} />
         ) : (
           <div className="grid h-40 place-items-center rounded-2xl border-2 border-dashed bg-surface text-sm text-muted-foreground">
             <span className="flex flex-col items-center gap-2">
