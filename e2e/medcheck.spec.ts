@@ -39,7 +39,7 @@ async function expectThreeDoors(page: Page) {
 
 /** Two ways in, both photos; no barcode scanning. */
 async function expectCaptureOptions(page: Page) {
-  await expect(page.getByRole("heading", { level: 1, name: "Add a medicine" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Know your drugs" })).toBeVisible();
   await expect(page.locator("label", { hasText: "Take a photo" }).locator("input[type=file]")).toHaveCount(1);
   await expect(page.locator("label", { hasText: "Choose a photo" }).locator("input[type=file]")).toHaveCount(1);
   await expect(page.getByRole("main").locator("label:has(input[type=file])")).toHaveCount(2);
@@ -381,14 +381,15 @@ test.describe("medicine package photo", () => {
     await expect(confirm).not.toContainText(/\bsafe\b|bottle/i);
 
     // Other products are offered, not chosen, and each product once: the catalog's two TYLENOL Extra
-    // Strength gelcap rows are one choice.
+    // Strength gelcap rows are one choice. The chosen one, shown above, isn't listed again.
     await confirm.getByRole("button", { name: "Not this one?" }).click();
     const others = confirm.getByRole("radio", { name: /^TYLENOL Extra Strength, Acetaminophen 500 mg per / });
     await expect(others.first()).toBeVisible();
     await expect(others.first()).not.toBeChecked();
     await expect(confirm.getByRole("radio", { name: "TYLENOL Extra Strength, Acetaminophen 500 mg per gelcap" })).toHaveCount(1);
-    await expect(confirm.getByRole("radio", { checked: true })).toHaveCount(1);
-    expect(await confirm.getByRole("radio").count()).toBeLessThanOrEqual(6);
+    await expect(confirm.getByRole("radio", { name: /^Tylenol Extra Strength \(caplets\),/ })).toHaveCount(0);
+    await expect(confirm.getByRole("radio", { checked: true })).toHaveCount(0);
+    expect(await confirm.getByRole("radio").count()).toBeLessThanOrEqual(5);
 
     await confirm.getByRole("button", { name: "Continue" }).click();
     const card = page.getByRole("dialog", { name: "Tylenol Extra Strength (caplets)" });
@@ -604,6 +605,25 @@ test.describe("medicine package photo", () => {
     await expect(confirm).toContainText("Acetaminophen 500 mg per caplet");
     await confirm.getByRole("button", { name: "Cancel" }).click();
     await expect(page.getByRole("dialog")).toHaveCount(0);
+  });
+
+  test("Know your drugs → Scan a barcode → the typed NDC finds its FDA label → Confirm → card", async () => {
+    await page.goto(`${base}/add`);
+    await expect(page.getByRole("heading", { level: 1, name: "Know your drugs" })).toBeVisible();
+    await page.getByRole("link", { name: /Scan a barcode/ }).click();
+    await page.waitForURL(/\/add\/scan$/);
+    await expect(page.getByText("Step 1 of 3 · Scan")).toBeVisible();
+
+    // No camera in the test browser: the typed number is the scanner's fallback.
+    await page.getByLabel("Or type the NDC or barcode number").fill("NDC 50580-449-10");
+    await page.getByRole("button", { name: "Look up" }).click();
+    const found = page.getByRole("region", { name: /Tylenol Extra Strength \(caplets\)/ });
+    await expect(found).toContainText("Acetaminophen 500 mg per caplet");
+    await expect(found).toContainText("Matches barcode NDC 50580-449-10");
+
+    await page.getByRole("button", { name: "Confirm" }).click();
+    await page.waitForURL(ENTRY_WITH_CARD);
+    await expect(page.getByRole("dialog", { name: "Tylenol Extra Strength (caplets)" })).toBeVisible();
   });
 
   test("the type-in search never offers fictional demo products", async () => {

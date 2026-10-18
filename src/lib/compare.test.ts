@@ -13,7 +13,12 @@ import {
   prilosec,
   tylenol,
 } from "./__fixtures__/family-formulations";
+import demoRows from "./__fixtures__/demo-products.json";
 import { compareProducts } from "./compare";
+import type { Formulation } from "./domain/schema";
+
+/** Real catalog rows for the demo packages (live import, October 2026), copied verbatim. */
+const demo = demoRows as unknown as Record<keyof typeof demoRows, Formulation>;
 
 describe("compareProducts", () => {
   it("lists each product's ingredients with their strength, nothing shared", () => {
@@ -71,7 +76,7 @@ describe("compareProducts", () => {
           { normalized: "ibuprofen", displayName: "Ibuprofen", productId: "f-advil" },
           { normalized: "naproxen", displayName: "Naproxen sodium", productId: "f-aleve" },
         ],
-        labelQuote: NSAID_OTHER_DRUGS,
+        evidence: { kind: "warning", quote: NSAID_OTHER_DRUGS },
       },
     ]);
   });
@@ -79,7 +84,7 @@ describe("compareProducts", () => {
   it("takes the family quote from whichever member's label has one", () => {
     const c = compareProducts([aleveNoLabel, advil]);
     expect(c.families).toHaveLength(1);
-    expect(c.families[0].labelQuote).toBe(NSAID_OTHER_DRUGS);
+    expect(c.families[0].evidence).toEqual({ kind: "warning", quote: NSAID_OTHER_DRUGS });
   });
 
   it("shows no family when no label names it", () => {
@@ -91,14 +96,100 @@ describe("compareProducts", () => {
 
   it("finds acid reducers through Pepcid's 'with other acid reducers'", () => {
     const c = compareProducts([prilosec, pepcid]);
-    expect(c.families.map((f) => [f.familyId, f.labelQuote])).toEqual([["acid_reducer", "with other acid reducers"]]);
+    expect(c.families.map((f) => [f.familyId, f.evidence])).toEqual([["acid_reducer", { kind: "warning", quote: "with other acid reducers" }]]);
   });
 
   it("names a pair once even when it is in two families", () => {
     // Doxylamine and diphenhydramine are antihistamines and sleep aids; Advil PM names both.
     const c = compareProducts([nyquil, advilPm]);
-    expect(c.families.map((f) => [f.familyId, f.labelQuote])).toEqual([["antihistamine", "taking any other antihistamines"]]);
+    expect(c.families.map((f) => [f.familyId, f.evidence])).toEqual([["antihistamine", { kind: "warning", quote: "taking any other antihistamines" }]]);
     expect(c.families[0].members.map((m) => m.normalized)).toEqual(["doxylamine", "diphenhydramine"]);
+  });
+
+  describe("each label's own words (Purpose, NSAID footnote)", () => {
+    const { midolComplete, benadryl, tylenolPm, alevePm } = demo;
+
+    it("joins two antihistamines when each label's Purpose says so", () => {
+      const c = compareProducts([midolComplete, benadryl]);
+      expect(c.families).toEqual([
+        {
+          familyId: "antihistamine",
+          name: "antihistamines",
+          members: [
+            { normalized: "pyrilamine", displayName: "Pyrilamine maleate", productId: midolComplete.id },
+            { normalized: "diphenhydramine", displayName: "Diphenhydramine HCl", productId: benadryl.id },
+          ],
+          evidence: {
+            kind: "own_labels",
+            quotes: [
+              { product: midolComplete.id, heading: "Purpose", quote: "Antihistamine" },
+              { product: benadryl.id, heading: "Purpose", quote: "Antihistamine" },
+            ],
+          },
+        },
+      ]);
+    });
+
+    it("needs both labels: one Purpose alone is not enough", () => {
+      // Tylenol PM's Purpose is "Pain reliever", "Nighttime sleep aid": not an antihistamine in its own words.
+      expect(compareProducts([midolComplete, tylenolPm]).families).toEqual([]);
+      const noPurpose = { ...benadryl, labelSections: { ...benadryl.labelSections, purpose: undefined } };
+      expect(compareProducts([midolComplete, noPurpose]).families).toEqual([]);
+    });
+
+    it("prefers a label's warning naming the family over the Purpose lines", () => {
+      const c = compareProducts([midolComplete, alevePm]);
+      expect(c.families.map((f) => [f.familyId, f.evidence])).toEqual([["antihistamine", { kind: "warning", quote: "taking any other antihistamines" }]]);
+    });
+
+    it("takes a Purpose only when it fits exactly one of the label's ingredients in that family", () => {
+      // A label with two antihistamines: "Antihistamine" can't say which one it means.
+      const two = {
+        ...midolComplete,
+        id: "f-two-antihistamines",
+        activeIngredients: [...midolComplete.activeIngredients, { name: "Chlorpheniramine maleate", normalized: "chlorpheniramine", strength: { amount: 2, unit: "mg" as const, perAmount: 1, perUnit: "tablet" } }],
+      };
+      expect(compareProducts([two, benadryl]).families).toEqual([]);
+    });
+
+    it("keeps the members whose own label names the family, drops the others", () => {
+      // Benadryl and Tylenol PM share diphenhydramine; only Midol's and Benadryl's labels say antihistamine.
+      const c = compareProducts([midolComplete, benadryl, tylenolPm]);
+      expect(c.families).toHaveLength(1);
+      expect(c.families[0].members.map((m) => m.productId)).toEqual([midolComplete.id, benadryl.id]);
+      expect(c.families[0].evidence.kind).toBe("own_labels");
+    });
+
+    it("reads an NSAID from '(NSAID)' or 'nonsteroidal anti-inflammatory drug' anywhere on the label", () => {
+      const strip = (f: Formulation, purpose: string[]): Formulation => ({ ...f, warningsQuotes: [], labelSections: { purpose } });
+      const ibuprofen = strip(demo.motrinIb, ["Pain reliever/fever reducer (NSAID)*", "*nonsteroidal anti-inflammatory drug"]);
+      const c = compareProducts([ibuprofen, strip(alevePm, alevePm.labelSections.purpose!)]);
+      expect(c.families.map((f) => [f.familyId, f.evidence])).toEqual([
+        [
+          "nsaid",
+          {
+            kind: "own_labels",
+            quotes: [
+              { product: demo.motrinIb.id, heading: "Purpose", quote: "Pain reliever/fever reducer (NSAID)*" },
+              { product: alevePm.id, heading: "Purpose", quote: "nonsteroidal anti-inflammatory drug Pain reliever" },
+            ],
+          },
+        ],
+      ]);
+      // "Pain reliever/fever reducer" alone names no family.
+      expect(compareProducts([strip(demo.motrinIb, ["Pain reliever/fever reducer"]), strip(alevePm, alevePm.labelSections.purpose!)]).families).toEqual([]);
+    });
+
+    it("finds a Purpose line naming more than one purpose", () => {
+      const combined = { ...midolComplete, labelSections: { ...midolComplete.labelSections, purpose: ["Pain reliever Diuretic Antihistamine"] } };
+      expect(compareProducts([combined, benadryl]).families[0].evidence).toEqual({
+        kind: "own_labels",
+        quotes: [
+          { product: midolComplete.id, heading: "Purpose", quote: "Pain reliever Diuretic Antihistamine" },
+          { product: benadryl.id, heading: "Purpose", quote: "Antihistamine" },
+        ],
+      });
+    });
   });
 
   it("puts shared rows first in a three-product grid", () => {

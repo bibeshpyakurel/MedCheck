@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import type { Field, FieldState } from "@/lib/domain/schema";
 import { cn } from "@/lib/utils";
+import { DrawnCheck } from "./drawn-check";
 import { ShowEditorErrors } from "./editors";
 import { EvidenceCrop } from "./evidence-crop";
 import { applyEdit, markMatches, markUnknown } from "./field-actions";
@@ -79,7 +80,14 @@ export function FieldRow<T>({
       : STATE_TEXT[field.state][source];
 
   return (
-    <div className={cn("space-y-3 py-4", className)} data-state={field.state}>
+    // A decided row picks up a faint primary tint; the check on its state line draws itself.
+    <div
+      className={cn(
+        "-mx-3 space-y-3 rounded-xl px-3 py-4 transition-colors duration-300 data-[state=confirmed]:bg-primary/5 data-[state=edited]:bg-primary/5",
+        className,
+      )}
+      data-state={field.state}
+    >
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <h3 className="font-semibold">{label}</h3>
@@ -89,7 +97,7 @@ export function FieldRow<T>({
               field.state === "pending" ? "font-medium text-unresolved-foreground" : "text-muted-foreground",
             )}
           >
-            {field.state === "confirmed" || field.state === "edited" ? <CheckIcon aria-hidden className="size-3.5" /> : null}
+            {field.state === "confirmed" || field.state === "edited" ? <DrawnCheck key={field.state} className="size-3.5 text-primary" /> : null}
             {stateText}
           </p>
         </div>
@@ -145,7 +153,7 @@ export function FieldRow<T>({
             aria-pressed={field.state === "confirmed"}
             onClick={() => onChange(markMatches(field))}
           >
-            <CheckIcon aria-hidden className="hidden sm:block" /> {words.matches}
+            {field.state === "confirmed" ? <DrawnCheck /> : <CheckIcon aria-hidden className="hidden sm:block" />} {words.matches}
           </Button>
           <Button
             type="button"

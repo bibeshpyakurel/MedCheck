@@ -1,7 +1,7 @@
 name: CI
 
 # PRs into dev only: `dev` requires these checks and an up-to-date branch, so the merged commit was
-# already verified. Vercel's production build of `dev` is the last gate (see promote-main.yml).
+# already verified. Production is deployed from `dev` by hand (`npm run deploy:prod`), never on merge.
 on:
   pull_request:
     branches: [dev]

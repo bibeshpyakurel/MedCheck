@@ -100,7 +100,7 @@ The user said "just work on it" without answering one by one (2026-10-17), so ea
 - **Palette:** slot 5 (lavender, too close to the violet "unresolved" color), slot 6 (green) and slot 7 (peach, read as amber next to the overlap chip) are replaced by orchid, aqua and steel blue. Every pair, light and dark, is ≥ 6.1:1.
 - **`SceneSlot.poster`** is a `ReactNode`, not an image path, so the CSS/SVG stand-ins and later `<Image>` posters go through the same slot.
 - **Landing copy (WP5):** "…straight from the label", not "the FDA label": prescription and discharge photos aren't FDA labels.
-- **Landing mark (WP5):** animated in CSS, not Motion, so it runs before hydration and finishes overlapped without JS. The global reduced-motion rule now also zeroes `animation-delay`, so reduced motion shows end states at once.
+- **Landing headline and art (user's request, 2026-10-18):** the headline is **"Know Your Drugs."** (not "Two medicines. / One ingredient."), and the hero is a medicine illustration (a bottle, a teal-and-amber capsule, a tablet and a pill: `MedicineArt`) instead of the overlapping rings. The logo and app icon keep the rings. The art is CSS-animated (each piece settles in, then the group floats), so it runs before hydration; the global reduced-motion rule also zeroes `animation-delay`, so reduced motion shows the end state at once.
 - **Aurora (WP5/WP6):** gradients and one transform animation, with no blur filter (large blurred layers are a known iOS Safari paint problem while scrolling).
 - **WP9:** React's `<ViewTransition name share="morph">` is used, not `next-view-transitions`. Medicine rows use `<Link prefetch>` (full prefetch, production only), so the entry page renders in the same commit and the title can morph; without it the `[patientId]/loading.tsx` skeleton breaks the pair. Verified in a production build: tapping a medicine runs `::view-transition-group(entry-<id>-title)`. **Back doesn't animate.** History-back (device Back, and `BackLink`, which uses `history.back()`) isn't a React transition here, so no view transition starts, and the page just returns. The plan's "Back reverses it" is not met.
 - **`?fx=1`** forces effects on a device the gate would skip (for demo testing); it never overrides reduced motion.
@@ -114,10 +114,10 @@ The user said "just work on it" without answering one by one (2026-10-17), so ea
 | WP2 | Done | Phones only; the page pads for the bar and its raised Add. |
 | WP3 | Done | List and medicine page. The medicine card (FDA label) and the match picker keep plain text. |
 | WP4 | Done | |
-| WP5 | Done | CSS/SVG stand-ins; the Spline and Unicorn scenes aren't built yet. |
+| WP5 | Done, then changed | "Know Your Drugs." with a medicine illustration (the user's request); CSS stand-ins, since the Spline and Unicorn scenes aren't built yet. |
 | WP6 | Done | CSS aurora with an `alert` crossfade. |
-| WP7 | **On hold** | Waits for `feat/photo-sheets` (§11). |
-| WP8 | **On hold** | Waits for `feat/photo-sheets` (§11). |
+| WP7 | Done | After #54: `ScanFrame` (brackets and a beam for as long as the read runs) on the photo screen; the status copy stays the spec's "Reading the photo…". The chips flying in aren't done: the pop-up from #54 shows the matched medicine. |
+| WP8 | Done | Per-field review only (package photos confirm with one tap, by product rule): a drawn check, a row tint, and the step bar's fill. |
 | WP9 | Partly | The forward morph works; Back doesn't animate. |
 | WP10 | Done | Not yet tried as an installed app on a real phone. |
 | WP11 | Done | |

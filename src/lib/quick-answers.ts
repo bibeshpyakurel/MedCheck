@@ -50,7 +50,9 @@ const NOT_ON_LABEL = {
 } as const;
 
 /** The Drug Facts headings, as printed on labels (21 CFR 201.66), for grouped answers. */
-const HEADINGS: Partial<Record<LabelSectionKey, string>> = {
+export const LABEL_HEADINGS: Partial<Record<LabelSectionKey, string>> = {
+  uses: "Uses",
+  purpose: "Purpose",
   warnings: "Warnings",
   do_not_use: "Do not use",
   ask_doctor: "Ask a doctor before use if",
@@ -278,7 +280,7 @@ function search(
       if (matches(b, key, i)) for (const n of withLeadIn(bullets, i, key)) picked.add(n);
     });
     if (picked.size === 0) return [];
-    return [{ heading: HEADINGS[key] ?? key, bullets: [...picked].sort((a, b) => a - b).map((n) => bullets[n]) }];
+    return [{ heading: LABEL_HEADINGS[key] ?? key, bullets: [...picked].sort((a, b) => a - b).map((n) => bullets[n]) }];
   });
 }
 
@@ -379,7 +381,7 @@ export function quickAnswers(f: Formulation): QuickAnswer[] {
   const alerts = allergyBlocks(sec("warnings"));
   addGrouped("allergies", "Allergies", false, [
     ...search(s, KEYWORD_SECTIONS, (b, key, i) => ALLERGY.test(b) || (key === "warnings" && alerts.has(i))),
-    { heading: HEADINGS.inactive_ingredients!, bullets: sec("inactive_ingredients") },
+    { heading: LABEL_HEADINGS.inactive_ingredients!, bullets: sec("inactive_ingredients") },
   ]);
 
   // 14. Took too much? Always shown: the card adds Poison Control's number to whatever the label says.

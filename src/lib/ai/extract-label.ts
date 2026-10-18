@@ -19,7 +19,7 @@ const text = (what: string) =>
 
 const geminiMedicationSchema = z.object({
   productName: text("Product or medicine name (brand or generic as printed)"),
-  dosageForm: text("Dosage form as printed, e.g. liquid, oral suspension, caplet, tablet, capsule"),
+  dosageForm: text("Dosage form word as printed on the package, e.g. caplets, coated tablets, Liqui-Gels, softgels, chewable tablets, oral suspension, liquid"),
   ingredients: z
     .array(
       z.object({
@@ -97,6 +97,8 @@ Rules:
 - Copy values exactly as printed. Never infer, guess, convert, round or calculate anything (no dose from age or weight, no unit conversion, no totals).
 - If a value is not printed, cut off, blurry or you are not sure, return null for it.
 - Split each strength into amount, unit, perAmount and perUnit as printed ("160 mg per 5 mL" → 160, mg, 5, mL; "325 mg in each caplet" → 325, mg, 1, caplet).
+- When a strength is printed for the active ingredient and again for the salt it is provided as ("Ibuprofen 200 mg (provided as ibuprofen sodium 256 mg)"), return the active ingredient and its amount as the Drug Facts "Active ingredient" line names them (Ibuprofen, 200 mg), not the salt.
+- dosageForm: copy the form word the package prints (caplets, coated tablets, Liqui-Gels, softgels, gelcaps, chewable tablets, oral suspension, liquid). Never shorten it to tablet or capsule: "Liqui-Gels" stays Liqui-Gels, "caplets" stays caplets. If no form word is printed but the contents are given in fl oz or mL, return "liquid".
 - doseAsWritten is the amount the directions say to take or give, exactly as written in the directions, with its unit as written ("2 tsp" stays 2 tsp). If the directions depend on age or weight, or there is a table, return null.
 - For every value give box_2d [ymin, xmin, ymax, xmax] on a 0-1000 scale around the printed text, or null.
 - Return one medications item per distinct medication. For package photos, return every distinct product you can see; a product shown on several sides of one package (front, back, Drug Facts panel) is one product: return it once.

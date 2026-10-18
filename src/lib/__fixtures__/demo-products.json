@@ -1,0 +1,1435 @@
+{
+  "tylenolExtraStrength": {
+    "id": "251cfee0-7376-4c2e-a2b0-a1be07af3174",
+    "slug": "tylenol-extra-strength-500mg-caplet",
+    "brandName": "Tylenol Extra Strength (caplets)",
+    "genericName": "Acetaminophen",
+    "dosageForm": "caplet",
+    "isFictional": false,
+    "ndcPackages": [
+      "50090000500",
+      "50090169500",
+      "50090546900",
+      "50580010820",
+      "50580010825",
+      "50580037801",
+      "50580037802",
+      "50580037803",
+      "50580037804",
+      "50580037805",
+      "50580037806",
+      "50580037807",
+      "50580037808",
+      "50580037837",
+      "50580044900",
+      "50580044905",
+      "50580044908",
+      "50580044909",
+      "50580044910",
+      "50580044911",
+      "50580044912",
+      "50580044913",
+      "50580044914",
+      "50580044915",
+      "50580044923",
+      "50580044931",
+      "50580044934",
+      "50580044935",
+      "50580044936",
+      "50580044937",
+      "50580044961",
+      "50580044962",
+      "50580044966",
+      "50580044984",
+      "50580044985",
+      "50580044986",
+      "50580044987",
+      "50580044996",
+      "50580044997",
+      "50580044998",
+      "50580045103",
+      "50580045110",
+      "50580045150",
+      "50580045170",
+      "50580045710",
+      "50580045711",
+      "50580045770",
+      "50580047201",
+      "50580047202",
+      "50580047203",
+      "50580047204",
+      "50580049101",
+      "50580049110",
+      "50580049170",
+      "50580093701",
+      "50580093702",
+      "50580093703",
+      "50580093704",
+      "50580093705",
+      "50580093706",
+      "50580093707",
+      "50580093710",
+      "50580093715",
+      "50580093719",
+      "50580093720",
+      "50580093723",
+      "50580093725",
+      "50580093737",
+      "50580093750",
+      "50580093751",
+      "50580093766",
+      "53209100101",
+      "53209100102",
+      "66715644702",
+      "66715654702",
+      "66715974701",
+      "66715974702",
+      "66715974703",
+      "66715974707",
+      "66715974708",
+      "66715974709",
+      "67414044900",
+      "67414044910",
+      "67414044911",
+      "67751016701",
+      "67751016702",
+      "67751016703",
+      "67751016704",
+      "70264002701",
+      "73097001202",
+      "73097001240",
+      "73097001250",
+      "85237194600",
+      "85237194601",
+      "85237194602",
+      "85237194603",
+      "85237194604",
+      "85237194605",
+      "85237194606",
+      "85237194607"
+    ],
+    "activeIngredients": [
+      {
+        "name": "Acetaminophen",
+        "strength": {
+          "unit": "mg",
+          "amount": 500,
+          "perUnit": "caplet",
+          "perAmount": 1
+        },
+        "normalized": "acetaminophen"
+      }
+    ],
+    "directionsText": "do not take more than directed (see overdose warning ) adults and children 12 years and over take 2 caplets every 6 hours while symptoms last do not take more than 6 caplets in 24 hours, unless directed by a doctor do not use for more than 10 days unless directed by a doctor children under 12 years ask a doctor",
+    "max24hText": "do not take more than 6 caplets in 24 hours",
+    "warningsQuotes": [
+      "Liver warning This product contains acetaminophen.",
+      "Severe liver damage may occur if you take more than 4,000 mg of acetaminophen in 24 hours with other drugs containing acetaminophen 3 or more alcoholic drinks every day while using this product",
+      "Allergy alert: acetaminophen may cause severe skin reactions.",
+      "Do not use with any other drug containing acetaminophen (prescription or nonprescription).",
+      "If you are not sure whether a drug contains acetaminophen, ask a doctor or pharmacist.",
+      "if you are allergic to acetaminophen or any of the inactive ingredients in this product"
+    ],
+    "dosageTableHtml": "<table><colgroup><col><col></colgroup><tbody><tr><td>adults and children 12 years and over</td><td>take 2 caplets every 6 hours while symptoms last<br>do not take more than 6 caplets in 24 hours, unless directed by a doctor<br>do not use for more than 10 days unless directed by a doctor</td></tr><tr><td>children under 12 years</td><td>ask a doctor</td></tr></tbody></table>",
+    "source": "openfda",
+    "openfdaSetId": "103d109d-f520-409c-8da2-eb6b0fbec891",
+    "labelEffectiveDate": "2026-07-22",
+    "labelerName": "Kenvue Brands LLC",
+    "labelSections": {
+      "uses": [
+        "temporarily relieves minor aches and pains due to: the common cold",
+        "headache",
+        "backache",
+        "minor pain of arthritis",
+        "toothache",
+        "muscular aches",
+        "premenstrual and menstrual cramps",
+        "temporarily reduces fever"
+      ],
+      "purpose": [
+        "Pain reliever/fever reducer"
+      ],
+      "storage": [
+        "store between 20-25°C (68-77°F)"
+      ],
+      "stop_use": [
+        "pain gets worse or lasts more than 10 days",
+        "fever gets worse or lasts more than 3 days",
+        "new symptoms occur",
+        "redness or swelling is present",
+        "These could be signs of a serious condition."
+      ],
+      "warnings": [
+        "Liver warning This product contains acetaminophen.",
+        "Severe liver damage may occur if you take more than 4,000 mg of acetaminophen in 24 hours",
+        "with other drugs containing acetaminophen",
+        "3 or more alcoholic drinks every day while using this product",
+        "Allergy alert: acetaminophen may cause severe skin reactions.",
+        "Symptoms may include: skin reddening blisters rash",
+        "If a skin reaction occurs, stop use and seek medical help right away.",
+        "Overdose warning In case of overdose, get medical help or contact a Poison Control Center right away. (1-800-222-1222) Quick medical attention is critical for adults as well as for children even if you do not notice any signs or symptoms."
+      ],
+      "questions": [
+        "call 1-877-895-3665 (toll-free) or 215-273-8755 (collect)"
+      ],
+      "ask_doctor": [
+        "you have liver disease"
+      ],
+      "directions": [
+        "do not take more than directed (see overdose warning )"
+      ],
+      "do_not_use": [
+        "with any other drug containing acetaminophen (prescription or nonprescription).",
+        "If you are not sure whether a drug contains acetaminophen, ask a doctor or pharmacist.",
+        "if you are allergic to acetaminophen or any of the inactive ingredients in this product"
+      ],
+      "keep_out_of_reach": [
+        "Keep out of reach of children."
+      ],
+      "other_information": [
+        "do not use if pouch is torn or damaged"
+      ],
+      "inactive_ingredients": [
+        "carnauba wax contains one or more of these ingredients , corn starch , FD&C red no. 40 aluminum lake, hypromellose, magnesium stearate, modified starch , polyethylene glycol , powdered cellulose, pregelatinized starch, propylene glycol, shellac, sodium starch glycolate, titanium dioxide"
+      ],
+      "ask_doctor_or_pharmacist": [
+        "you are taking the blood thinning drug warfarin"
+      ],
+      "pregnancy_or_breast_feeding": [
+        "If pregnant or breast-feeding, ask a health professional before use."
+      ]
+    },
+    "sourceLinks": [
+      {
+        "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=103d109d-f520-409c-8da2-eb6b0fbec891",
+        "label": "FDA label (DailyMed)"
+      },
+      {
+        "url": "https://medlineplus.gov/druginfo/meds/a681004.html",
+        "label": "MedlinePlus: Acetaminophen"
+      }
+    ],
+    "reviewed": true
+  },
+  "tylenolPm": {
+    "id": "10cfeeb7-4823-4ac1-b189-bef9f4d581a7",
+    "slug": "otc-ce58105b-f010-47af-8f31-6dd4ce4e9cba",
+    "brandName": "Tylenol PM Extra Strength",
+    "genericName": "Acetaminophen and diphenhydramine hydrochloride",
+    "dosageForm": "caplet",
+    "isFictional": false,
+    "ndcPackages": [
+      "50580060801",
+      "50580060802",
+      "50580060803",
+      "50580060804",
+      "50580060805",
+      "50580060806",
+      "50580060807",
+      "50580060808"
+    ],
+    "activeIngredients": [
+      {
+        "name": "Acetaminophen",
+        "strength": {
+          "unit": "mg",
+          "amount": 500,
+          "perUnit": "caplet",
+          "perAmount": 1
+        },
+        "normalized": "acetaminophen"
+      },
+      {
+        "name": "Diphenhydramine HCl",
+        "strength": {
+          "unit": "mg",
+          "amount": 25,
+          "perUnit": "caplet",
+          "perAmount": 1
+        },
+        "normalized": "diphenhydramine"
+      }
+    ],
+    "directionsText": "do not take more than directed (see overdose warning ) adults and children 12 years and over take 2 caplets at bedtime do not take more than 2 caplets of this product in 24 hours children under 12 years do not use",
+    "max24hText": "do not take more than 2 caplets of this product in 24 hours",
+    "warningsQuotes": [
+      "Liver warning This product contains acetaminophen.",
+      "Severe liver damage may occur if you take more than 4,000 mg of acetaminophen in 24 hours with other drugs containing acetaminophen 3 or more alcoholic drinks every day while using this product",
+      "Allergy alert: acetaminophen may cause severe skin reactions.",
+      "Do not use with any other drug containing acetaminophen (prescription or nonprescription).",
+      "If you are not sure whether a drug contains acetaminophen, ask a doctor or pharmacist.",
+      "with any other product containing diphenhydramine, even one used on skin in children under 12 years of age if you have ever had an allergic reaction to this product or any of its ingredients"
+    ],
+    "dosageTableHtml": "<table><col /><col /><tbody><tr><td>adults and children 12 years and over</td><td>take 2 caplets at bedtime<br>do not take more than 2 caplets of this product in 24 hours</td></tr><tr><td>children under 12 years</td><td>do not use</td></tr></tbody></table>",
+    "source": "openfda",
+    "openfdaSetId": "ce58105b-f010-47af-8f31-6dd4ce4e9cba",
+    "labelEffectiveDate": "2026-07-22",
+    "labelerName": "Kenvue Brands LLC",
+    "labelSections": {
+      "uses": [
+        "temporary relief of occasional headaches and minor aches and pains with accompanying sleeplessness"
+      ],
+      "purpose": [
+        "Pain reliever",
+        "Nighttime sleep aid"
+      ],
+      "storage": [
+        "store between 20-25°C (68-77°F)"
+      ],
+      "stop_use": [
+        "sleeplessness persists continuously for more than 2 weeks.",
+        "Insomnia may be a symptom of serious underlying medical illness.",
+        "pain gets worse or lasts more than 10 days",
+        "fever gets worse or lasts more than 3 days",
+        "redness or swelling is present",
+        "new symptoms occur",
+        "These could be signs of a serious condition."
+      ],
+      "warnings": [
+        "Liver warning This product contains acetaminophen.",
+        "Severe liver damage may occur if you take more than 4,000 mg of acetaminophen in 24 hours",
+        "with other drugs containing acetaminophen",
+        "3 or more alcoholic drinks every day while using this product",
+        "Allergy alert: acetaminophen may cause severe skin reactions.",
+        "Symptoms may include: skin reddening blisters rash",
+        "If a skin reaction occurs, stop use and seek medical help right away.",
+        "Overdose warning In case of overdose, get medical help or contact a Poison Control Center right away. (1-800-222-1222) Quick medical attention is critical for adults as well as for children even if you do not notice any signs or symptoms."
+      ],
+      "questions": [
+        "call 1-877-895-3665 (toll-free) or 215-273-8755 (collect)"
+      ],
+      "ask_doctor": [
+        "you have liver disease",
+        "a breathing problem such as emphysema or chronic bronchitis",
+        "trouble urinating due to an enlarged prostate gland glaucoma"
+      ],
+      "directions": [
+        "do not take more than directed (see overdose warning )"
+      ],
+      "do_not_use": [
+        "with any other drug containing acetaminophen (prescription or nonprescription).",
+        "If you are not sure whether a drug contains acetaminophen, ask a doctor or pharmacist.",
+        "with any other product containing diphenhydramine, even one used on skin",
+        "in children under 12 years of age",
+        "if you have ever had an allergic reaction to this product or any of its ingredients"
+      ],
+      "when_using": [
+        "drowsiness will occur avoid alcoholic drinks do not drive a motor vehicle or operate machinery"
+      ],
+      "keep_out_of_reach": [
+        "Keep out of reach of children."
+      ],
+      "other_information": [
+        "do not use if pouch is torn or damaged"
+      ],
+      "inactive_ingredients": [
+        "carnauba wax, crospovidone, FD&C blue no. 1 aluminum lake, hypromellose, magnesium stearate, microcrystalline cellulose, polyethylene glycol, polysorbate 80, povidone, pregelatinized starch, sodium starch glycolate, stearic acid, titanium dioxide"
+      ],
+      "ask_doctor_or_pharmacist": [
+        "you are taking the blood thinning drug warfarin",
+        "taking sedatives or tranquilizers"
+      ],
+      "pregnancy_or_breast_feeding": [
+        "If pregnant or breast-feeding, ask a health professional before use."
+      ]
+    },
+    "sourceLinks": [
+      {
+        "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=ce58105b-f010-47af-8f31-6dd4ce4e9cba",
+        "label": "FDA label (DailyMed)"
+      },
+      {
+        "url": "https://medlineplus.gov/druginfo/meds/a681004.html",
+        "label": "MedlinePlus: Acetaminophen"
+      },
+      {
+        "url": "https://medlineplus.gov/druginfo/meds/a682539.html",
+        "label": "MedlinePlus: Diphenhydramine"
+      }
+    ],
+    "reviewed": false
+  },
+  "midolComplete": {
+    "id": "d0e07155-c98c-40c7-ada9-cde6c702eec9",
+    "slug": "otc-ce9e6acb-a38b-4c9b-a7e8-3e1c2a49a324",
+    "brandName": "Midol Complete",
+    "genericName": "Acetaminophen, caffeine, and pyrilamine maleate",
+    "dosageForm": "caplet",
+    "isFictional": false,
+    "ndcPackages": [
+      "00280800501",
+      "00280800502",
+      "00280800504",
+      "00280800516",
+      "00280800524",
+      "00280800540"
+    ],
+    "activeIngredients": [
+      {
+        "name": "Acetaminophen",
+        "strength": {
+          "unit": "mg",
+          "amount": 500,
+          "perUnit": "caplet",
+          "perAmount": 1
+        },
+        "normalized": "acetaminophen"
+      },
+      {
+        "name": "Caffeine",
+        "strength": {
+          "unit": "mg",
+          "amount": 60,
+          "perUnit": "caplet",
+          "perAmount": 1
+        },
+        "normalized": "caffeine"
+      },
+      {
+        "name": "Pyrilamine maleate",
+        "strength": {
+          "unit": "mg",
+          "amount": 15,
+          "perUnit": "caplet",
+          "perAmount": 1
+        },
+        "normalized": "pyrilamine"
+      }
+    ],
+    "directionsText": "do not take more than the recommended dose adults and children 12 years and older: take 2 caplets with water repeat every 6 hours, as needed do not exceed 6 caplets per day children under 12 years: consult a doctor",
+    "max24hText": "do not exceed 6 caplets per day",
+    "warningsQuotes": [
+      "Liver warning This product contains acetaminophen.",
+      "Severe liver damage may occur if you take more than 6 caplets in 24 hours, which is the maximum daily amount for this product with other drugs containing acetaminophen 3 or more alcoholic drinks every day while using this product",
+      "Do not use with any other drug containing acetaminophen (prescription or nonprescription).",
+      "If you are not sure whether a drug contains acetaminophen, ask a doctor or pharmacist.",
+      "The recommended dose of this product contains about as much caffeine as a cup of coffee."
+    ],
+    "dosageTableHtml": null,
+    "source": "openfda",
+    "openfdaSetId": "ce9e6acb-a38b-4c9b-a7e8-3e1c2a49a324",
+    "labelEffectiveDate": "2025-04-10",
+    "labelerName": "Bayer HealthCare LLC.",
+    "labelSections": {
+      "uses": [
+        "for the temporary relief of these symptoms associated with menstrual periods: cramps bloating water-weight gain headache",
+        "backache muscle aches fatigue"
+      ],
+      "purpose": [
+        "Pain reliever",
+        "Diuretic",
+        "Antihistamine"
+      ],
+      "storage": [
+        "store at room temperature"
+      ],
+      "stop_use": [
+        "new symptoms occur",
+        "redness or swelling is present",
+        "pain gets worse or lasts more than 10 days",
+        "fever gets worse or lasts more than 3 days"
+      ],
+      "warnings": [
+        "Liver warning This product contains acetaminophen.",
+        "Severe liver damage may occur if you take more than 6 caplets in 24 hours, which is the maximum daily amount for this product",
+        "with other drugs containing acetaminophen",
+        "3 or more alcoholic drinks every day while using this product"
+      ],
+      "questions": [
+        "1-800-331-4536 (Mon-Fri 9AM - 5PM EST) or www.midol.com"
+      ],
+      "ask_doctor": [
+        "you have liver disease",
+        "glaucoma difficulty in urination due to enlargement of the prostate gland",
+        "a breathing problem such as emphysema or chronic bronchitis"
+      ],
+      "directions": [
+        "do not take more than the recommended dose",
+        "adults and children 12 years and older: take 2 caplets with water repeat every 6 hours, as needed",
+        "do not exceed 6 caplets per day",
+        "children under 12 years: consult a doctor"
+      ],
+      "do_not_use": [
+        "with any other drug containing acetaminophen (prescription or nonprescription).",
+        "If you are not sure whether a drug contains acetaminophen, ask a doctor or pharmacist.",
+        "if you have ever had an allergic reaction to this product or any of its ingredients"
+      ],
+      "when_using": [
+        "you may get drowsy avoid alcoholic drinks excitability may occur, especially in children alcohol, sedatives, and tranquilizers may increase drowsiness be careful when driving a motor vehicle or operating machinery limit the use of caffeine-containing medications, foods, or beverages because too much caffeine may cause nervousness, irritability, sleeplessness, and, occasionally, rapid heartbeat.",
+        "The recommended dose of this product contains about as much caffeine as a cup of coffee."
+      ],
+      "keep_out_of_reach": [
+        "Keep out of reach of children.",
+        "In case of overdose, get medical help or contact a Poison Control Center right away.",
+        "Quick medical attention is critical for adults as well as for children even if you do not notice any signs or symptoms."
+      ],
+      "inactive_ingredients": [
+        "carnauba wax, croscarmellose sodium, FD&C blue #2 aluminum lake, hypromellose, magnesium stearate, microcrystalline cellulose, pregelatinized starch, propylene glycol, shellac, titanium dioxide, triacetin"
+      ],
+      "ask_doctor_or_pharmacist": [
+        "you are taking the blood thinning drug warfarin",
+        "taking sedatives or tranquilizers"
+      ],
+      "pregnancy_or_breast_feeding": [
+        "If pregnant or breast-feeding, ask a health professional before use."
+      ]
+    },
+    "sourceLinks": [
+      {
+        "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=ce9e6acb-a38b-4c9b-a7e8-3e1c2a49a324",
+        "label": "FDA label (DailyMed)"
+      }
+    ],
+    "reviewed": false
+  },
+  "midolCompleteGelcaps": {
+    "id": "6e5eb616-eeca-46cf-beae-62cbceb09349",
+    "slug": "otc-0a4477ce-0a02-197d-e054-00144ff88e88",
+    "brandName": "Midol Complete Gelcaps",
+    "genericName": "Midol complete",
+    "dosageForm": "gelcap",
+    "isFictional": false,
+    "ndcPackages": [
+      "00280801524"
+    ],
+    "activeIngredients": [
+      {
+        "name": "Acetaminophen",
+        "strength": {
+          "unit": "mg",
+          "amount": 500,
+          "perUnit": "gelcap",
+          "perAmount": 1
+        },
+        "normalized": "acetaminophen"
+      },
+      {
+        "name": "Caffeine",
+        "strength": {
+          "unit": "mg",
+          "amount": 60,
+          "perUnit": "gelcap",
+          "perAmount": 1
+        },
+        "normalized": "caffeine"
+      },
+      {
+        "name": "Pyrilamine maleate",
+        "strength": {
+          "unit": "mg",
+          "amount": 15,
+          "perUnit": "gelcap",
+          "perAmount": 1
+        },
+        "normalized": "pyrilamine"
+      }
+    ],
+    "directionsText": "· do not take more than the recommended dose · adults and children 12 years and older: · take 2 gelcaps with water · repeat every 6 hours, as needed · do not exceed 6 gelcaps per day · children under 12 years: consult a doctor",
+    "max24hText": "do not exceed 6 gelcaps per day",
+    "warningsQuotes": [
+      "Liver warning: This product contains acetaminophen.",
+      "Severe liver damage may occur if you take · more than 6 gelcaps in 24 hours, which is the maximum daily amount for this product · with other drugs containing acetaminophen · 3 or more alcoholic drinks every day while using this product",
+      "Allergy Alert: acetaminophen may cause severe skin or severe allergic reactions.",
+      "Do not use · with any other drug containing acetaminophen (prescription or nonprescription).",
+      "If you are not sure whether a drug contains acetaminophen, ask a doctor or pharmacist."
+    ],
+    "dosageTableHtml": null,
+    "source": "openfda",
+    "openfdaSetId": "0a4477ce-0a02-197d-e054-00144ff88e88",
+    "labelEffectiveDate": "2025-12-04",
+    "labelerName": "Bayer HealthCare LLC",
+    "labelSections": {
+      "uses": [
+        "for the temporary relief of these symptoms associated with menstrual periods: cramps bloating water-weight gain headache",
+        "backache muscle ache fatigue"
+      ],
+      "storage": [
+        "store at room temperature",
+        "avoid excessive heat 104°F (40°C)"
+      ],
+      "stop_use": [
+        "new symptoms occur",
+        "redness or swelling is present",
+        "pain gets worse or lasts more than 10 days",
+        "fever gets worse or lasts more than 3 days"
+      ],
+      "warnings": [
+        "Liver warning: This product contains acetaminophen.",
+        "Severe liver damage may occur if you take more than 6 gelcaps in 24 hours, which is the maximum daily amount for this product",
+        "with other drugs containing acetaminophen",
+        "3 or more alcoholic drinks every day while using this product Allergy Alert: acetaminophen may cause severe skin or severe allergic reactions.",
+        "Symptoms may include: skin reddening",
+        "blisters",
+        "rash",
+        "hives",
+        "facial swelling",
+        "asthma (wheezing)",
+        "shock",
+        "If a skin or general allergic reaction occurs, stop use and seek medical help right away."
+      ],
+      "questions": [
+        "1-800-331-4536 (Mon-Fri 9AM - 5PM EST)"
+      ],
+      "ask_doctor": [
+        "you have liver disease",
+        "glaucoma",
+        "difficulty in urination due to enlargement of the prostate gland",
+        "a breathing problem such as emphysema or chronic bronchitis"
+      ],
+      "directions": [
+        "do not take more than the recommended dose",
+        "adults and children 12 years and older: take 2 gelcaps with water",
+        "repeat every 6 hours, as needed",
+        "do not exceed 6 gelcaps per day",
+        "children under 12 years: consult a doctor"
+      ],
+      "do_not_use": [
+        "with any other drug containing acetaminophen (prescription or nonprescription).",
+        "If you are not sure whether a drug contains acetaminophen, ask a doctor or pharmacist.",
+        "if you have ever had an allergic reaction to this product or any of its ingredients"
+      ],
+      "when_using": [
+        "you may get drowsy",
+        "avoid alcoholic drinks",
+        "excitability may occur, especially in children",
+        "alcohol, sedatives, and tranquilizers may increase drowsiness",
+        "be careful when driving a motor vehicle or operating machinery",
+        "limit the use of caffeine-containing medications, foods, or beverages because too much caffeine may cause nervousness, irritability, sleeplessness, and, occasionally, rapid heartbeat.",
+        "The recommended dose of this product contains about as much caffeine as a cup of coffee."
+      ],
+      "keep_out_of_reach": [
+        "Keep out of reach of children.",
+        "In case of overdose, get medical help or contact a Poison Control Center right away.",
+        "Quick medical attention is critical for adults as well as for children even if you do not notice any signs or symptoms."
+      ],
+      "inactive_ingredients": [
+        "black iron oxide, carnauba wax, croscarmellose sodium, D&C red #33 aluminum lake, edetate disodium, FD&C blue #1 aluminum lake, gelatin, glycerin, hypromellose, lecithin, magnesium stearate, microcrystalline cellulose, pregelatinized starch, propylene glycol, shellac, simethicone, stearic acid, titanium dioxide, triacetin"
+      ],
+      "ask_doctor_or_pharmacist": [
+        "you are taking the blood thinning drug warfarin",
+        "taking sedatives or tranquilizers"
+      ],
+      "pregnancy_or_breast_feeding": [
+        "If pregnant or breast-feeding, ask a health professional before use."
+      ]
+    },
+    "sourceLinks": [
+      {
+        "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=0a4477ce-0a02-197d-e054-00144ff88e88",
+        "label": "FDA label (DailyMed)"
+      }
+    ],
+    "reviewed": false
+  },
+  "aleve": {
+    "id": "12381315-9cc0-4043-b6dd-42ec4a44b037",
+    "slug": "otc-31bad2d9-c0bb-7f20-e063-6294a90acb17",
+    "brandName": "Aleve",
+    "genericName": "Naproxen sodium",
+    "dosageForm": "caplet",
+    "isFictional": false,
+    "ndcPackages": [
+      "00280011301",
+      "00280011302",
+      "00280011303",
+      "00280011304",
+      "00280011305",
+      "00280011306",
+      "00280013101"
+    ],
+    "activeIngredients": [
+      {
+        "name": "Naproxen sodium",
+        "strength": {
+          "unit": "mg",
+          "amount": 220,
+          "perUnit": "caplet",
+          "perAmount": 1
+        },
+        "normalized": "naproxen"
+      }
+    ],
+    "directionsText": "do not take more than directed the smallest effective dose should be used drink a full glass of water with each dose Adults and children 12 years and older take 1 caplet every 8 to 12 hours while symptoms last for the first dose you may take 2 caplets within the first hour do not exceed 2 caplets in any 8- to 12-hour period do not exceed 3 caplets in a 24-hour period Children under 12 years ask a doctor",
+    "max24hText": "do not exceed 3 caplets in a 24-hour period",
+    "warningsQuotes": [
+      "Allergy alert : Naproxen sodium may cause a severe allergic reaction, especially in people allergic to aspirin.",
+      "Ask a doctor or pharmacist before use if you are under a doctor's care for any serious conidtion taking aspirin for heart attack or stroke, because naproxen may decrease this benefit of aspirin taking any other drug",
+      "It is especially important not to use naproxen sodium at 20 weeks or later in pregnancy unless definitely directed to do so by a doctor because it may cause problems un the unborn child or complications during delivery."
+    ],
+    "dosageTableHtml": "<table><colgroup><col /><col /></colgroup><tbody><tr><td>Adults and children 12 years and older</td><td>take 1 caplet every 8 to 12 hours while symptoms last<br>for the first dose you may take 2 caplets within the first hour<br>do not exceed 2 caplets in any 8- to 12-hour period<br>do not exceed 3 caplets in a 24-hour period</td></tr><tr><td>Children under 12 years</td><td>ask a doctor</td></tr></tbody></table>",
+    "source": "openfda",
+    "openfdaSetId": "31bad2d9-c0bb-7f20-e063-6294a90acb17",
+    "labelEffectiveDate": "2025-04-01",
+    "labelerName": "Bayer HealthCare LLC.",
+    "labelSections": {
+      "uses": [
+        "temporarily relieves minor aches and pains due to: minor pain of arthritis",
+        "muscular aches",
+        "backache",
+        "menstrual cramps",
+        "headache",
+        "toothache",
+        "the common cold",
+        "temporarily reduces fever"
+      ],
+      "purpose": [
+        "Pain reliever/fever reducer"
+      ],
+      "storage": [
+        "store at 20-25 ° C (68-77 ° F)."
+      ],
+      "stop_use": [
+        "you experience any of the following signs of stomach bleeding: feel faint",
+        "vomit blood",
+        "have bloody or black stools",
+        "have stomach pain that does not get better",
+        "you have symptoms of heart problems or stroke: chest pain",
+        "trouble breathing",
+        "weakness in one part or side of body",
+        "slurred speech",
+        "leg swelling",
+        "pain gets worse or lasts more than 10 days",
+        "fever gets worse or lasts more than 3 days",
+        "you have difficulty swallowing it feels like the pill is stuck in your throat",
+        "redness or swelling is present in the painful area",
+        "any new symptoms appear"
+      ],
+      "warnings": [
+        "Allergy alert : Naproxen sodium may cause a severe allergic reaction, especially in people allergic to aspirin.",
+        "Symptoms may Include: hives facial swelling asthma (wheezing) shock skin reddening rash blisters",
+        "If an allergic reaction occurs, stop use and seek medical help right away",
+        "Stomach bleeding warning : This product contains an NSAID, which may cause severe stomach bleeding.",
+        "The chance is higher if you: are age 60 or older",
+        "have had stomach ulcers or bleeding problems",
+        "take a blood thinning (anticoagulant) or steroid drug",
+        "take other drugs containing prescription or nonprescription NSAIDs (aspirin, ibuprofen, naproxen, or others)",
+        "have 3 or more alcoholic drinks every day while using this product",
+        "take more or for a longer time than directed",
+        "Heart attack and stroke warning: NSAIDs, except aspirin, increase the risk of heart attack, heart failure, and stroke.",
+        "These can be fatal.",
+        "The risk is higher if you use more than directed or for longer than directed."
+      ],
+      "questions": [
+        "1-800-395-0689 (Mon - Fri 9AM - 5PM EST)"
+      ],
+      "ask_doctor": [
+        "the stomach bleeding warning applies to you",
+        "you have a history of stomach problems, such as heartburn",
+        "you have high blood pressure, heart disease, liver cirrhosis, kidney disease, asthma, or had a stroke",
+        "you are taking a diuretic",
+        "you have problems or serious side effects from taking pain relievers or fever reducers"
+      ],
+      "directions": [
+        "do not take more than directed the smallest effective dose should be used drink a full glass of water with each dose"
+      ],
+      "do_not_use": [
+        "if you have ever had an allergic reaction to any other pain reliever/fever reducer",
+        "right before or after heart surgery"
+      ],
+      "when_using": [
+        "take with food or milk if stomach upset occurs"
+      ],
+      "keep_out_of_reach": [
+        "Keep out of reach of children.",
+        "In case of overdose, get medical help or contact a Poison Control Center right away."
+      ],
+      "other_information": [
+        "each caplet contains: sodium 21 mg",
+        "Avoid high humidity and excessive heat above 40 ° C (104 ° F)."
+      ],
+      "inactive_ingredients": [
+        "colloidal silicon dioxide, FD&C blue No. 2 aluminum lake, hypromellose, magnesium stearate, mannitol, polyethylene glycol, sodium starch glycolate, stearic acid, titanium dioxide"
+      ],
+      "ask_doctor_or_pharmacist": [
+        "you are under a doctor's care for any serious conidtion",
+        "taking aspirin for heart attack or stroke, because naproxen may decrease this benefit of aspirin",
+        "taking any other drug"
+      ],
+      "pregnancy_or_breast_feeding": [
+        "If pregnant or breast-feeding , ask a healthcare professional before use.",
+        "It is especially important not to use naproxen sodium at 20 weeks or later in pregnancy unless definitely directed to do so by a doctor because it may cause problems un the unborn child or complications during delivery."
+      ]
+    },
+    "sourceLinks": [
+      {
+        "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=31bad2d9-c0bb-7f20-e063-6294a90acb17",
+        "label": "FDA label (DailyMed)"
+      },
+      {
+        "url": "https://medlineplus.gov/druginfo/meds/a681029.html",
+        "label": "MedlinePlus: Naproxen"
+      }
+    ],
+    "reviewed": false
+  },
+  "alevePm": {
+    "id": "999043c6-c7c1-4e23-97f7-c645c4145dee",
+    "slug": "otc-82891458-ab0d-459a-8602-dcebd22c3010",
+    "brandName": "Aleve PM",
+    "genericName": "Diphenhydramine hydrochloride and naproxen sodium",
+    "dosageForm": "caplet",
+    "isFictional": false,
+    "ndcPackages": [
+      "00280120001",
+      "00280120002",
+      "00280120003",
+      "00280120004",
+      "00280120005",
+      "00280120008",
+      "00280120020",
+      "00280120040",
+      "00280120080"
+    ],
+    "activeIngredients": [
+      {
+        "name": "Diphenhydramine hydrochloride",
+        "strength": {
+          "unit": "mg",
+          "amount": 25,
+          "perUnit": "caplet",
+          "perAmount": 1
+        },
+        "normalized": "diphenhydramine"
+      },
+      {
+        "name": "Naproxen sodium",
+        "strength": {
+          "unit": "mg",
+          "amount": 220,
+          "perUnit": "caplet",
+          "perAmount": 1
+        },
+        "normalized": "naproxen"
+      }
+    ],
+    "directionsText": "do not take more than directed drink a full glass of water with each dose adults and children 12 years and over: take 2 caplets at bedtime do not take more than 2 caplets in 24 hours if taken with food, this product may take longer to work",
+    "max24hText": "do not take more than 2 caplets in 24 hours",
+    "warningsQuotes": [
+      "Allergy alert Naproxen sodium may cause a severe allergic reaction, especially in people allergic to aspirin.",
+      "Do not use if you have ever had an allergic reaction to any other pain reliever/fever reducer unless you have time for a full night's sleep in children under 12 years of age right before or after heart surgery with any other product containing diphenhydramine, even one used on skin if you have sleeplessness without pain",
+      "Ask a doctor or pharmacist before use if you are taking sedatives or tranquilizers, or any other sleep-aid under a doctor's care for any serious condition taking aspirin for heart attack or stroke, because naproxen may decrease this benefit of aspirin taking any other antihistamines taking any other drug",
+      "It is especially important not to use naproxen sodium 20 weeks or later in pregnancy unless definitely directed to do so by a doctor because it may cause problems in the unborn child or complications during delivery."
+    ],
+    "dosageTableHtml": null,
+    "source": "openfda",
+    "openfdaSetId": "82891458-ab0d-459a-8602-dcebd22c3010",
+    "labelEffectiveDate": "2025-12-04",
+    "labelerName": "Bayer HealthCare LLC.",
+    "labelSections": {
+      "uses": [
+        "for relief of occasional sleeplessness when associated with minor aches and pains",
+        "helps you fall asleep and stay asleep"
+      ],
+      "purpose": [
+        "Nighttime sleep-aid",
+        "nonsteroidal anti-inflammatory drug Pain reliever"
+      ],
+      "storage": [
+        "store at 20-25°C (68-77°F) avoid high humidity and excessive heat above 40°C (104°F)"
+      ],
+      "stop_use": [
+        "you experience any of the following signs of stomach bleeding: feel faint",
+        "vomit blood",
+        "have bloody or black stools",
+        "have stomach pain that does not get better",
+        "you have symptoms of heart problems or stroke: chest pain",
+        "trouble breathing",
+        "weakness in one part or side of body",
+        "slurred speech",
+        "leg swelling",
+        "pain gets worse or lasts more than 10 days sleeplessness persists continuously for more than 2 weeks.",
+        "Insomnia may be a symptom of a serious underlying medical illness.",
+        "redness or swelling is present in the painful area",
+        "any new symptoms appear",
+        "you have difficulty swallowing it feels like the pill is stuck in your throat"
+      ],
+      "warnings": [
+        "Allergy alert Naproxen sodium may cause a severe allergic reaction, especially in people allergic to aspirin.",
+        "Symptoms may include: hives facial swelling asthma (wheezing) shock skin reddening rash blisters",
+        "If an allergic reaction occurs, stop use and seek medical help right away.",
+        "Stomach bleeding warning This product contains an NSAID, which may cause severe stomach bleeding.",
+        "The chance is higher if you: are age 60 or older",
+        "have had stomach ulcers or bleeding problems",
+        "take a blood thinning (anticoagulant) or steroid drug",
+        "take other drugs containing prescription or nonprescription NSAIDs (aspirin, ibuprofen, naproxen, or others)",
+        "have 3 or more alcoholic drinks every day while using this product",
+        "take more or for a longer time than directed",
+        "Heart attack and stroke warning NSAIDs, except aspirin, increase the risk of heart attack, heart failure, and stroke.",
+        "These can be fatal.",
+        "The risk is higher if you use more than directed or for longer than directed."
+      ],
+      "questions": [
+        "1-800-395-0689 (Mon – Fri 9AM – 5PM EST)"
+      ],
+      "ask_doctor": [
+        "stomach bleeding warning applies to you",
+        "you have problems or serious side effects from taking pain relievers or fever reducers",
+        "you have a history of stomach problems, such as heartburn",
+        "you have high blood pressure, heart disease, liver cirrhosis, kidney disease, asthma or had a stroke",
+        "you are taking a diuretic",
+        "you have a breathing problem such as emphysema or chronic bronchitis",
+        "you have glaucoma",
+        "you have trouble urinating due to an enlarged prostate gland"
+      ],
+      "directions": [
+        "do not take more than directed drink a full glass of water with each dose",
+        "adults and children 12 years and over: take 2 caplets at bedtime",
+        "do not take more than 2 caplets in 24 hours if taken with food, this product may take longer to work"
+      ],
+      "do_not_use": [
+        "if you have ever had an allergic reaction to any other pain reliever/fever reducer",
+        "unless you have time for a full night's sleep",
+        "in children under 12 years of age",
+        "right before or after heart surgery",
+        "with any other product containing diphenhydramine, even one used on skin",
+        "if you have sleeplessness without pain"
+      ],
+      "when_using": [
+        "drowsiness will occur avoid alcoholic drinks do not drive a motor vehicle or operate machinery take with food or milk if stomach upset occurs"
+      ],
+      "keep_out_of_reach": [
+        "Keep out of reach of children.",
+        "In case of overdose, get medical help or contact a Poison Control Center right away."
+      ],
+      "other_information": [
+        "read all warnings and directions before use.",
+        "Keep outer carton.",
+        "each caplet contains: sodium 20 mg"
+      ],
+      "inactive_ingredients": [
+        "carnauba wax, FD&C blue #2 aluminum lake, hypromellose, magnesium stearate, microcrystalline cellulose, polyethylene glycol, povidone, purified water, talc, titanium dioxide"
+      ],
+      "ask_doctor_or_pharmacist": [
+        "you are taking sedatives or tranquilizers, or any other sleep-aid",
+        "under a doctor's care for any serious condition",
+        "taking aspirin for heart attack or stroke, because naproxen may decrease this benefit of aspirin",
+        "taking any other antihistamines",
+        "taking any other drug"
+      ],
+      "pregnancy_or_breast_feeding": [
+        "If pregnant or breast-feeding, ask a health professional before use.",
+        "It is especially important not to use naproxen sodium 20 weeks or later in pregnancy unless definitely directed to do so by a doctor because it may cause problems in the unborn child or complications during delivery."
+      ]
+    },
+    "sourceLinks": [
+      {
+        "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=82891458-ab0d-459a-8602-dcebd22c3010",
+        "label": "FDA label (DailyMed)"
+      },
+      {
+        "url": "https://medlineplus.gov/druginfo/meds/a682539.html",
+        "label": "MedlinePlus: Diphenhydramine"
+      },
+      {
+        "url": "https://medlineplus.gov/druginfo/meds/a681029.html",
+        "label": "MedlinePlus: Naproxen"
+      }
+    ],
+    "reviewed": false
+  },
+  "benadryl": {
+    "id": "1fd9e552-7aa7-4e0f-b87a-f319bd9b4ff4",
+    "slug": "otc-702f9786-7ce9-43e4-921d-e1db09612127",
+    "brandName": "Benadryl",
+    "genericName": "Diphenhydramine hydrochloride",
+    "dosageForm": "tablet",
+    "isFictional": false,
+    "ndcPackages": [
+      "50580022612",
+      "50580022620",
+      "50580022633",
+      "50580022650",
+      "50580022651",
+      "50580022652",
+      "50580022653",
+      "50580022654",
+      "50580022656",
+      "50580022662",
+      "50580022670"
+    ],
+    "activeIngredients": [
+      {
+        "name": "Diphenhydramine HCl",
+        "strength": {
+          "unit": "mg",
+          "amount": 25,
+          "perUnit": "tablet",
+          "perAmount": 1
+        },
+        "normalized": "diphenhydramine"
+      }
+    ],
+    "directionsText": "take every 4 to 6 hours, or as directed by a doctor do not take more than 6 times in 24 hours adults and children 12 years and over 1 to 2 tablets children 6 to under 12 years 1 tablet children under 6 years do not use",
+    "max24hText": "do not take more than 6 times in 24 hours",
+    "warningsQuotes": [
+      "Do not use to make a child sleepy with any other product containing diphenhydramine, even one used on skin"
+    ],
+    "dosageTableHtml": "<table><col /><col /><tbody><tr><td>adults and children 12 years and over</td><td>1 to 2 tablets</td></tr><tr><td>children 6 to under 12 years</td><td>1 tablet</td></tr><tr><td>children under 6 years</td><td>do not use</td></tr></tbody></table>",
+    "source": "openfda",
+    "openfdaSetId": "702f9786-7ce9-43e4-921d-e1db09612127",
+    "labelEffectiveDate": "2026-07-28",
+    "labelerName": "Kenvue Brands LLC",
+    "labelSections": {
+      "uses": [
+        "temporarily relieves these symptoms due to hay fever or other upper respiratory allergies: runny nose",
+        "sneezing",
+        "itchy, watery eyes",
+        "itching of the nose or throat",
+        "temporarily relieves these symptoms due to the common cold: runny nose",
+        "sneezing"
+      ],
+      "purpose": [
+        "Antihistamine"
+      ],
+      "storage": [
+        "store between 20-25°C (68-77°F).",
+        "Protect from light."
+      ],
+      "questions": [
+        "call 1-877-717-2824 (toll-free) or 215-273-8755 (collect)"
+      ],
+      "ask_doctor": [
+        "you have a breathing problem such as emphysema or chronic bronchitis glaucoma",
+        "trouble urinating due to an enlarged prostate gland"
+      ],
+      "directions": [
+        "take every 4 to 6 hours, or as directed by a doctor",
+        "do not take more than 6 times in 24 hours"
+      ],
+      "do_not_use": [
+        "to make a child sleepy",
+        "with any other product containing diphenhydramine, even one used on skin"
+      ],
+      "when_using": [
+        "marked drowsiness may occur avoid alcoholic drinks alcohol, sedatives, and tranquilizers may increase drowsiness be careful when driving a motor vehicle or operating machinery excitability may occur, especially in children"
+      ],
+      "keep_out_of_reach": [
+        "Keep out of reach of children.",
+        "In case of overdose, get medical help or contact a Poison Control Center right away. (1-800-222-1222)"
+      ],
+      "other_information": [
+        "each tablet contains: calcium 15 mg",
+        "do not use if blister unit is torn or broken"
+      ],
+      "inactive_ingredients": [
+        "carnauba wax, croscarmellose sodium, D&C red no. 27 aluminum lake, dibasic calcium phosphate, hypromellose, magnesium stearate, microcrystalline cellulose, polyethylene glycol, polysorbate 80, titanium dioxide"
+      ],
+      "ask_doctor_or_pharmacist": [
+        "you are taking sedatives or tranquilizers"
+      ],
+      "pregnancy_or_breast_feeding": [
+        "If pregnant or breast-feeding, ask a health professional before use."
+      ]
+    },
+    "sourceLinks": [
+      {
+        "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=702f9786-7ce9-43e4-921d-e1db09612127",
+        "label": "FDA label (DailyMed)"
+      },
+      {
+        "url": "https://medlineplus.gov/druginfo/meds/a682539.html",
+        "label": "MedlinePlus: Diphenhydramine"
+      }
+    ],
+    "reviewed": false
+  },
+  "motrinIb": {
+    "id": "66c74d52-5886-437a-afd4-1c5d4954c96a",
+    "slug": "otc-d21129f8-4d96-4e36-bc39-a534306dd77e",
+    "brandName": "Motrin IB",
+    "genericName": "Ibuprofen",
+    "dosageForm": "caplet",
+    "isFictional": false,
+    "ndcPackages": [
+      "50580023001",
+      "50580023002",
+      "50580023003",
+      "50580023004",
+      "50580023005",
+      "50580023006",
+      "50580023007",
+      "50580023008",
+      "50580023009"
+    ],
+    "activeIngredients": [
+      {
+        "name": "Ibuprofen",
+        "strength": {
+          "unit": "mg",
+          "amount": 200,
+          "perUnit": "caplet",
+          "perAmount": 1
+        },
+        "normalized": "ibuprofen"
+      }
+    ],
+    "directionsText": "do not take more than directed the smallest effective dose should be used adults and children 12 years and older: take 1 caplet every 4 to 6 hours while symptoms persist if pain or fever does not respond to 1 caplet, 2 caplets may be used do not exceed 6 caplets in 24 hours, unless directed by a doctor children under 12 years: ask a doctor",
+    "max24hText": "do not exceed 6 caplets in 24 hours",
+    "warningsQuotes": [
+      "Allergy alert Ibuprofen may cause a severe allergic reaction, especially in people allergic to aspirin.",
+      "Do not use if you have ever had an allergic reaction to ibuprofen or any other pain reliever/fever reducer right before or after heart surgery",
+      "Ask a doctor or pharmacist before use if you are taking aspirin for heart attack or stroke, because ibuprofen may decrease this benefit of aspirin under a doctor's care for any serious condition taking any other drug",
+      "It is especially important not to use ibuprofen at 20 weeks or later in pregnancy unless definitely directed to do so by a doctor because it may cause problems in the unborn child or complications during delivery."
+    ],
+    "dosageTableHtml": "<table><colgroup><col /><col /></colgroup><tbody><tr><td>adults and children 12 years and older:</td><td>take 1 caplet every 4 to 6 hours while symptoms persist<br>if pain or fever does not respond to 1 caplet, 2 caplets may be used<br>do not exceed 6 caplets in 24 hours, unless directed by a doctor</td></tr><tr><td>children under 12 years:</td><td>ask a doctor</td></tr></tbody></table>",
+    "source": "openfda",
+    "openfdaSetId": "d21129f8-4d96-4e36-bc39-a534306dd77e",
+    "labelEffectiveDate": "2025-10-03",
+    "labelerName": "Kenvue Brands LLC",
+    "labelSections": {
+      "uses": [
+        "temporarily relieves minor aches and pains due to: headache",
+        "muscular aches",
+        "minor pain of arthritis",
+        "toothache",
+        "backache",
+        "the common cold",
+        "menstrual cramps",
+        "temporarily reduces fever"
+      ],
+      "purpose": [
+        "Pain reliever/fever reducer"
+      ],
+      "storage": [
+        "store between 20-25°C (68-77°F) avoid high humidity and excessive heat above 40°C (104°F)"
+      ],
+      "stop_use": [
+        "you experience any of the following signs of stomach bleeding: feel faint",
+        "vomit blood",
+        "have bloody or black stools",
+        "have stomach pain that does not get better",
+        "you have symptoms of heart problems or stroke: chest pain",
+        "trouble breathing",
+        "weakness in one part or side of body",
+        "slurred speech",
+        "leg swelling",
+        "pain gets worse or lasts more than 10 days",
+        "fever gets worse or lasts more than 3 days",
+        "redness or swelling is present in the painful area",
+        "any new symptoms appear"
+      ],
+      "warnings": [
+        "Allergy alert Ibuprofen may cause a severe allergic reaction, especially in people allergic to aspirin.",
+        "Symptoms may include: hives facial swelling asthma (wheezing) shock skin reddening rash blisters",
+        "If an allergic reaction occurs, stop use and seek medical help right away.",
+        "Stomach bleeding warning This product contains an NSAID, which may cause severe stomach bleeding.",
+        "The chance is higher if you are age 60 or older",
+        "have had stomach ulcers or bleeding problems",
+        "take a blood thinning (anticoagulant) or steroid drug",
+        "take other drugs containing prescription or nonprescription NSAIDs [aspirin, ibuprofen, naproxen, or others]",
+        "have 3 or more alcoholic drinks every day while using this product",
+        "take more or for a longer time than directed",
+        "Heart attack and stroke warning NSAIDs, except aspirin, increase the risk of heart attack, heart failure, and stroke.",
+        "These can be fatal.",
+        "The risk is higher if you use more than directed or for longer than directed."
+      ],
+      "questions": [
+        "Call 1-877-895-3665 (toll-free) or 215-273-8755 (collect) or visit www.motrin.com"
+      ],
+      "ask_doctor": [
+        "you have problems or serious side effects from taking pain relievers or fever reducers the stomach bleeding warning applies to you",
+        "you have a history of stomach problems, such as heartburn",
+        "you have high blood pressure, heart disease, liver cirrhosis, kidney disease, asthma, or had a stroke",
+        "you are taking a diuretic"
+      ],
+      "directions": [
+        "do not take more than directed the smallest effective dose should be used"
+      ],
+      "do_not_use": [
+        "if you have ever had an allergic reaction to ibuprofen or any other pain reliever/fever reducer",
+        "right before or after heart surgery"
+      ],
+      "when_using": [
+        "take with food or milk if stomach upset occurs"
+      ],
+      "keep_out_of_reach": [
+        "Keep out of reach of children.",
+        "In case of overdose, get medical help or contact a Poison Control Center right away. (1-800-222-1222)"
+      ],
+      "other_information": [
+        "read all warnings and directions before use"
+      ],
+      "inactive_ingredients": [
+        "colloidal silicon dioxide, corn starch, croscarmellose sodium, FD&C red no. 40 aluminum lake, FD&C yellow no. 6 aluminum lake, iron oxides, microcrystalline cellulose, polyethylene glycol, polyvinyl alcohol, stearic acid, talc, titanium dioxide"
+      ],
+      "ask_doctor_or_pharmacist": [
+        "you are taking aspirin for heart attack or stroke, because ibuprofen may decrease this benefit of aspirin",
+        "under a doctor's care for any serious condition",
+        "taking any other drug"
+      ],
+      "pregnancy_or_breast_feeding": [
+        "If pregnant or breast-feeding, ask a health professional before use.",
+        "It is especially important not to use ibuprofen at 20 weeks or later in pregnancy unless definitely directed to do so by a doctor because it may cause problems in the unborn child or complications during delivery."
+      ]
+    },
+    "sourceLinks": [
+      {
+        "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=d21129f8-4d96-4e36-bc39-a534306dd77e",
+        "label": "FDA label (DailyMed)"
+      },
+      {
+        "url": "https://medlineplus.gov/druginfo/meds/a682159.html",
+        "label": "MedlinePlus: Ibuprofen"
+      }
+    ],
+    "reviewed": false
+  },
+  "motrinPm": {
+    "id": "efa08a99-4c9f-4b80-88ad-128079b37d57",
+    "slug": "otc-55403f19-58ae-450b-8a7b-0bc544088f20",
+    "brandName": "Motrin PM",
+    "genericName": "Ibuprofen and diphenhydramine citrate",
+    "dosageForm": "caplet",
+    "isFictional": false,
+    "ndcPackages": [
+      "50580056320",
+      "50580056380"
+    ],
+    "activeIngredients": [
+      {
+        "name": "Diphenhydramine citrate",
+        "strength": {
+          "unit": "mg",
+          "amount": 38,
+          "perUnit": "caplet",
+          "perAmount": 1
+        },
+        "normalized": "diphenhydramine"
+      },
+      {
+        "name": "Ibuprofen",
+        "strength": {
+          "unit": "mg",
+          "amount": 200,
+          "perUnit": "caplet",
+          "perAmount": 1
+        },
+        "normalized": "ibuprofen"
+      }
+    ],
+    "directionsText": "do not take more than directed adults and children 12 years and over: take 2 caplets at bedtime do not take more than 2 caplets in 24 hours",
+    "max24hText": "do not take more than 2 caplets in 24 hours",
+    "warningsQuotes": [
+      "Allergy alert Ibuprofen may cause a severe allergic reaction, especially in people allergic to aspirin.",
+      "Do not use if you have ever had an allergic reaction to any other pain reliever/fever reducer unless you have time for a full night's sleep in children under 12 years of age right before or after heart surgery with any other product containing diphenhydramine, even one used on skin if you have sleeplessness without pain",
+      "Ask a doctor or pharmacist before use if you are taking sedatives or tranquilizers, or any other sleep-aid under a doctor's care for any continuing medical illness taking any other antihistamines taking aspirin for heart attack or stroke, because ibuprofen may decrease this benefit of aspirin taking any other drug",
+      "It is especially important not to use ibuprofen at 20 weeks or later in pregnancy unless definitely directed to do so by a doctor because it may cause problems in the unborn child or complications during delivery."
+    ],
+    "dosageTableHtml": null,
+    "source": "openfda",
+    "openfdaSetId": "55403f19-58ae-450b-8a7b-0bc544088f20",
+    "labelEffectiveDate": "2025-07-11",
+    "labelerName": "Kenvue Brands LLC",
+    "labelSections": {
+      "uses": [
+        "for relief of occasional sleeplessness when associated with minor aches and pains",
+        "helps you fall asleep and stay asleep"
+      ],
+      "purpose": [
+        "Nighttime sleep-aid",
+        "nonsteroidal anti-inflammatory drug Pain reliever"
+      ],
+      "storage": [
+        "store at 20-25°C (68-77°F)",
+        "avoid excessive heat above 40°C (104°F)"
+      ],
+      "stop_use": [
+        "you experience any of the following signs of stomach bleeding: feel faint",
+        "vomit blood",
+        "have bloody or black stools",
+        "have stomach pain that does not get better",
+        "you have symptoms of heart problems or stroke: chest pain",
+        "trouble breathing",
+        "weakness in one part or side of body",
+        "slurred speech",
+        "leg swelling",
+        "pain gets worse or lasts more than 10 days sleeplessness persists continuously for more than 2 weeks.",
+        "Insomnia may be a symptom of a serious underlying medical illness.",
+        "redness or swelling is present in the painful area",
+        "any new symptoms appear"
+      ],
+      "warnings": [
+        "Allergy alert Ibuprofen may cause a severe allergic reaction, especially in people allergic to aspirin.",
+        "Symptoms may include: hives facial swelling asthma (wheezing) shock skin reddening rash blisters",
+        "If an allergic reaction occurs, stop use and seek medical help right away.",
+        "Stomach bleeding warning This product contains an NSAID, which may cause severe stomach bleeding.",
+        "The chance is higher if you are age 60 or older",
+        "have had stomach ulcers or bleeding problems",
+        "take a blood thinning (anticoagulant) or steroid drug",
+        "take other drugs containing prescription or nonprescription NSAIDs [aspirin, ibuprofen, naproxen, or others]",
+        "have 3 or more alcoholic drinks every day while using this product",
+        "take more or for a longer time than directed",
+        "Heart attack and stroke warning NSAIDs, except aspirin, increase the risk of heart attack, heart failure, and stroke.",
+        "These can be fatal.",
+        "The risk is higher if you use more than directed or for longer than directed."
+      ],
+      "questions": [
+        "call 1-800-962-5357 (toll-free) or 215-273-8755 (collect)"
+      ],
+      "ask_doctor": [
+        "stomach bleeding warning applies to you",
+        "you have problems or serious side effects from taking pain relievers or fever reducers",
+        "you have a history of stomach problems, such as heartburn",
+        "you have high blood pressure, heart disease, liver cirrhosis, kidney disease, asthma, or had a stroke",
+        "you are taking a diuretic",
+        "you have a breathing problem such as emphysema or chronic bronchitis",
+        "you have glaucoma",
+        "you have trouble urinating due to an enlarged prostate gland"
+      ],
+      "directions": [
+        "do not take more than directed",
+        "adults and children 12 years and over: take 2 caplets at bedtime",
+        "do not take more than 2 caplets in 24 hours"
+      ],
+      "do_not_use": [
+        "if you have ever had an allergic reaction to any other pain reliever/fever reducer",
+        "unless you have time for a full night's sleep",
+        "in children under 12 years of age",
+        "right before or after heart surgery",
+        "with any other product containing diphenhydramine, even one used on skin",
+        "if you have sleeplessness without pain"
+      ],
+      "when_using": [
+        "drowsiness will occur avoid alcoholic drinks do not drive a motor vehicle or operate machinery take with food or milk if stomach upset occurs"
+      ],
+      "keep_out_of_reach": [
+        "Keep out of reach of children.",
+        "In case of overdose, get medical help or contact a Poison Control Center right away. (1-800-222-1222)"
+      ],
+      "other_information": [
+        "read all warnings and directions before use.",
+        "Keep carton.",
+        "Do not use if foil inner seal printed “SEALED for YOUR PROTECTION” is broken or missing."
+      ],
+      "inactive_ingredients": [
+        "colloidal silicon dioxide, croscarmellose sodium, glyceryl behenate, hydroxypropyl cellulose, lactose monohydrate, magnesium stearate, microcrystalline cellulose, polyethylene glycol, polyvinyl alcohol, pregelatinized starch, talc, titanium dioxide"
+      ],
+      "ask_doctor_or_pharmacist": [
+        "you are taking sedatives or tranquilizers, or any other sleep-aid",
+        "under a doctor's care for any continuing medical illness",
+        "taking any other antihistamines",
+        "taking aspirin for heart attack or stroke, because ibuprofen may decrease this benefit of aspirin",
+        "taking any other drug"
+      ],
+      "pregnancy_or_breast_feeding": [
+        "If pregnant or breast-feeding, ask a health professional before use.",
+        "It is especially important not to use ibuprofen at 20 weeks or later in pregnancy unless definitely directed to do so by a doctor because it may cause problems in the unborn child or complications during delivery."
+      ]
+    },
+    "sourceLinks": [
+      {
+        "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=55403f19-58ae-450b-8a7b-0bc544088f20",
+        "label": "FDA label (DailyMed)"
+      },
+      {
+        "url": "https://medlineplus.gov/druginfo/meds/a682539.html",
+        "label": "MedlinePlus: Diphenhydramine"
+      },
+      {
+        "url": "https://medlineplus.gov/druginfo/meds/a682159.html",
+        "label": "MedlinePlus: Ibuprofen"
+      }
+    ],
+    "reviewed": false
+  },
+  "peptoBismol": {
+    "id": "7895f4a2-123e-4eb8-a447-4f4fb9263dd5",
+    "slug": "otc-67006e82-870d-8d63-e053-2991aa0a02d1",
+    "brandName": "Pepto-Bismol",
+    "genericName": "Bismuth subsalicylate",
+    "dosageForm": "liquid",
+    "isFictional": false,
+    "ndcPackages": [
+      "37000043804",
+      "37000043808",
+      "37000043812",
+      "37000043816",
+      "37000043824",
+      "37000043832",
+      "37000043834"
+    ],
+    "activeIngredients": [
+      {
+        "name": "Bismuth subsalicylate",
+        "strength": {
+          "unit": "mg",
+          "amount": 525,
+          "perUnit": "mL",
+          "perAmount": 30
+        },
+        "normalized": "bismuth subsalicylate"
+      }
+    ],
+    "directionsText": "shake well before use only use dose cup provided adults and children 12 years and over: 30 mL (1 dose) every ½ hour or 60 mL (2 doses) every hour as needed for diarrhea/traveler's diarrhea 30mL (1 dose) every ½ hour as needed for overindulgence (upset stomach, heartburn, indigestion, nausea) do not exceed 8 doses (240 mL) in 24 hours use until diarrhea stops but not more than 2 days children under 12 years: ask a doctor drink plenty of clear fluids to help prevent dehydration caused by diarrhea",
+    "max24hText": "do not exceed 8 doses (240 mL) in 24 hours",
+    "warningsQuotes": [],
+    "dosageTableHtml": null,
+    "source": "openfda",
+    "openfdaSetId": "67006e82-870d-8d63-e053-2991aa0a02d1",
+    "labelEffectiveDate": "2026-03-24",
+    "labelerName": "The Procter & Gamble Manufacturing Company",
+    "labelSections": {
+      "uses": [
+        "relieves traveler's diarrhea diarrhea upset stomach due to overindulgence in food and drink, including: heartburn indigestion nausea gas belching fullness"
+      ],
+      "purpose": [
+        "Upset stomach reliever and antidiarrheal"
+      ],
+      "storage": [
+        "protect from freezing"
+      ],
+      "stop_use": [
+        "symptoms get worse or last more than 2 days ringing in the ears or loss of hearing occurs diarrhea lasts more than 2 days"
+      ],
+      "warnings": [
+        "Reye's syndrome: Children and teenagers who have or are recovering from chicken pox or flu-like symptoms should not use this product.",
+        "When using this product, if changes in behavior with nausea and vomiting occur, consult a doctor because these symptoms could be an early sign of Reye's syndrome, a rare but serious illness.",
+        "Allergy alert: Contains salicylate.",
+        "Do not take if you are allergic to salicylates (including aspirin) taking other salicylate products"
+      ],
+      "ask_doctor": [
+        "you have fever mucus in the stool"
+      ],
+      "directions": [
+        "shake well before use only use dose cup provided",
+        "adults and children 12 years and over: 30 mL (1 dose) every ½ hour or 60 mL (2 doses) every hour as needed for diarrhea/traveler's diarrhea 30mL (1 dose) every ½ hour as needed for overindulgence (upset stomach, heartburn, indigestion, nausea)",
+        "do not exceed 8 doses (240 mL) in 24 hours use until diarrhea stops but not more than 2 days",
+        "children under 12 years: ask a doctor drink plenty of clear fluids to help prevent dehydration caused by diarrhea"
+      ],
+      "do_not_use": [
+        "if you have an ulcer a bleeding problem bloody or black stool"
+      ],
+      "when_using": [
+        "a temporary, but harmless, darkening of the stool and/or tongue may occur"
+      ],
+      "keep_out_of_reach": [
+        "Keep out of reach of children.",
+        "In case of overdose, get medical help or contact a Poison Control Center right away."
+      ],
+      "other_information": [
+        "each 30 mL dose contains: magnesium 3 mg, sodium 4 mg salicylate 261 mg low sodium",
+        "avoid excessive heat (over 104°F or 40°C) TAMPER EVIDENT: Do not use if printed shrinkband is missing or broken."
+      ],
+      "inactive_ingredients": [
+        "benzoic acid, D&C Red No. 22, D&C Red No. 28, flavor, gellan gum, magnesium aluminum silicate, methylcellulose, salicylic acid, sodium salicylate, sorbic acid, sucralose, water"
+      ],
+      "ask_doctor_or_pharmacist": [
+        "you are taking any drug for anticoagulation (thinning the blood) diabetes gout arthritis"
+      ],
+      "pregnancy_or_breast_feeding": [
+        "If pregnant or breast-feeding, ask a health professional before use."
+      ]
+    },
+    "sourceLinks": [
+      {
+        "url": "https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=67006e82-870d-8d63-e053-2991aa0a02d1",
+        "label": "FDA label (DailyMed)"
+      },
+      {
+        "url": "https://medlineplus.gov/druginfo/meds/a607040.html",
+        "label": "MedlinePlus: Bismuth Subsalicylate"
+      }
+    ],
+    "reviewed": false
+  }
+}

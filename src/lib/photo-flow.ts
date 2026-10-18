@@ -124,7 +124,7 @@ export function matchOptionLabel(option: MatchOption): string {
   return [option.brandName, ...option.ingredients.map((i) => `${i.name} ${i.strength}`)].join(", ");
 }
 
-const OTHER_MATCHES = 5;
+export const OTHER_MATCHES = 5;
 
 /**
  * "Is this the medicine?": the pre-selected match first, then up to 5 others in rank order — one per
