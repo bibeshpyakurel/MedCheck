@@ -146,12 +146,13 @@ export async function createSourceDocument(input: {
 
 export async function updateSourceDocument(
   id: string,
-  patch: Partial<Pick<SourceDocument, "documentDate" | "facility" | "prescriber" | "pharmacy" | "transcriptText">>,
+  patch: Partial<Pick<SourceDocument, "kind" | "documentDate" | "facility" | "prescriber" | "pharmacy" | "transcriptText">>,
 ): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase
     .from("source_documents")
     .update({
+      kind: patch.kind,
       document_date: patch.documentDate,
       facility: patch.facility,
       prescriber: patch.prescriber,

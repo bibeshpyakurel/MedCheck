@@ -76,5 +76,5 @@ export async function retakePhotoAction(input: { patientId: string; entryId: str
   const entry = await ownedPackageDraft(input);
   if (!entry) redirect("/");
   await deleteEntry(entry.id);
-  redirect(`/patients/${entry.patientId}/add/photo?kind=otc_package&source=camera`, RedirectType.replace);
+  redirect(`/patients/${entry.patientId}/add/photo?source=camera`, RedirectType.replace);
 }
