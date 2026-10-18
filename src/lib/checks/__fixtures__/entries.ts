@@ -161,6 +161,10 @@ export const nyquilFormulation: Formulation = {
   source: "openfda",
   openfdaSetId: "set-nyquil",
   labelEffectiveDate: "2025-01-01",
+  labelerName: null,
+  labelSections: {},
+  sourceLinks: [],
+  reviewed: true,
 };
 
 const [fictionalA, fictionalB] = FICTIONAL_FORMULATIONS;

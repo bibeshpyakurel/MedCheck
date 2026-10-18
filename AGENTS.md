@@ -10,12 +10,13 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # MedCheck — rules for every agent
 
-Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` before changing behavior.
+Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` and `docs/superpowers/specs/2026-10-17-otc-catalog-design.md` (the OTC catalog, photo match and medicine card; it wins where they disagree) before changing behavior.
 
 ## Product boundaries (never cross)
 - Evidence, not advice. Never calculate a dose, volume or schedule; never infer a dose from age or weight; never say a combination is "safe"; never pick which product or amount is right.
 - `no_finding` is displayed as "No … found in confirmed fields", never "safe", never green.
-- AI only suggests. A value counts only after the user confirms or edits it; `pending` and `unknown` fields make dependent checks `unresolved`.
+- AI only suggests. A value counts only after the user confirms or edits it; `pending` and `unknown` fields make dependent checks `unresolved`. For an OTC package photo, confirming the matched catalog product (one tap) confirms that FDA label's values — no per-field review.
+- Catalog text is the FDA label's own words, split into bullets by code; never reworded or AI-written.
 - Children's dosing tables are shown in full; never highlight a row.
 - "I already gave both" always shows the fixed message: contact a pharmacist or Poison Control at 1-800-222-1222 (tap-to-call), nothing else. It is reachable from **Get help** in the header on every page.
 
@@ -30,7 +31,7 @@ Read `docs/superpowers/specs/2026-10-17-medcheck-design.md` before changing beha
 - `supabase/migrations/` — schema; add new files with `npx supabase migration new <name>`; every table has RLS.
 - `src/components/ui/` — shadcn components (`npx shadcn@latest add <name>`). Style `base-nova` = **Base UI, not Radix**: compose with the `render` prop (`<Button render={<Link href="/x" />} nativeButton={false}>`), there is no `asChild`.
 - `src/lib/records.ts` — all patient/document/entry/history/photo data access (runs as the user). Use these; don't query tables directly from features. `ensureSelfPatient()` returns the account's one person (relationship `self`), creating it on first use.
-- `src/lib/catalog.ts` — catalog reads (`listFormulations`, `getFormulation(s)ByIds`).
+- `src/lib/catalog.ts` — catalog reads (`listFormulations`, `getFormulation(s)ByIds`). The catalog holds every US oral OTC label (thousands of rows): never load it whole in a request; search with the `search_formulations` RPC.
 - `src/lib/domain/fields.ts` — build/read `EntryFields` (`suggestedField`, `fieldsFromFormulation`, `isUsable`, `isFullyReviewed`, `formatStrength`, `entryLabel`).
 - `src/data/fictional-formulations.ts` — fictional formulations (Calmora) with their NDCs.
 - `src/components/already-gave-both.tsx` — the fixed "I already gave both" message; reuse it, never re-word it.

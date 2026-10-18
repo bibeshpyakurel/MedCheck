@@ -137,12 +137,15 @@ export type Database = {
           id: string
           is_fictional: boolean
           label_effective_date: string | null
+          label_sections: Json
+          labeler_name: string | null
           max_24h_text: string | null
           ndc_packages: string[]
           openfda_set_id: string | null
           reviewed_at: string | null
           slug: string
           source: string
+          source_links: Json
           warnings_quotes: string[]
         }
         Insert: {
@@ -156,12 +159,15 @@ export type Database = {
           id?: string
           is_fictional?: boolean
           label_effective_date?: string | null
+          label_sections?: Json
+          labeler_name?: string | null
           max_24h_text?: string | null
           ndc_packages?: string[]
           openfda_set_id?: string | null
           reviewed_at?: string | null
           slug: string
           source: string
+          source_links?: Json
           warnings_quotes?: string[]
         }
         Update: {
@@ -175,12 +181,15 @@ export type Database = {
           id?: string
           is_fictional?: boolean
           label_effective_date?: string | null
+          label_sections?: Json
+          labeler_name?: string | null
           max_24h_text?: string | null
           ndc_packages?: string[]
           openfda_set_id?: string | null
           reviewed_at?: string | null
           slug?: string
           source?: string
+          source_links?: Json
           warnings_quotes?: string[]
         }
         Relationships: []
@@ -383,7 +392,37 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      search_formulations: {
+        Args: { max_results?: number; query: string }
+        Returns: {
+          active_ingredients: Json
+          brand_name: string
+          created_at: string
+          directions_text: string | null
+          dosage_form: string
+          dosage_table_html: string | null
+          generic_name: string
+          id: string
+          is_fictional: boolean
+          label_effective_date: string | null
+          label_sections: Json
+          labeler_name: string | null
+          max_24h_text: string | null
+          ndc_packages: string[]
+          openfda_set_id: string | null
+          reviewed_at: string | null
+          slug: string
+          source: string
+          source_links: Json
+          warnings_quotes: string[]
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "formulations"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
     }
     Enums: {
       [_ in never]: never

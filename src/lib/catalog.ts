@@ -1,6 +1,6 @@
 import "server-only";
 
-import { catalogIngredientSchema, type Formulation } from "@/lib/domain/schema";
+import { catalogIngredientSchema, labelSectionsSchema, sourceLinkSchema, type Formulation } from "@/lib/domain/schema";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -23,6 +23,10 @@ export function rowToFormulation(row: FormulationRow): Formulation {
     source: row.source as Formulation["source"],
     openfdaSetId: row.openfda_set_id,
     labelEffectiveDate: row.label_effective_date,
+    labelerName: row.labeler_name,
+    labelSections: labelSectionsSchema.parse(row.label_sections),
+    sourceLinks: sourceLinkSchema.array().parse(row.source_links),
+    reviewed: row.reviewed_at !== null,
   };
 }
 
