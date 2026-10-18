@@ -1,6 +1,7 @@
 // A local stand-in for Gemini's generateContent endpoint, for the e2e tests only. The app reaches it
-// through GOOGLE_GENERATIVE_AI_BASE_URL (playwright.config.ts). It answers with a canned label read
-// chosen by the uploaded photo's width (fake-gemini-scenarios.mjs), so tests never depend on a model.
+// through GOOGLE_GENERATIVE_AI_BASE_URL (playwright.config.ts). It answers with a canned label read,
+// including what kind of photo it is (`documentKind`), chosen by the uploaded photo's width
+// (fake-gemini-scenarios.mjs), so tests never depend on a model.
 import { createServer } from "node:http";
 import { FAKE_GEMINI_PORT, SCENARIO_WIDTHS } from "./fake-gemini-scenarios.mjs";
 
@@ -11,30 +12,53 @@ const medication = (m) => ({
   productName: text(m.productName ?? null),
   dosageForm: text(m.dosageForm ?? null),
   ingredients: m.ingredients ?? [],
-  instructions: text(null),
-  doseAsWritten: { amount: null, unit: null, box_2d: null },
-  max24h: text(null),
+  instructions: text(m.instructions ?? null),
+  doseAsWritten: { amount: m.dose?.amount ?? null, unit: m.dose?.unit ?? null, box_2d: null },
+  max24h: text(m.max24h ?? null),
+});
+const ingredient = (name, amount, perUnit) => ({
+  name: text(name),
+  strength: { amount, unit: "mg", perAmount: 1, perUnit, box_2d: null },
+});
+
+const tylenolExtraStrength = medication({
+  productName: "TYLENOL Extra Strength",
+  dosageForm: "caplets",
+  ingredients: [ingredient("Acetaminophen", 500, "caplet")],
 });
 
 const READS = {
-  [SCENARIO_WIDTHS.tylenolExtraStrength]: {
-    document: noDocument,
-    medications: [
-      medication({
-        productName: "TYLENOL Extra Strength",
-        dosageForm: "caplets",
-        ingredients: [
-          { name: text("Acetaminophen"), strength: { amount: 500, unit: "mg", perAmount: 1, perUnit: "caplet", box_2d: null } },
-        ],
-      }),
-    ],
-  },
+  [SCENARIO_WIDTHS.tylenolExtraStrength]: { documentKind: "otc_package", document: noDocument, medications: [tylenolExtraStrength] },
   [SCENARIO_WIDTHS.unreadable]: {
+    documentKind: "otc_package",
     document: noDocument,
     medications: [medication({ ingredients: [{ name: text(null), strength: noStrength }] })],
   },
+  [SCENARIO_WIDTHS.advilAndTylenol]: {
+    documentKind: "otc_package",
+    document: noDocument,
+    medications: [
+      medication({ productName: "Advil", dosageForm: "tablets", ingredients: [ingredient("Ibuprofen", 200, "tablet")] }),
+      tylenolExtraStrength,
+    ],
+  },
+  [SCENARIO_WIDTHS.prescriptionLabel]: {
+    documentKind: "prescription_label",
+    document: { documentDate: "2026-10-15", facility: null, prescriber: "Dr. Maria Rivera", pharmacy: "Lakeside Pharmacy" },
+    medications: [
+      medication({
+        productName: "Amoxicillin",
+        dosageForm: "capsule",
+        ingredients: [ingredient("Amoxicillin", 500, "capsule")],
+        instructions: "Take 1 capsule by mouth every 8 hours until gone",
+        dose: { amount: 1, unit: "capsule" },
+      }),
+    ],
+  },
+  [SCENARIO_WIDTHS.prescriptionNothingRead]: { documentKind: "prescription_label", document: noDocument, medications: [] },
 };
-const NOTHING_FOUND = { document: noDocument, medications: [] };
+// Gemini isn't sure what an empty photo shows.
+const NOTHING_FOUND = { documentKind: null, document: noDocument, medications: [] };
 
 /** Width of a JPEG (SOFn marker) or PNG (IHDR), or null. */
 function imageWidth(bytes) {

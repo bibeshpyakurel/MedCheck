@@ -1,7 +1,8 @@
 // The product end to end against the real app and Supabase: the three doors on the landing page, a
 // guest adding medicines by photo (typing what the label says), warnings, the report, Get help and
-// leaving, the one-tap medicine-package path, and an email sign-in. Gemini is a local stand-in
-// (e2e/fake-gemini.mjs) that reads a photo by its width; the default photo reads as nothing found.
+// leaving, the one-tap medicine-package path, and an email sign-in. A photo is read as soon as it's
+// chosen; Gemini is a local stand-in (e2e/fake-gemini.mjs) that reads a photo, and says what kind it
+// is, by its width; the default photo reads as nothing found (kind unsure, so a package).
 import { expect, test, type Browser, type BrowserContext, type Page } from "@playwright/test";
 import { ALREADY_GAVE_BOTH_MESSAGE } from "../src/components/already-gave-both";
 import {
@@ -11,6 +12,7 @@ import {
   emailSignInCode,
   labelPhoto,
   publicClient,
+  reviewRow,
   sessionUserId,
   typeStrength,
   typeText,
@@ -44,13 +46,16 @@ async function expectCaptureOptions(page: Page) {
   await expect(page.locator("body")).not.toContainText(/barcode|\bscan\b/i);
 }
 
-/** Choose a photo → Prescription label → review; types the label's details (Gemini reads nothing) and confirms. */
+/**
+ * Choose a photo of a prescription label (Gemini says so, and reads no medicine) → it's read at once →
+ * review; types the label's details and confirms.
+ */
 async function addMedicineByPhoto(page: Page, browser: Browser, base: string, name: string) {
   await page.goto(`${base}/add`);
-  await page.locator("label", { hasText: "Choose a photo" }).locator("input[type=file]").setInputFiles(await labelPhoto(browser));
-  await page.waitForURL(/\/add\/photo\?source=library$/);
-  await page.getByRole("radio", { name: /Prescription label/ }).check();
-  await page.getByRole("button", { name: "Read this photo" }).click();
+  await page
+    .locator("label", { hasText: "Choose a photo" })
+    .locator("input[type=file]")
+    .setInputFiles(await labelPhoto(browser, "prescriptionNothingRead"));
   await page.waitForURL(/\/entries\/[0-9a-f-]{36}\/review(\?|$)/, { timeout: 60_000 });
   await typeText(page, "Product name", name);
   await typeText(page, "Form (liquid, caplet, tablet…)", "caplet");
@@ -193,10 +198,10 @@ test.describe("guest", () => {
 
   test("a prescription label photo → per-field review; the draft waits on the Medicines tab", async ({ browser }) => {
     await page.goto(`${base}/add`);
-    await page.locator("label", { hasText: "Choose a photo" }).locator("input[type=file]").setInputFiles(await labelPhoto(browser));
-    await page.waitForURL(/\/add\/photo\?source=library$/);
-    await page.getByRole("radio", { name: /Prescription label/ }).check();
-    await page.getByRole("button", { name: "Read this photo" }).click();
+    await page
+      .locator("label", { hasText: "Choose a photo" })
+      .locator("input[type=file]")
+      .setInputFiles(await labelPhoto(browser, "prescriptionNothingRead"));
     await page.waitForURL(/\/entries\/[0-9a-f-]{36}\/review(\?|$)/, { timeout: 60_000 });
     await expect(page.getByRole("heading", { level: 1, name: "Check the details" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Confirm medicine" })).toBeVisible();
@@ -313,14 +318,15 @@ test.describe("guest", () => {
   });
 });
 
-/** Choose a photo of a medicine package and let MedCheck read it. */
-async function readPackagePhoto(page: Page, browser: Browser, base: string, scenario?: "tylenolExtraStrength" | "unreadable") {
+/** Choose a photo on the capture page; MedCheck reads it at once (no questions, no "Read" tap). */
+async function readPackagePhoto(
+  page: Page,
+  browser: Browser,
+  base: string,
+  scenario?: "tylenolExtraStrength" | "unreadable" | "advilAndTylenol",
+) {
   await page.goto(`${base}/add`);
   await page.locator("label", { hasText: "Choose a photo" }).locator("input[type=file]").setInputFiles(await labelPhoto(browser, scenario));
-  await page.waitForURL(/\/add\/photo\?source=library$/);
-  // Package-first: Medicine package is already chosen.
-  await expect(page.getByRole("radio", { name: /Medicine package/ })).toBeChecked();
-  await page.getByRole("button", { name: "Read this photo" }).click();
 }
 
 // `?card=new` opens the just-added card, then drops off the URL.
@@ -436,8 +442,9 @@ test.describe("medicine package photo", () => {
     await readPackagePhoto(page, browser, base, "unreadable");
     await page.waitForURL(/\/entries\/[0-9a-f-]{36}\/retake$/, { timeout: 60_000 });
     await page.getByRole("button", { name: "Retake photo" }).click();
-    await page.waitForURL(/\/add\/photo\?kind=otc_package&source=camera$/);
-    await expect(page.getByRole("radio", { name: /Medicine package/ })).toBeChecked();
+    await page.waitForURL(/\/add\/photo\?source=camera$/);
+    await expect(page.locator("label", { hasText: "Take a photo" }).locator("input[type=file]")).toHaveCount(1);
+    await expect(page.getByRole("radio")).toHaveCount(0);
     await page.goto(base);
     await expect(page.getByRole("region", { name: /Waiting for your review/ })).toHaveCount(0);
   });
@@ -459,6 +466,38 @@ test.describe("medicine package photo", () => {
     await page.getByRole("alertdialog", { name: "Discard this medicine?" }).getByRole("button", { name: "Discard" }).click();
     await page.waitForURL(new RegExp(`${base}$`));
     await expect(page.getByRole("region", { name: /Waiting for your review/ })).toHaveCount(0);
+  });
+
+  test("the photo page asks nothing first; a prescription photo is read at once → per-field review", async ({ browser }) => {
+    await page.goto(`${base}/add/photo?source=library`);
+    await expect(page.getByText("MedCheck reads the photo, then you confirm what it found.")).toBeVisible();
+    await expect(page.getByRole("radio")).toHaveCount(0);
+    await expect(page.getByText("What is this a photo of?")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Read this photo" })).toHaveCount(0);
+
+    // Gemini says it's a prescription label: the per-field review, with what it read waiting for a check.
+    await page.locator("label", { hasText: "Choose a photo" }).locator("input[type=file]").setInputFiles(await labelPhoto(browser, "prescriptionLabel"));
+    await page.waitForURL(/\/entries\/[0-9a-f-]{36}\/review$/, { timeout: 60_000 });
+    await expect(page.getByRole("heading", { level: 1, name: "Check the details" })).toBeVisible();
+    const name = await reviewRow(page, "Product name");
+    await expect(name).toContainText("Amoxicillin");
+    await expect(name).toHaveAttribute("data-state", "pending");
+
+    // The kind is saved on the photo's document: the waiting draft goes back to the review, not /match.
+    await page.goto(base);
+    const waiting = page.getByRole("region", { name: /Waiting for your review/ });
+    await expect(waiting.getByRole("link", { name: /Check details/ })).toHaveCount(1);
+    await expect(waiting.getByRole("link", { name: /Check details/ })).toHaveAttribute("href", /\/review$/);
+  });
+
+  test("a photo of two medicine packages is read at once → “Is this the medicine?”, one draft each", async ({ browser }) => {
+    await readPackagePhoto(page, browser, base, "advilAndTylenol");
+    await page.waitForURL(/\/entries\/[0-9a-f-]{36}\/match$/, { timeout: 60_000 });
+    await expect(page.getByRole("heading", { level: 1, name: "Is this the medicine?" })).toBeVisible();
+
+    await page.goto(base);
+    const waiting = page.getByRole("region", { name: /Waiting for your review/ });
+    await expect(waiting.locator('a[href$="/match"]')).toHaveCount(2);
   });
 
   test("the type-in search never offers fictional demo products", async () => {

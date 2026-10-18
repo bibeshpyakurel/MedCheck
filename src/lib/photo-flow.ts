@@ -6,6 +6,12 @@ import { isReadable, photoReadFromFields, preselectMatch, type CatalogMatch, typ
 import { emptyField, formatStrength } from "@/lib/domain/fields";
 import type { EntryFields, Field, Formulation, SourceDocumentKind, Strength } from "@/lib/domain/schema";
 
+/**
+ * A photo that was read: the page to go to next, one draft per medicine found (in order), what
+ * Gemini said the photo shows (the source document's kind), and that document.
+ */
+export type PhotoReadResult = { next: string; entryIds: string[]; kind: SourceDocumentKind; sourceDocumentId: string };
+
 /** Notices meaning Gemini gave us nothing to match. */
 const NOTHING_READ: ReadonlySet<ExtractionNotice> = new Set(["ai-unavailable", "ai-failed", "nothing-found"]);
 

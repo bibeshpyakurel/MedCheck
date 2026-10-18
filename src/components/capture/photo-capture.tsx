@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useEffectEvent, useRef, useState, useTransition, type ReactNode } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import type { PhotoReadResult } from "@/lib/photo-flow";
 import { cn } from "@/lib/utils";
 import type { PhotoSource } from "./capture-options";
 import { takePendingPhoto } from "./pending-photo";
@@ -31,31 +32,28 @@ async function downscaleToJpeg(file: File): Promise<Blob> {
   throw new Error("Photo too large");
 }
 
-export type PhotoAction = (formData: FormData) => Promise<{ error: string } | { next: string; entryIds: string[] }>;
+export type PhotoAction = (formData: FormData) => Promise<{ error: string } | PhotoReadResult>;
 
 const READ_FAILED = "We couldn't read the photo. Check your connection and try again.";
 
 /**
- * Take or choose a photo, preview it, and submit it (downscaled) with the surrounding form's
- * fields to a Server Action. The photo is sent as `photo`. A photo picked on the capture page
- * arrives already loaded; otherwise `source` puts the camera or the library button first. When
- * reading fails the photo stays, the button becomes "Try again", and `otherWaysHref` offers
- * another way to add the medicine. On success this page is replaced in history by the action's
- * `next` page, so Back skips the photo step. Cancel while reading returns to the chosen photo; the
- * read can't be stopped on the server, so its drafts go to `discardAction` when it finishes.
+ * Take or choose a photo; it is read at once: shrunk, then sent with the surrounding form's fields to
+ * a Server Action as `photo`. A photo picked on the capture page arrives already loaded and is read
+ * straight away; otherwise `source` puts the camera or the library button first. When reading fails
+ * the photo stays, "Try again" reads it again, and `otherWaysHref` offers another way to add the
+ * medicine. Cancel while reading keeps the photo; the read can't be stopped on the server, so its
+ * drafts go to `discardAction` when it finishes. What follows a successful read is `afterRead`.
  */
 export function PhotoCapture({
   action,
   discardAction,
   children,
-  submitLabel = "Read this photo",
   otherWaysHref,
   source,
 }: {
   action: PhotoAction;
   discardAction: (entryIds: string[]) => Promise<void>;
   children?: ReactNode;
-  submitLabel?: string;
   otherWaysHref: string;
   source?: PhotoSource;
 }) {
@@ -76,13 +74,14 @@ export function PhotoCapture({
     if (previewUrl) URL.revokeObjectURL(previewUrl);
   }, [previewUrl]);
 
+  /** A new photo: shrink it, show it, and read it straight away. */
   async function onFile(file: File | undefined) {
     if (!file) return;
     setError(null);
     setFailed(false);
     setPreparing(true);
+    let blob: Blob;
     try {
-      let blob: Blob;
       try {
         blob = await downscaleToJpeg(file);
       } catch {
@@ -96,26 +95,28 @@ export function PhotoCapture({
       setPhoto(null);
       setPreviewUrl(null);
       setError("We couldn't use that photo. Try taking it again, a little closer.");
+      return;
     } finally {
       setPreparing(false);
     }
+    await read(blob);
   }
 
-  // A photo picked on the capture page: load it once, on arrival.
+  // A photo picked on the capture page: load (and read) it once, on arrival.
   const loadPhoto = useEffectEvent((file: File) => void onFile(file));
   useEffect(() => {
     const file = takePendingPhoto();
     if (file) queueMicrotask(() => loadPhoto(file));
   }, []);
 
-  async function submit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!photo || !formRef.current) return;
+  async function read(blob: Blob) {
+    if (!formRef.current) return;
     const formData = new FormData(formRef.current);
     formData.delete("camera");
     formData.delete("library");
-    formData.set("photo", photo, photo.type === "image/jpeg" ? "label.jpg" : "label");
+    formData.set("photo", blob, blob.type === "image/jpeg" ? "label.jpg" : "label");
     setError(null);
+    setFailed(false);
     setReading(true);
     const id = ++attempt.current;
     const result = await action(formData).catch((): { error: string } => ({ error: READ_FAILED }));
@@ -129,7 +130,26 @@ export function PhotoCapture({
       setFailed(true);
       return;
     }
+    afterRead(result);
+  }
+
+  /**
+   * After a successful read: the one place that decides what comes next. It replaces this page in
+   * history with the action's `next` page (Back then skips the photo step); "Reading the photo…"
+   * stays up until that page arrives.
+   */
+  function afterRead(result: PhotoReadResult) {
     startLeaving(() => router.replace(result.next));
+  }
+
+  const pending = reading || leaving;
+  const busy = preparing || pending;
+  const status = pending ? "Reading the photo…" : preparing ? "Preparing photo…" : null;
+
+  /** "Try again" (after a failed read) or "Read this photo" (after Cancel): the same photo, read again. */
+  function readAgain(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (photo && !busy) void read(photo);
   }
 
   function cancel() {
@@ -137,11 +157,8 @@ export function PhotoCapture({
     setReading(false);
   }
 
-  const pending = reading || leaving;
-  const busy = preparing || pending;
-
   return (
-    <form ref={formRef} onSubmit={submit} className="space-y-5">
+    <form ref={formRef} onSubmit={readAgain} className="space-y-5">
       <div className="space-y-3">
         {previewUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- local object URL preview
@@ -160,6 +177,21 @@ export function PhotoCapture({
             </span>
           </div>
         )}
+
+        {/* What's happening to the photo. The first photo's "Preparing" shows in the placeholder above. */}
+        <p
+          role="status"
+          className={cn(
+            "flex h-12 items-center justify-center gap-2 rounded-lg bg-muted text-base font-medium",
+            !(pending || (preparing && previewUrl)) && "sr-only",
+          )}
+        >
+          {status && (
+            <>
+              <LoaderCircleIcon aria-hidden className="size-5 animate-spin" /> {status}
+            </>
+          )}
+        </p>
 
         <div className={cn("flex flex-col gap-2 sm:flex-row", source === "library" && "flex-col-reverse sm:flex-row-reverse")}>
           <PickerButton
@@ -195,22 +227,15 @@ export function PhotoCapture({
         </Alert>
       )}
 
-      <Button type="submit" size="lg" className="h-12 w-full text-base" disabled={!photo || busy}>
-        {pending ? (
-          <>
-            <LoaderCircleIcon aria-hidden className="animate-spin" /> Reading the photo…
-          </>
-        ) : preparing ? (
-          "Preparing photo…"
-        ) : failed ? (
-          "Try again"
-        ) : (
-          submitLabel
-        )}
-      </Button>
       {reading && !leaving && (
         <Button type="button" variant="outline" size="lg" className="h-12 w-full text-base" onClick={cancel}>
           Cancel
+        </Button>
+      )}
+      {/* A new photo is read without a tap; this button only appears after a failed or cancelled read. */}
+      {photo && !busy && (
+        <Button type="submit" size="lg" className="h-12 w-full text-base">
+          {failed ? "Try again" : "Read this photo"}
         </Button>
       )}
       {failed && !busy && (
