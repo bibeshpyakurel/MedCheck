@@ -173,3 +173,57 @@ describe("directions", () => {
     }
   });
 });
+
+describe("warnings", () => {
+  const texts = (lines: { text: string }[]) => lines.map((l) => l.text);
+
+  it("Advil: named warnings become cards titled as printed, then the Drug Facts sections", () => {
+    const w = medicationFacts(L.advil).warnings;
+    const headed = w.filter((c) => c.kind === "headed");
+    expect(headed.map((c) => c.title)).toEqual(["Allergy alert", "Stomach bleeding warning", "Heart attack and stroke warning"]);
+    expect(headed[1].lead?.text).toBe("This product contains an NSAID, which may cause severe stomach bleeding.");
+    expect(texts(headed[1].lines)).toContain("take other drugs containing prescription or non-prescription NSAIDs [aspirin, ibuprofen, naproxen, or others]");
+    expect(w.filter((c) => c.kind === "section").map((c) => c.section)).toEqual([
+      "do_not_use",
+      "ask_doctor",
+      "ask_doctor_or_pharmacist",
+      "when_using",
+      "stop_use",
+      "pregnancy_or_breast_feeding",
+      "keep_out_of_reach",
+    ]);
+  });
+
+  it("a heading without a colon still opens a card (Tylenol Extra Strength)", () => {
+    const w = medicationFacts(L.tylenolExtraStrength).warnings.filter((c) => c.kind === "headed");
+    expect(w.map((c) => c.title)).toEqual(["Liver warning", "Allergy alert"]);
+    expect(w[0].lead?.text).toBe("This product contains acetaminophen.");
+    expect(texts(w[0].lines)).toContain("3 or more alcoholic drinks every day while using this product");
+  });
+
+  it("the overdose warning moves to Took too much?, without its heading", () => {
+    expect(texts(medicationFacts(L.tylenolExtraStrength).overdose)).toEqual([
+      "In case of overdose, get medical help or contact a Poison Control Center right away. (1-800-222-1222) Quick medical attention is critical for adults as well as for children even if you do not notice any signs or symptoms.",
+    ]);
+  });
+
+  it("Advil: Keep out of reach's overdose line moves to Took too much?; the heading-only line isn't repeated", () => {
+    const x = medicationFacts(L.advil);
+    expect(texts(x.overdose)).toEqual(["In case of overdose, get medical help or contact a Poison Control Center right away."]);
+    const keep = x.warnings.find((c) => c.section === "keep_out_of_reach");
+    expect(keep?.title).toBe("Keep out of reach of children");
+    expect(keep?.lines).toEqual([]);
+  });
+
+  it("a row without sections shows its warning quotes as one Warnings card", () => {
+    const legacy = { ...L.advil, labelSections: {} };
+    const w = medicationFacts(legacy).warnings;
+    expect(w).toHaveLength(1);
+    expect(w[0]).toMatchObject({ kind: "headed", title: "Warnings", section: null, lead: null });
+    expect(texts(w[0].lines)).toEqual(L.advil.warningsQuotes);
+  });
+
+  it("a label with no overdose line still has Took too much? (empty; the card adds Poison Control)", () => {
+    expect(medicationFacts({ ...L.advil, labelSections: { uses: ["headache"] }, warningsQuotes: [] }).overdose).toEqual([]);
+  });
+});

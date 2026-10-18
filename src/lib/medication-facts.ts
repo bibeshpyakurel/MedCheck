@@ -4,7 +4,7 @@
 // rules here only decide where a bullet goes, and a bullet no rule places stays where the label put it.
 import { formatStrength } from "@/lib/domain/fields";
 import type { Formulation, LabelSectionKey, SourceLink } from "@/lib/domain/schema";
-import { ageGroups, ageOf } from "@/lib/quick-answers";
+import { ageGroups, ageOf, LABEL_HEADINGS, WARNING_HEAD } from "@/lib/quick-answers";
 
 export type LabelSource = LabelSectionKey | "directions_text" | "max_24h_text" | "warnings_quotes";
 /** Which raw field, and which bullet of it, a line came from. */
@@ -31,11 +31,17 @@ export type DirectionSegment = { age: string | null; lines: LabelLine[] };
 export type DirectionBlock = { heading: LabelLine | null; segments: DirectionSegment[] };
 export type Directions = { blocks: DirectionBlock[]; max24h: LabelLine | null; dosageTableHtml: string | null };
 
+/** `headed`: a named label warning ("Stomach bleeding warning"); `section`: a Drug Facts section card. */
+export type WarningCard = { kind: "headed" | "section"; title: string; section: LabelSectionKey | null; lead: LabelLine | null; lines: LabelLine[] };
+
 export type MedicationFacts = {
   header: { name: string; ingredients: string[]; labeler: string | null; labelDate: string | null; dosageForm: string; status: StatusKind };
   hero: { ingredients: { name: string; amount: string; per: string | null }[]; purposes: LabelLine[] };
   uses: UseGroup[];
   directions: Directions;
+  warnings: WarningCard[];
+  /** "Took too much?": the label's overdose lines (maybe none; Poison Control's number always shows). */
+  overdose: LabelLine[];
   source: { kind: Formulation["source"]; setId: string | null; ndcs: string[]; links: SourceLink[] };
 };
 
@@ -232,7 +238,101 @@ function directions(f: Formulation): Directions {
   };
 }
 
+// ---------------------------------------------------------------------------------------------
+// Warnings
+
+const OVERDOSE = /\bin case of (?:accidental )?overdose\b|\bpoison control\b|\baccidentally swallowed\b/i;
+const OVERDOSE_HEAD = /^overdose warning/i;
+/** Drug Facts sections shown as warning cards, in label order. */
+const SECTION_CARDS: LabelSectionKey[] = [
+  "do_not_use",
+  "ask_doctor",
+  "ask_doctor_or_pharmacist",
+  "when_using",
+  "stop_use",
+  "pregnancy_or_breast_feeding",
+  "keep_out_of_reach",
+];
+
+/** Rows imported before `labelSections` existed carry only `directionsText` and `warningsQuotes`. */
+function hasSections(f: Formulation): boolean {
+  return Object.values(f.labelSections).some((bullets) => bullets?.some(hasText));
+}
+
+/** "Liver warning: This product…" → the line after its heading ("This product…"), or null. */
+function afterHeading(l: LabelLine, heading: string): LabelLine | null {
+  const rest = l.text.slice(heading.length).replace(/^\s*[:.\-–]?\s*/, "");
+  return rest ? { text: rest, ref: l.ref } : null;
+}
+
+/**
+ * The warnings section split at each named warning ("Allergy alert", "Liver warning"), each card
+ * holding the lines after it; lines before the first form a "Warnings" card. Then one card per Drug
+ * Facts section. Overdose lines (the "Overdose warning" block, "In case of overdose …") go to Took too
+ * much? instead, once each. A section line that only repeats its heading isn't listed under it.
+ */
+function warningCards(f: Formulation): { warnings: WarningCard[]; overdose: LabelLine[] } {
+  const overdose: LabelLine[] = [];
+  const toOverdose = (l: LabelLine) => {
+    if (!overdose.some((o) => squash(o.text) === squash(l.text))) overdose.push(l);
+  };
+  const cards: WarningCard[] = [];
+
+  if (!hasSections(f)) {
+    // Older rows: excerpts, not the label's sequence, so not split by heading.
+    const lines = f.warningsQuotes.flatMap((q, i) => (hasText(q) ? [line(q.trim(), "warnings_quotes", i)] : []));
+    if (lines.length > 0) cards.push({ kind: "headed", title: "Warnings", section: null, lead: null, lines });
+    return { warnings: cards, overdose };
+  }
+
+  let current: WarningCard | null = null;
+  let inOverdose = false;
+  for (const l of sectionLines(f, "warnings")) {
+    const head = WARNING_HEAD.exec(l.text);
+    if (head) {
+      const title = head[0].trim();
+      const lead = afterHeading(l, head[0]);
+      inOverdose = OVERDOSE_HEAD.test(title);
+      if (inOverdose) {
+        if (lead) toOverdose(lead);
+        current = null;
+        continue;
+      }
+      current = { kind: "headed", title, section: null, lead, lines: [] };
+      cards.push(current);
+      continue;
+    }
+    if (inOverdose || OVERDOSE.test(l.text)) {
+      toOverdose(l);
+      continue;
+    }
+    if (!current) {
+      current = { kind: "headed", title: "Warnings", section: null, lead: null, lines: [] };
+      cards.push(current);
+    }
+    current.lines.push(l);
+  }
+
+  for (const key of SECTION_CARDS) {
+    const all = sectionLines(f, key);
+    if (all.length === 0) continue;
+    const title = LABEL_HEADINGS[key] ?? key;
+    const lines = all.filter((l) => {
+      if (OVERDOSE.test(l.text)) {
+        toOverdose(l);
+        return false;
+      }
+      return squash(l.text).replace(/[.:]+$/, "") !== squash(title);
+    });
+    if (lines.length > 0 || key === "keep_out_of_reach") cards.push({ kind: "section", title, section: key, lead: null, lines });
+  }
+  for (const l of sectionLines(f, "other_information")) if (OVERDOSE.test(l.text)) toOverdose(l);
+
+  return { warnings: cards, overdose };
+}
+
 export function medicationFacts(f: Formulation): MedicationFacts {
+  const { warnings, overdose } = warningCards(f);
   return {
     header: {
       name: f.brandName,
@@ -245,6 +345,8 @@ export function medicationFacts(f: Formulation): MedicationFacts {
     hero: hero(f),
     uses: useGroups(f),
     directions: directions(f),
+    warnings,
+    overdose,
     source: { kind: f.source, setId: f.openfdaSetId, ndcs: f.ndcPackages, links: f.sourceLinks },
   };
 }
