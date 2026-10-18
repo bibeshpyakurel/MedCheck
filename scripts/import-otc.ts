@@ -282,6 +282,7 @@ function report(labels: FdaLabel[], products: number, exportDate: string, result
   for (const r of rows) for (const k of Object.keys(r.labelSections)) sectionCounts.set(k, (sectionCounts.get(k) ?? 0) + 1);
   console.log(`rows with each section: ${[...sectionCounts].map(([k, n]) => `${k} ${n}`).join(", ")}`);
   console.log(`rows with a dosing table: ${rows.filter((r) => r.dosageTableHtml).length}; with a 24-h limit: ${rows.filter((r) => r.max24hText).length}`);
+  console.log(`rows with a MedlinePlus link: ${rows.filter((r) => r.sourceLinks.some((l) => l.label.startsWith("MedlinePlus"))).length}`);
 
   console.log("sample rows:");
   for (const [name, test] of SAMPLES) {
