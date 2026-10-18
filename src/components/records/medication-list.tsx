@@ -2,13 +2,13 @@
 
 import { ChevronRightIcon, DatabaseIcon, FileTextIcon, SearchIcon, XIcon } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, ViewTransition } from "react";
 import { IngredientChip } from "@/components/ingredient-chip";
 import { Input } from "@/components/ui/input";
 import { entryLabel, formatStrength } from "@/lib/domain/fields";
 import type { MedicationEntry, SourceDocument } from "@/lib/domain/schema";
 import { groupBySource, matchesQuery } from "@/lib/medication-search";
-import { DOCUMENT_KIND_LABELS, formatDocDate } from "@/lib/record-format";
+import { DOCUMENT_KIND_LABELS, entryTitleTransition, formatDocDate } from "@/lib/record-format";
 
 /**
  * Confirmed medicines grouped by the document they came from, with a client-side search. `overlapping`
@@ -101,12 +101,17 @@ function MedicineRow({ patientId, entry, shared }: { patientId: string; entry: M
   const f = entry.fields;
   const fromDescription = entry.sourceDocument?.kind === "description" || entry.inputMethod === "voice" || entry.inputMethod === "typed";
   return (
+    // Prefetched in full so the medicine's page is ready in the same commit and its title can morph
+    // from this one (a dynamic route otherwise stops at the loading skeleton). Production only.
     <Link
       href={`/patients/${patientId}/entries/${entry.id}`}
+      prefetch
       className="group flex items-center gap-4 px-4 py-4 transition-colors hover:bg-muted/50 focus-visible:bg-muted/60 focus-visible:outline-none"
     >
       <div className="min-w-0 flex-1">
-        <p className="font-semibold text-pretty">{entryLabel(f)}</p>
+        <ViewTransition name={entryTitleTransition(entry.id)} share="morph" default="none">
+          <p className="w-fit font-semibold text-pretty">{entryLabel(f)}</p>
+        </ViewTransition>
         {f.ingredients.length > 0 ? (
           <ul className="mt-2 flex flex-wrap gap-1.5">
             {f.ingredients.map((i, idx) => (

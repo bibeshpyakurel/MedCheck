@@ -280,6 +280,22 @@
   }
 }
 
+/* A medicine's title morphs from the list into its page (React <ViewTransition share="morph">). */
+::view-transition-group(.morph) {
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+::view-transition-group(root) {
+  animation-duration: 200ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
 /* Tappable surfaces sink a little while pressed. */
 @utility press {
   transition-property: transform, background-color, border-color, box-shadow, color, opacity;

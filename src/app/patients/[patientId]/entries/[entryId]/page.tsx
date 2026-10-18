@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BadgeCheckIcon, FileTextIcon, PencilIcon, TriangleAlertIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import { type ReactNode, ViewTransition } from "react";
 import { AppShell } from "@/components/app-shell";
 import { IngredientChip } from "@/components/ingredient-chip";
 import { MedicineCardButton } from "@/components/medicine-card/medicine-card-button";
@@ -14,7 +14,7 @@ import { getFormulation } from "@/lib/catalog";
 import { entryLabel, formatDose, formatStrength } from "@/lib/domain/fields";
 import type { Field, SourceDocumentKind } from "@/lib/domain/schema";
 import { sanitizeDosageTable } from "@/lib/openfda";
-import { catalogLabelSource, formatDocDate, recordTitle } from "@/lib/record-format";
+import { catalogLabelSource, entryTitleTransition, formatDocDate, recordTitle } from "@/lib/record-format";
 import { draftPath } from "@/lib/photo-flow";
 import { entryMetadata, findEntry, findPatient } from "@/lib/page-lookup";
 import { signedPhotoUrl } from "@/lib/records";
@@ -113,7 +113,9 @@ export default async function EntryLabelPage({ params, searchParams }: PageProps
         <article className="space-y-8">
           <header className="space-y-3">
             <BackLink href={`/patients/${patient.id}`}>{recordTitle(patient)}</BackLink>
-            <h1 className="font-display text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{entryLabel(fields)}</h1>
+            <ViewTransition name={entryTitleTransition(entry.id)} share="morph" default="none">
+              <h1 className="w-fit font-display text-2xl font-semibold tracking-tight text-balance sm:text-3xl">{entryLabel(fields)}</h1>
+            </ViewTransition>
             {fields.ingredients.some((i) => i.name.value) && (
               <ul aria-label="Active ingredients" className="flex flex-wrap gap-1.5">
                 {fields.ingredients.map((i, idx) =>

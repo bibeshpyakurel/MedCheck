@@ -50,3 +50,8 @@ export function formatDocDate(iso: string | null): string | null {
   const d = new Date(iso.length === 10 ? `${iso}T00:00:00Z` : iso);
   return Number.isNaN(d.getTime()) ? iso : dateFormat.format(d);
 }
+
+/** The view-transition name a medicine's title shares between the list and its page. */
+export function entryTitleTransition(entryId: string): string {
+  return `entry-${entryId}-title`;
+}
