@@ -222,6 +222,14 @@ describe("toExtractionResult", () => {
     expect(toExtractionResult(read({ documentKind: null }), DOC).documentKind).toBeNull();
   });
 
+  it("keeps each medication's printed codes, trimmed, in medication order", () => {
+    const r = toExtractionResult(
+      read({ medications: [medication({ codes: [" NDC 50580-449-10 ", "", "3 00450 44910 8"] }), medication({ codes: null })] }),
+      DOC,
+    );
+    expect(r.productCodes).toEqual([["NDC 50580-449-10", "3 00450 44910 8"], []]);
+  });
+
   it("carries Gemini's photo issue, and null when it named none or left it out", () => {
     expect(toExtractionResult(read({ photoIssue: "glare" }), DOC).photoIssue).toBe("glare");
     expect(toExtractionResult(read({ photoIssue: null }), DOC).photoIssue).toBeNull();

@@ -18,9 +18,10 @@ const NOTHING_READ: ReadonlySet<ExtractionNotice> = new Set(["ai-unavailable", "
 
 /**
  * Where to go after a photo was read, for its first draft entry: a medicine package goes to the
- * confirm step (`/match`) when Gemini read a name or an ingredient, otherwise to `/retake`; every
- * other kind of photo goes to the per-field review, with its notice. A retake, or a review with
- * nothing found, carries Gemini's `photoIssue` as `?why=` so the page can say what to change.
+ * confirm step (`/match`) when Gemini read a name or an ingredient or its printed code matched a
+ * catalog label, otherwise to `/retake`; every other kind of photo goes to the per-field review, with
+ * its notice. A retake, or a review with nothing found, carries Gemini's `photoIssue` as `?why=` so
+ * the page can say what to change.
  */
 export function photoNextPath(input: {
   patientId: string;
@@ -29,6 +30,8 @@ export function photoNextPath(input: {
   notice: ExtractionNotice | null;
   fields: EntryFields;
   photoIssue?: PhotoIssue | null;
+  /** The package's printed NDC or barcode matched a catalog label: there is something to confirm. */
+  codeMatched?: boolean;
 }): string {
   const base = `/patients/${input.patientId}/entries/${input.entryId}`;
   const why = input.photoIssue ? `why=${input.photoIssue}` : null;
@@ -36,7 +39,8 @@ export function photoNextPath(input: {
     const params = [input.notice && `notice=${input.notice}`, input.notice === "nothing-found" && why].filter(Boolean);
     return `${base}/review${params.length ? `?${params.join("&")}` : ""}`;
   }
-  const readable = !(input.notice && NOTHING_READ.has(input.notice)) && isReadable(photoReadFromFields(input.fields));
+  const readable =
+    !(input.notice && NOTHING_READ.has(input.notice)) && (input.codeMatched || isReadable(photoReadFromFields(input.fields)));
   return readable ? `${base}/match` : `${base}/retake${why ? `?${why}` : ""}`;
 }
 
@@ -98,9 +102,11 @@ export type MatchOption = {
   labelerName: string | null;
   /** The label's strength disagrees with what Gemini read from the photo. */
   strengthDiffers: boolean;
+  /** The NDC or barcode printed on the package belongs to this label. */
+  matchedByCode: boolean;
 };
 
-export function toMatchOption(f: Formulation, agreement: StrengthAgreement = "not_read"): MatchOption {
+export function toMatchOption(f: Formulation, agreement: StrengthAgreement = "not_read", matchedByCode = false): MatchOption {
   return {
     id: f.id,
     brandName: f.brandName,
@@ -108,6 +114,7 @@ export function toMatchOption(f: Formulation, agreement: StrengthAgreement = "no
     dosageForm: f.dosageForm,
     labelerName: f.labelerName,
     strengthDiffers: agreement === "disagrees",
+    matchedByCode,
   };
 }
 
@@ -119,14 +126,22 @@ export function matchOptionLabel(option: MatchOption): string {
 const OTHER_MATCHES = 5;
 
 /**
- * "Is this the medicine?": the pre-selected match (best agreeing, related; see `preselectMatch`)
- * first, then up to 5 others in rank order. Nothing is selected when no match qualifies.
+ * "Is this the medicine?": the pre-selected match first, then up to 5 others in rank order. A
+ * `codeMatch` (the label the package's printed NDC or barcode points to; see `trustedCodeMatch`) is
+ * the pre-selected one; otherwise the best agreeing, related match (`preselectMatch`). Nothing is
+ * selected when no match qualifies.
  */
-export function matchChoices(matches: CatalogMatch[]): { selectedId: string | null; options: MatchOption[] } {
-  const selected = preselectMatch(matches);
-  const ordered = selected ? [selected, ...matches.filter((m) => m !== selected)] : matches;
+export function matchChoices(
+  matches: CatalogMatch[],
+  codeMatch: CatalogMatch | null = null,
+): { selectedId: string | null; options: MatchOption[] } {
+  const rest = codeMatch ? matches.filter((m) => m.formulation.id !== codeMatch.formulation.id) : matches;
+  const selected = codeMatch ?? preselectMatch(rest);
+  const ordered = selected ? [selected, ...rest.filter((m) => m !== selected)] : rest;
   return {
     selectedId: selected?.formulation.id ?? null,
-    options: ordered.slice(0, OTHER_MATCHES + 1).map((m) => toMatchOption(m.formulation, m.strengthAgreement)),
+    options: ordered
+      .slice(0, OTHER_MATCHES + 1)
+      .map((m) => toMatchOption(m.formulation, m.strengthAgreement, m === codeMatch)),
   };
 }

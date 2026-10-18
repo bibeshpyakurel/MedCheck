@@ -5,6 +5,7 @@ import {
   preselectMatch,
   rankCatalogMatches,
   searchTermsFor,
+  trustedCodeMatch,
   type PhotoRead,
 } from "./catalog-match";
 import { emptyEntryFields, suggestedField } from "./domain/fields";
@@ -293,5 +294,25 @@ describe("searchTermsFor", () => {
   it("adds no brand-only term when nothing is left or nothing changes", () => {
     expect(searchTermsFor(read("Extra Strength", null, []))).toEqual(["Extra Strength"]);
     expect(searchTermsFor(read("Claritin", null, []))).toEqual(["Claritin"]);
+  });
+});
+
+describe("trustedCodeMatch (the product the NDC or barcode printed on the package points to)", () => {
+  it("is trusted when what Gemini read agrees with it", () => {
+    const m = trustedCodeMatch(read("TYLENOL Extra Strength", "caplets", [["Acetaminophen", s(500, "mg", 1, "tablet")]]), tylenolExtra);
+    expect(m?.formulation.id).toBe("f-tylenol-es");
+    expect(m?.strengthAgreement).toBe("agrees");
+  });
+
+  it("is trusted when Gemini read only the code (no name, no ingredient)", () => {
+    expect(trustedCodeMatch(read(null, null, []), tylenolExtra)?.formulation.id).toBe("f-tylenol-es");
+  });
+
+  it("is dropped when the strength read disagrees: a misread digit can point at another package", () => {
+    expect(trustedCodeMatch(read("TYLENOL", null, [["Acetaminophen", s(325, "mg", 1, "tablet")]]), tylenolExtra)).toBeNull();
+  });
+
+  it("is dropped when the name and ingredients read share nothing with it", () => {
+    expect(trustedCodeMatch(read("Advil", null, [["Ibuprofen", null]]), tylenolExtra)).toBeNull();
   });
 });
