@@ -39,7 +39,7 @@ export type CatalogFormulation = Omit<Formulation, "id" | "reviewed">;
 const BULLETS = /[■●•▪◼]/g;
 
 /** Collapse whitespace and repeated headings ("Directions Directions", "Liver warning Liver warning:"). */
-function tidy(text: string): string {
+export function tidy(text: string): string {
   return text
     .replace(/[​ ]/g, " ")
     .replace(/\s+/g, " ")
@@ -47,7 +47,7 @@ function tidy(text: string): string {
     .trim();
 }
 
-function sentenceCase(text: string): string {
+export function sentenceCase(text: string): string {
   const lower = text.trim().toLowerCase();
   return lower.charAt(0).toUpperCase() + lower.slice(1);
 }
@@ -80,7 +80,7 @@ function parsePer(activeText: string): { perAmount: number; perUnit: string; dos
  * which names to look for, then reads "<name as printed> <amount> mg" from the Drug Facts text.
  * Null when any listed substance has no readable strength.
  */
-function parseIngredients(label: OpenFdaLabel): { ingredients: CatalogIngredient[]; dosageForm: string } | null {
+export function parseIngredients(label: OpenFdaLabel): { ingredients: CatalogIngredient[]; dosageForm: string } | null {
   const text = tidy(label.active_ingredient?.[0] ?? "");
   const per = parsePer(text);
   const substances = [...new Set(label.openfda?.substance_name ?? [])];
@@ -112,7 +112,7 @@ function parseIngredients(label: OpenFdaLabel): { ingredients: CatalogIngredient
   return { ingredients: found.map((f) => f.ingredient), dosageForm: per.dosageForm };
 }
 
-function parseDirections(label: OpenFdaLabel): string | null {
+export function parseDirections(label: OpenFdaLabel): string | null {
   const text = tidy((label.dosage_and_administration ?? []).join(" "))
     .replace(/^(directions\s*:?\s*)+/i, "")
     .replace(/\s*■\s*/g, " • ")
@@ -122,7 +122,7 @@ function parseDirections(label: OpenFdaLabel): string | null {
 }
 
 /** The directions' own 24-hour limit, verbatim: "do not exceed 8 caplets per 24 hrs". */
-function parseMax24h(directions: string | null): string | null {
+export function parseMax24h(directions: string | null): string | null {
   if (!directions) return null;
   const m = directions.match(
     /\b(do not (?:exceed|give more than|take more than|use more than)[^.•]{0,60}?\b24\s*(?:hours|hrs?)\b)/i,
@@ -134,7 +134,7 @@ const WARNING_HEADINGS =
   /\s+(?=(?:Liver warning|Allergy [Aa]lert|Sore throat warning|Overdose warning|Do not use|Ask a doctor|When using this product|Stop use|Keep out of reach|If pregnant)\b)/;
 
 /** Verbatim warning sentences that name one of the product's active ingredients. */
-function parseWarningsQuotes(label: OpenFdaLabel, ingredients: CatalogIngredient[]): string[] {
+export function parseWarningsQuotes(label: OpenFdaLabel, ingredients: CatalogIngredient[]): string[] {
   const words = [...new Set(ingredients.map((i) => i.normalized.split(" ")[0]))];
   const sections = [...(label.warnings ?? []), ...(label.do_not_use ?? [])];
   const quotes: string[] = [];
@@ -166,7 +166,7 @@ export function sanitizeDosageTable(html: string): string {
     .trim();
 }
 
-function isHomeopathic(label: OpenFdaLabel): boolean {
+export function isHomeopathic(label: OpenFdaLabel): boolean {
   const text = [
     ...(label.openfda?.product_type ?? []),
     ...(label.active_ingredient ?? []),

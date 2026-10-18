@@ -1,0 +1,1004 @@
+{
+ "advil-tablets-caplets-gel-caplets": [
+  {
+   "product_ndc": "0573-0165",
+   "spl_id": "4cd840a6-9554-de58-e063-6394a90ab543",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "ADVIL",
+   "generic_name": "ibuprofen",
+   "labeler_name": "Haleon US Holdings LLC",
+   "dosage_form": "TABLET, COATED",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "IBUPROFEN",
+     "strength": "200 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "0573-0165-20"
+    },
+    {
+     "package_ndc": "0573-0165-25"
+    },
+    {
+     "package_ndc": "0573-0165-30"
+    },
+    {
+     "package_ndc": "0573-0165-31"
+    },
+    {
+     "package_ndc": "0573-0165-40"
+    },
+    {
+     "package_ndc": "0573-0165-41"
+    },
+    {
+     "package_ndc": "0573-0165-42"
+    }
+   ]
+  },
+  {
+   "product_ndc": "0573-0166",
+   "spl_id": "4cd840a6-9554-de58-e063-6394a90ab543",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "ADVIL",
+   "generic_name": "ibuprofen",
+   "labeler_name": "Haleon US Holdings LLC",
+   "dosage_form": "TABLET, COATED",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "IBUPROFEN",
+     "strength": "200 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "0573-0166-51"
+    },
+    {
+     "package_ndc": "0573-0166-85"
+    }
+   ]
+  },
+  {
+   "product_ndc": "0573-0154",
+   "spl_id": "4cd840a6-9554-de58-e063-6394a90ab543",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "ADVIL",
+   "generic_name": "ibuprofen",
+   "labeler_name": "Haleon US Holdings LLC",
+   "dosage_form": "TABLET, COATED",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "IBUPROFEN",
+     "strength": "200 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "0573-0154-16"
+    },
+    {
+     "package_ndc": "0573-0154-17"
+    },
+    {
+     "package_ndc": "0573-0154-21"
+    },
+    {
+     "package_ndc": "0573-0154-35"
+    },
+    {
+     "package_ndc": "0573-0154-59"
+    },
+    {
+     "package_ndc": "0573-0154-60"
+    },
+    {
+     "package_ndc": "0573-0154-75"
+    },
+    {
+     "package_ndc": "0573-0154-84"
+    },
+    {
+     "package_ndc": "0573-0154-89"
+    },
+    {
+     "package_ndc": "0573-0154-98"
+    }
+   ]
+  },
+  {
+   "product_ndc": "0573-0160",
+   "spl_id": "4cd840a6-9554-de58-e063-6394a90ab543",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "ADVIL",
+   "generic_name": "ibuprofen",
+   "labeler_name": "Haleon US Holdings LLC",
+   "dosage_form": "TABLET, COATED",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "IBUPROFEN",
+     "strength": "200 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "0573-0160-17"
+    },
+    {
+     "package_ndc": "0573-0160-20"
+    },
+    {
+     "package_ndc": "0573-0160-25"
+    },
+    {
+     "package_ndc": "0573-0160-30"
+    },
+    {
+     "package_ndc": "0573-0160-31"
+    },
+    {
+     "package_ndc": "0573-0160-40"
+    },
+    {
+     "package_ndc": "0573-0160-41"
+    },
+    {
+     "package_ndc": "0573-0160-42"
+    }
+   ]
+  },
+  {
+   "product_ndc": "0573-0150",
+   "spl_id": "4cd840a6-9554-de58-e063-6394a90ab543",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "ADVIL",
+   "generic_name": "ibuprofen",
+   "labeler_name": "Haleon US Holdings LLC",
+   "dosage_form": "TABLET, COATED",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "IBUPROFEN",
+     "strength": "200 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "0573-0150-20"
+    },
+    {
+     "package_ndc": "0573-0150-30"
+    },
+    {
+     "package_ndc": "0573-0150-31"
+    },
+    {
+     "package_ndc": "0573-0150-32"
+    },
+    {
+     "package_ndc": "0573-0150-40"
+    },
+    {
+     "package_ndc": "0573-0150-41"
+    },
+    {
+     "package_ndc": "0573-0150-42"
+    }
+   ]
+  },
+  {
+   "product_ndc": "0573-0161",
+   "spl_id": "4cd840a6-9554-de58-e063-6394a90ab543",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "ADVIL",
+   "generic_name": "ibuprofen",
+   "labeler_name": "Haleon US Holdings LLC",
+   "dosage_form": "TABLET, COATED",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "IBUPROFEN",
+     "strength": "200 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "0573-0161-35"
+    },
+    {
+     "package_ndc": "0573-0161-51"
+    },
+    {
+     "package_ndc": "0573-0161-65"
+    },
+    {
+     "package_ndc": "0573-0161-85"
+    }
+   ]
+  },
+  {
+   "product_ndc": "0573-1711",
+   "spl_id": "4cd840a6-9554-de58-e063-6394a90ab543",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "ADVIL",
+   "generic_name": "ibuprofen",
+   "labeler_name": "Haleon US Holdings LLC",
+   "dosage_form": "TABLET, COATED",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "IBUPROFEN",
+     "strength": "200 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "0573-1711-14"
+    }
+   ]
+  },
+  {
+   "product_ndc": "0573-0151",
+   "spl_id": "4cd840a6-9554-de58-e063-6394a90ab543",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "ADVIL",
+   "generic_name": "ibuprofen",
+   "labeler_name": "Haleon US Holdings LLC",
+   "dosage_form": "TABLET, COATED",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "IBUPROFEN",
+     "strength": "200 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "0573-0151-05"
+    },
+    {
+     "package_ndc": "0573-0151-10"
+    },
+    {
+     "package_ndc": "0573-0151-12"
+    },
+    {
+     "package_ndc": "0573-0151-13"
+    },
+    {
+     "package_ndc": "0573-0151-20"
+    },
+    {
+     "package_ndc": "0573-0151-21"
+    },
+    {
+     "package_ndc": "0573-0151-30"
+    },
+    {
+     "package_ndc": "0573-0151-40"
+    },
+    {
+     "package_ndc": "0573-0151-48"
+    }
+   ]
+  }
+ ],
+ "tylenol-extra-strength-tablet": [
+  {
+   "product_ndc": "50580-590",
+   "spl_id": "22d94fd9-9488-a812-e063-6394a90a7ffc",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "TYLENOL Extra Strength",
+   "generic_name": "acetaminophen",
+   "labeler_name": "Kenvue Brands LLC",
+   "dosage_form": "TABLET, FILM COATED",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "ACETAMINOPHEN",
+     "strength": "500 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "50580-590-04"
+    },
+    {
+     "package_ndc": "50580-590-05"
+    },
+    {
+     "package_ndc": "50580-590-06"
+    }
+   ]
+  }
+ ],
+ "tylenol-extra-strength-caplet": [
+  {
+   "product_ndc": "50580-472",
+   "spl_id": "21c39261-4b98-bc43-e063-6394a90a4eb8",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Tylenol Extra Strength",
+   "generic_name": "Acetaminophen",
+   "labeler_name": "Kenvue Brands LLC",
+   "dosage_form": "TABLET, FILM COATED",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "ACETAMINOPHEN",
+     "strength": "500 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "50580-472-01"
+    },
+    {
+     "package_ndc": "50580-472-02"
+    },
+    {
+     "package_ndc": "50580-472-03"
+    },
+    {
+     "package_ndc": "50580-472-04"
+    }
+   ]
+  }
+ ],
+ "childrens-tylenol-suspension": [
+  {
+   "product_ndc": "50580-139",
+   "spl_id": "5409ac69-c01e-e5d6-e063-6294a90a14b2",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "CHILDRENS TYLENOL",
+   "generic_name": "Acetaminophen",
+   "labeler_name": "Kenvue Brands LLC",
+   "dosage_form": "SUSPENSION",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "ACETAMINOPHEN",
+     "strength": "160 mg/5mL"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "50580-139-04"
+    },
+    {
+     "package_ndc": "50580-139-08"
+    }
+   ]
+  }
+ ],
+ "nyquil-severe-caplet": [
+  {
+   "product_ndc": "37000-523",
+   "spl_id": "401e3485-6a7e-3dc8-e063-6294a90a859c",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "NyQuil Severe plus Vicks VapoCool Cold and Flu",
+   "generic_name": "Acetaminophen, Phenylephrine Hydrochloride, Doxylamine Succinate, and Dextromethorphan Hydrobromide",
+   "labeler_name": "The Procter & Gamble Manufacturing Company",
+   "dosage_form": "TABLET, COATED",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "DEXTROMETHORPHAN HYDROBROMIDE",
+     "strength": "10 mg/1"
+    },
+    {
+     "name": "ACETAMINOPHEN",
+     "strength": "325 mg/1"
+    },
+    {
+     "name": "PHENYLEPHRINE HYDROCHLORIDE",
+     "strength": "5 mg/1"
+    },
+    {
+     "name": "DOXYLAMINE SUCCINATE",
+     "strength": "6.25 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "37000-523-02"
+    }
+   ]
+  }
+ ],
+ "childrens-advil-suspension": [
+  {
+   "product_ndc": "0573-0171",
+   "spl_id": "88972802-d04c-4fe3-8c56-3c3d1e3b4218",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "CHILDRENS ADVIL",
+   "generic_name": "ibuprofen",
+   "labeler_name": "Haleon US Holdings LLC",
+   "dosage_form": "SUSPENSION",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "IBUPROFEN",
+     "strength": "100 mg/5mL"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "0573-0171-03"
+    },
+    {
+     "package_ndc": "0573-0171-30"
+    },
+    {
+     "package_ndc": "0573-0171-32"
+    }
+   ]
+  },
+  {
+   "product_ndc": "0573-0207",
+   "spl_id": "88972802-d04c-4fe3-8c56-3c3d1e3b4218",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "CHILDRENS ADVIL",
+   "generic_name": "ibuprofen",
+   "labeler_name": "Haleon US Holdings LLC",
+   "dosage_form": "SUSPENSION",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "IBUPROFEN",
+     "strength": "100 mg/5mL"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "0573-0207-30"
+    }
+   ]
+  },
+  {
+   "product_ndc": "0573-0290",
+   "spl_id": "88972802-d04c-4fe3-8c56-3c3d1e3b4218",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "CHILDRENS ADVIL",
+   "generic_name": "ibuprofen",
+   "labeler_name": "Haleon US Holdings LLC",
+   "dosage_form": "SUSPENSION",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "IBUPROFEN",
+     "strength": "100 mg/5mL"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "0573-0290-01"
+    },
+    {
+     "package_ndc": "0573-0290-30"
+    }
+   ]
+  },
+  {
+   "product_ndc": "0573-0170",
+   "spl_id": "88972802-d04c-4fe3-8c56-3c3d1e3b4218",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "CHILDRENS ADVIL",
+   "generic_name": "ibuprofen",
+   "labeler_name": "Haleon US Holdings LLC",
+   "dosage_form": "SUSPENSION",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "IBUPROFEN",
+     "strength": "100 mg/5mL"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "0573-0170-01"
+    },
+    {
+     "package_ndc": "0573-0170-30"
+    },
+    {
+     "package_ndc": "0573-0170-32"
+    }
+   ]
+  },
+  {
+   "product_ndc": "0573-0174",
+   "spl_id": "88972802-d04c-4fe3-8c56-3c3d1e3b4218",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "CHILDRENS ADVIL",
+   "generic_name": "ibuprofen",
+   "labeler_name": "Haleon US Holdings LLC",
+   "dosage_form": "SUSPENSION",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "IBUPROFEN",
+     "strength": "100 mg/5mL"
+    }
+   ],
+   "packaging": []
+  },
+  {
+   "product_ndc": "0573-0232",
+   "spl_id": "88972802-d04c-4fe3-8c56-3c3d1e3b4218",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "CHILDRENS ADVIL",
+   "generic_name": "ibuprofen",
+   "labeler_name": "Haleon US Holdings LLC",
+   "dosage_form": "SUSPENSION",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "IBUPROFEN",
+     "strength": "100 mg/5mL"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "0573-0232-30"
+    }
+   ]
+  }
+ ],
+ "advil-liquigel": [
+  {
+   "product_ndc": "85237-1785",
+   "spl_id": "55bc36f6-45ee-b63d-e063-6294a90a445b",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Advil Liquigel",
+   "generic_name": "ibuprofen",
+   "labeler_name": "Select Consumer Group",
+   "dosage_form": "CAPSULE, LIQUID FILLED",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "IBUPROFEN",
+     "strength": "200 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "85237-1785-1"
+    },
+    {
+     "package_ndc": "85237-1785-2"
+    },
+    {
+     "package_ndc": "85237-1785-4"
+    },
+    {
+     "package_ndc": "85237-1785-5"
+    },
+    {
+     "package_ndc": "85237-1785-7"
+    }
+   ]
+  }
+ ],
+ "claritin-solution-per-ml": [
+  {
+   "product_ndc": "11523-0101",
+   "spl_id": "4526da60-c33b-fb4a-e063-6294a90a8692",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Claritin Allergy",
+   "generic_name": "loratadine",
+   "labeler_name": "Bayer HealthCare LLC.",
+   "dosage_form": "SOLUTION",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "LORATADINE",
+     "strength": "1 mg/mL"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "11523-0101-1"
+    },
+    {
+     "package_ndc": "11523-0101-2"
+    },
+    {
+     "package_ndc": "11523-0101-3"
+    }
+   ]
+  }
+ ],
+ "theraflu-syrup-count-strength": [
+  {
+   "product_ndc": "0067-8132",
+   "spl_id": "131940e0-559f-0aa1-e063-6394a90a779f",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Theraflu ExpressMax Severe Cold and Flu Syrup",
+   "generic_name": "Acetaminophen, Dextromethorphan HBr, Guaifenesin, Phenylephrine HCl",
+   "labeler_name": "Haleon US Holdings LLC",
+   "dosage_form": "SYRUP",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "ACETAMINOPHEN",
+     "strength": "650 mg/1"
+    },
+    {
+     "name": "DEXTROMETHORPHAN HYDROBROMIDE",
+     "strength": "20 mg/1"
+    },
+    {
+     "name": "GUAIFENESIN",
+     "strength": "400 mg/1"
+    },
+    {
+     "name": "PHENYLEPHRINE HYDROCHLORIDE",
+     "strength": "10 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "0067-8132-08"
+    }
+   ]
+  }
+ ],
+ "dayquil-nyquil-kit": [
+  {
+   "product_ndc": "69423-988",
+   "spl_id": "5afb1373-0d87-d32f-e063-6394a90afff0",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Vicks DayQuil and Nyquil VapoCOOL Severe COLD and FLU plus CONGESTION",
+   "generic_name": "Acetaminophen, Phenylephrine Hydrochloride, and Doxylamine Succinate",
+   "labeler_name": "The Procter & Gamble Manufacturing Company",
+   "dosage_form": "KIT",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "packaging": [
+    {
+     "package_ndc": "69423-988-24"
+    },
+    {
+     "package_ndc": "69423-988-48"
+    }
+   ]
+  }
+ ],
+ "nicotine-two-strengths": [
+  {
+   "product_ndc": "43598-485",
+   "spl_id": "39cca7cc-17e3-f297-e4f1-0a7e865b2f62",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Nicotine Polacrilex",
+   "generic_name": "Nicotine Polacrilex",
+   "labeler_name": "Dr. Reddy's Laboratories Inc.",
+   "dosage_form": "LOZENGE",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "NICOTINE",
+     "strength": "4 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "43598-485-10"
+    },
+    {
+     "package_ndc": "43598-485-12"
+    },
+    {
+     "package_ndc": "43598-485-13"
+    },
+    {
+     "package_ndc": "43598-485-14"
+    },
+    {
+     "package_ndc": "43598-485-16"
+    },
+    {
+     "package_ndc": "43598-485-17"
+    },
+    {
+     "package_ndc": "43598-485-18"
+    },
+    {
+     "package_ndc": "43598-485-19"
+    },
+    {
+     "package_ndc": "43598-485-22"
+    },
+    {
+     "package_ndc": "43598-485-23"
+    },
+    {
+     "package_ndc": "43598-485-24"
+    },
+    {
+     "package_ndc": "43598-485-27"
+    },
+    {
+     "package_ndc": "43598-485-29"
+    },
+    {
+     "package_ndc": "43598-485-48"
+    },
+    {
+     "package_ndc": "43598-485-54"
+    },
+    {
+     "package_ndc": "43598-485-72"
+    },
+    {
+     "package_ndc": "43598-485-73"
+    },
+    {
+     "package_ndc": "43598-485-74"
+    },
+    {
+     "package_ndc": "43598-485-81"
+    },
+    {
+     "package_ndc": "43598-485-96"
+    }
+   ]
+  },
+  {
+   "product_ndc": "43598-484",
+   "spl_id": "39cca7cc-17e3-f297-e4f1-0a7e865b2f62",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Nicotine Polacrilex",
+   "generic_name": "Nicotine Polacrilex",
+   "labeler_name": "Dr. Reddy's Laboratories Inc.",
+   "dosage_form": "LOZENGE",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "NICOTINE",
+     "strength": "2 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "43598-484-10"
+    },
+    {
+     "package_ndc": "43598-484-12"
+    },
+    {
+     "package_ndc": "43598-484-13"
+    },
+    {
+     "package_ndc": "43598-484-14"
+    },
+    {
+     "package_ndc": "43598-484-16"
+    },
+    {
+     "package_ndc": "43598-484-17"
+    },
+    {
+     "package_ndc": "43598-484-18"
+    },
+    {
+     "package_ndc": "43598-484-19"
+    },
+    {
+     "package_ndc": "43598-484-22"
+    },
+    {
+     "package_ndc": "43598-484-23"
+    },
+    {
+     "package_ndc": "43598-484-24"
+    },
+    {
+     "package_ndc": "43598-484-27"
+    },
+    {
+     "package_ndc": "43598-484-29"
+    },
+    {
+     "package_ndc": "43598-484-48"
+    },
+    {
+     "package_ndc": "43598-484-54"
+    },
+    {
+     "package_ndc": "43598-484-72"
+    },
+    {
+     "package_ndc": "43598-484-73"
+    },
+    {
+     "package_ndc": "43598-484-74"
+    },
+    {
+     "package_ndc": "43598-484-81"
+    },
+    {
+     "package_ndc": "43598-484-96"
+    }
+   ]
+  }
+ ],
+ "fenbendazole-mg-per-mol": [
+  {
+   "product_ndc": "85130-100",
+   "spl_id": "337c4554-204a-a725-e063-6394a90a66f5",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Fenbendazole 222 MG",
+   "generic_name": "Fenbendazole 222 MG",
+   "labeler_name": "B & L Healthcare Products INC",
+   "dosage_form": "CAPSULE",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "FENBENDAZOLE",
+     "strength": "299.35 mg/mol"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "85130-100-01"
+    },
+    {
+     "package_ndc": "85130-100-02"
+    }
+   ]
+  }
+ ],
+ "ibuprofen-with-glyphs": [
+  {
+   "product_ndc": "63941-209",
+   "spl_id": "45b252db-6e37-17c5-e063-6294a90a7469",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "Ibuprofen",
+   "generic_name": "Ibuprofen",
+   "labeler_name": "VALU MERCHANDISERS COMPANY",
+   "dosage_form": "TABLET, COATED",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "IBUPROFEN",
+     "strength": "200 mg/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "63941-209-05"
+    }
+   ]
+  }
+ ],
+ "homeopathic-pellets": [
+  {
+   "product_ndc": "15631-0404",
+   "spl_id": "ca7bbcc8-2354-375c-e053-2995a90a72a0",
+   "product_type": "HUMAN OTC DRUG",
+   "brand_name": "SILICEA",
+   "generic_name": "SILICEA",
+   "labeler_name": "Rxhomeo Private Limited d.b.a. Rxhomeo, Inc",
+   "dosage_form": "PELLET",
+   "route": [
+    "ORAL"
+   ],
+   "finished": true,
+   "active_ingredients": [
+    {
+     "name": "SILICON DIOXIDE",
+     "strength": "2 [hp_X]/1"
+    }
+   ],
+   "packaging": [
+    {
+     "package_ndc": "15631-0404-0"
+    },
+    {
+     "package_ndc": "15631-0404-1"
+    },
+    {
+     "package_ndc": "15631-0404-2"
+    },
+    {
+     "package_ndc": "15631-0404-3"
+    },
+    {
+     "package_ndc": "15631-0404-4"
+    },
+    {
+     "package_ndc": "15631-0404-5"
+    },
+    {
+     "package_ndc": "15631-0404-6"
+    },
+    {
+     "package_ndc": "15631-0404-7"
+    }
+   ]
+  }
+ ]
+}

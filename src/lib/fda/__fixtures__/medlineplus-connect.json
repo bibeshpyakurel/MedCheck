@@ -1,0 +1,88 @@
+{
+ "nyquil-37000-523-02": {
+  "feed": {
+   "subtitle": {
+    "type": "text",
+    "_value": "MedlinePlus Connect results for NDC 37000-523-02"
+   },
+   "entry": [
+    {
+     "title": {
+      "_value": "Acetaminophen",
+      "type": "text"
+     },
+     "link": [
+      {
+       "href": "https://medlineplus.gov/druginfo/meds/a681004.html?utm_source=mplusconnect&utm_medium=service"
+      }
+     ]
+    },
+    {
+     "title": {
+      "_value": "Dextromethorphan",
+      "type": "text"
+     },
+     "link": [
+      {
+       "href": "https://medlineplus.gov/druginfo/meds/a682492.html?utm_source=mplusconnect&utm_medium=service"
+      }
+     ]
+    },
+    {
+     "title": {
+      "_value": "Doxylamine",
+      "type": "text"
+     },
+     "link": [
+      {
+       "href": "https://medlineplus.gov/druginfo/meds/a682537.html?utm_source=mplusconnect&utm_medium=service"
+      }
+     ]
+    },
+    {
+     "title": {
+      "_value": "Phenylephrine",
+      "type": "text"
+     },
+     "link": [
+      {
+       "href": "https://medlineplus.gov/druginfo/meds/a606008.html?utm_source=mplusconnect&utm_medium=service"
+      }
+     ]
+    }
+   ]
+  }
+ },
+ "tylenol-50580-590-02": {
+  "feed": {
+   "subtitle": {
+    "type": "text",
+    "_value": "MedlinePlus Connect results for NDC 50580-590-02"
+   },
+   "entry": [
+    {
+     "title": {
+      "_value": "Acetaminophen",
+      "type": "text"
+     },
+     "link": [
+      {
+       "href": "https://medlineplus.gov/druginfo/meds/a681004.html?utm_source=mplusconnect&utm_medium=service"
+      }
+     ]
+    },
+    {
+     "title": {
+      "_value": "Pain Relievers",
+      "type": "text"
+     },
+     "link": [
+      {
+       "href": "https://medlineplus.gov/painrelievers.html?utm_source=mplusconnect&utm_medium=service"
+      }
+     ]
+    }
+   ]
+  }
+ }
+}
