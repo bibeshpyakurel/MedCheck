@@ -60,6 +60,8 @@ Not installed. `tw-animate-css` is installed.
 
 Not reproduced yet. A fresh guest on production lands on `/add` (empty record, 812 px tall, no scroll). No `content-visibility`, `h-screen` or full-height `fixed` layer exists in app code. Candidates: the sticky header's `backdrop-blur-xl`, and the landing's `blur-3xl` 60rem glow (iOS Safari is known to drop paint under large blurred layers). This needs a record with several medicines, so a local dev server with `.env.local` (absent in this worktree) or a production session with medicines added. Done in WP1.
 
+**WP1 result:** a seeded record (Tylenol, DayQuil Severe, Advil: one overlap), scrolled top to bottom at 375×812 in Chromium (mobile emulation) and WebKit, light and dark: every section paints, including Medicines, Activity and the footer. No code path matches the usual causes. The likely source is the capture tool: full-page screenshots of emulated viewports often leave everything below the first screen blank. One real defect did show: with the backdrop blur not rendered, page text read through the 70%-opaque sticky header. The header is now 85% (92% without blur support) and pads for `safe-area-inset-top` (needed for WP10). **Still to do:** a check on a real iPhone.
+
 ## 10. Other conflicts with the plan
 
 - **Report (WP12):** the spec lists four actions: Preview, Download PDF, **Share** (Web Share API with the PDF on phones) and Send by email. The plan's three-button row drops Share. `src/components/report/report-preview.tsx` already renders the report as HTML (used by `/export/preview`), so a scaled paper preview needs no new rendering.
