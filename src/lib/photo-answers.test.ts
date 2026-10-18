@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { MatchOption } from "./photo-flow";
-import { confirmLayout, initialChoice, opensPhotoAnswers, picksFrom, type MedicineChoice, type PhotoMatchItem } from "./photo-answers";
+import { confirmLayout, initialChoice, opensPhotoAnswers, otherMatches, picksFrom, type MedicineChoice, type PhotoMatchItem } from "./photo-answers";
 
 const option = (id: string, brandName = `Brand ${id}`): MatchOption => ({
   id,
@@ -94,5 +94,20 @@ describe("picksFrom", () => {
     expect(picksFrom([{ entryId: "e-1", choice: { kind: "typed", name: " Zinc lozenges " }, removed: false }])).toEqual([
       { entryId: "e-1", typedName: "Zinc lozenges" },
     ]);
+  });
+});
+
+describe("otherMatches (“Not this one?”)", () => {
+  const options = ["a", "b", "c", "d", "e", "f"].map((id) => option(id));
+
+  it("lists the other products, never the chosen one again", () => {
+    expect(otherMatches(options, "a").map((o) => o.id)).toEqual(["b", "c", "d", "e", "f"]);
+    expect(otherMatches(options, "c").map((o) => o.id)).toEqual(["a", "b", "d", "e", "f"]);
+  });
+
+  it("keeps up to 5", () => {
+    // Chosen from the search, so it isn't among the matches.
+    expect(otherMatches(options, "z").map((o) => o.id)).toEqual(["a", "b", "c", "d", "e"]);
+    expect(otherMatches(options.slice(0, 1), "a")).toEqual([]);
   });
 });

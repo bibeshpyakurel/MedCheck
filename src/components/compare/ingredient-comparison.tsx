@@ -1,7 +1,9 @@
 // "Together": the active ingredients of two or more medicines side by side, what they share and which
-// belong to one family, each with the label's own warning. Evidence only: never "safe", never green,
-// no dose maths. No "use client": it renders on the server and inside a client sheet alike.
+// belong to one family, each in the labels' own words (a warning, or each label's Purpose line).
+// Evidence only: never "safe", never green, no dose maths. No "use client": it renders on the server
+// and inside a client sheet alike.
 import { TriangleAlertIcon } from "lucide-react";
+import type { ReactNode } from "react";
 import { type ComparedProduct, compareProducts, type ProductComparison } from "@/lib/compare";
 import { capitalize, joinList } from "@/lib/checks/shared";
 
@@ -22,7 +24,22 @@ export function IngredientComparison({ products }: { products: ComparedProduct[]
       ))}
       {c.families.map((f) => {
         const names = [...new Set(f.members.map((m) => m.normalized))];
-        return <Callout key={f.familyId} title={`${capitalize(joinList(names))} are ${all(names.length)} ${f.name}`} quote={f.labelQuote} />;
+        const title = `${capitalize(joinList(names))} are ${all(names.length)} ${f.name}`;
+        if (f.evidence.kind === "warning") return <Callout key={f.familyId} title={title} quote={f.evidence.quote} />;
+        return (
+          <Callout key={f.familyId} title={title} quote={null}>
+            <figure className="rounded-xl bg-finding-surface p-3.5 ring-1 ring-finding/25">
+              <figcaption className="text-sm font-semibold text-finding-foreground">Each label&apos;s own words:</figcaption>
+              <ul className="mt-1 space-y-1 leading-relaxed">
+                {f.evidence.quotes.map((q) => (
+                  <li key={q.product}>
+                    <span className="font-medium">{nameOf(q.product)}</span> — {q.heading}: {quoted(q.quote)}
+                  </li>
+                ))}
+              </ul>
+            </figure>
+          </Callout>
+        );
       })}
       {c.shared.length === 0 && c.families.length === 0 && <p className="text-muted-foreground">{NOTHING_SHARED_LINE}</p>}
 
@@ -34,7 +51,7 @@ export function IngredientComparison({ products }: { products: ComparedProduct[]
 /** A fragment cut from under a heading ("take other drugs containing …") reads as one: "…take other …". */
 const quoted = (q: string) => `“${/^[a-z]/.test(q) ? "…" : ""}${q}”`;
 
-function Callout({ title, quote }: { title: string; quote: string | null }) {
+function Callout({ title, quote, children }: { title: string; quote: string | null; children?: ReactNode }) {
   return (
     <article className="space-y-3 rounded-2xl border border-l-4 border-finding/35 border-l-finding bg-card p-4 text-card-foreground sm:p-5">
       <div className="flex items-start gap-3">
@@ -47,6 +64,7 @@ function Callout({ title, quote }: { title: string; quote: string | null }) {
           <blockquote className="mt-1 leading-relaxed">{quoted(quote)}</blockquote>
         </figure>
       )}
+      {children}
     </article>
   );
 }

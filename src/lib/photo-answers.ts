@@ -1,7 +1,7 @@
 // The photo pop-up's decisions (spec: photo answers §2). Pure; safe on client and server.
 // One photo → "Is this …?" for each medicine read → Continue (the user's confirmation of which
 // product each one is) → the answer card or the comparison → Save to My medicines or Don't save.
-import type { MatchOption, PhotoReadResult } from "@/lib/photo-flow";
+import { OTHER_MATCHES, type MatchOption, type PhotoReadResult } from "@/lib/photo-flow";
 
 /**
  * After a read: a medicine-package photo with something readable opens the pop-up (its next step
@@ -42,6 +42,11 @@ export function confirmLayout(count: number): "one" | "rows" | "steps" {
 export function initialChoice(item: PhotoMatchItem): MedicineChoice {
   const option = item.options.find((o) => o.id === item.selectedId);
   return option ? { kind: "label", option } : null;
+}
+
+/** "Not this one?": the matches other than the chosen one (shown above them already), up to 5. */
+export function otherMatches(options: MatchOption[], chosenId: string | null): MatchOption[] {
+  return options.filter((o) => o.id !== chosenId).slice(0, OTHER_MATCHES);
 }
 
 /**
