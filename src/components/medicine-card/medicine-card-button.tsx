@@ -4,6 +4,7 @@ import { BookOpenTextIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { CompareButton } from "@/components/compare/compare-button";
 import { MedicineCardSheet } from "@/components/medicine-card/medicine-card-sheet";
 import { Button } from "@/components/ui/button";
 import { useBackToClose } from "@/components/use-back-to-close";
@@ -19,15 +20,18 @@ const shownOnArrival = new Set<string>();
  * arrival (right after the one-tap confirm) with Done and Add another; then ×, Escape and Done all go to
  * the Medicines page. Device Back closes the card and stays on the entry page.
  * `formulation` must come from a catalog read (`rowToFormulation` sanitizes its dosing table).
+ * `entryId` (a confirmed medicine) adds "Compare with my medicines" to the card.
  */
 export function MedicineCardButton({
   formulation,
   patientId,
   justAdded = false,
+  entryId,
 }: {
   formulation: Formulation;
   patientId: string;
   justAdded?: boolean;
+  entryId?: string;
 }) {
   const pathname = usePathname();
   const [arriving] = useState(() => justAdded && !shownOnArrival.has(pathname));
@@ -63,6 +67,7 @@ export function MedicineCardButton({
         formulation={formulation}
         open={open}
         onOpenChange={onOpenChange}
+        actions={entryId ? <CompareButton patientId={patientId} subject={{ entryId }} /> : undefined}
         footer={
           showFooter ? (
             <>

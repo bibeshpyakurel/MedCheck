@@ -1,5 +1,6 @@
 import { ChevronDownIcon, ExternalLinkIcon, TriangleAlertIcon } from "lucide-react";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { entrySourceHref, evidenceProvenance, officialLabelUrl } from "@/lib/checks/evidence-source";
 import { DOCUMENT_KIND_LABEL, type Provenance } from "@/lib/checks/shared";
 import type { Finding, FindingEvidence, Formulation, MedicationEntry } from "@/lib/domain/schema";
@@ -25,18 +26,27 @@ const LINK = "inline-flex min-h-11 items-center gap-1 text-sm font-medium underl
  * is one, and — one tap away — the exact label evidence with its sources. A shared ingredient leads
  * with the overlap diagram, which shows each product's strength; its detail line moves under the
  * evidence, where it isn't a repeat.
+ *
+ * `label` names the kind of finding above its title ("Shared ingredient identified"); `children` add to
+ * the card under the label's warning (the compare sheet's question, bars and label links).
  */
 export function WarningCard({
   finding,
   patientId,
   entries,
   formulations,
+  label,
+  headingLevel: Heading = "h3",
+  children,
 }: {
   finding: Finding;
   patientId: string;
   /** The confirmed entries the checks ran on, by id. */
   entries: Map<string, MedicationEntry>;
   formulations: Record<string, Formulation>;
+  label?: string;
+  headingLevel?: "h3" | "h4";
+  children?: ReactNode;
 }) {
   const headingId = `warning-${finding.id.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
   const visual = overlapVisual(finding, entries);
@@ -50,20 +60,21 @@ export function WarningCard({
           <>
             <p className="flex items-center gap-2 text-xs font-semibold tracking-[0.08em] text-finding-foreground uppercase">
               <TriangleAlertIcon aria-hidden className="size-4 text-finding" />
-              Shared ingredient
+              {label ?? "Shared ingredient"}
             </p>
             <OverlapVenn visual={visual} />
-            <h3 id={headingId} className="font-display text-lg leading-snug font-semibold text-balance sm:text-xl">
+            <Heading id={headingId} className="font-display text-lg leading-snug font-semibold text-balance sm:text-xl">
               {finding.title}
-            </h3>
+            </Heading>
           </>
         ) : (
           <div className="flex items-start gap-3">
             <TriangleAlertIcon aria-hidden className="mt-0.5 size-5 shrink-0 text-finding" />
             <div className="min-w-0">
-              <h3 id={headingId} className="font-display text-base leading-snug font-semibold text-balance sm:text-lg">
+              {label && <p className="mb-1 text-xs font-semibold tracking-[0.08em] text-finding-foreground uppercase">{label}</p>}
+              <Heading id={headingId} className="font-display text-base leading-snug font-semibold text-balance sm:text-lg">
                 {finding.title}
-              </h3>
+              </Heading>
               <p className="mt-1 leading-relaxed text-pretty text-muted-foreground">{finding.detail}</p>
             </div>
           </div>
@@ -75,6 +86,7 @@ export function WarningCard({
             <blockquote className="mt-1 leading-relaxed">“{finding.labelWarningQuote}”</blockquote>
           </figure>
         )}
+        {children}
       </div>
 
       {finding.evidence.length > 0 && (

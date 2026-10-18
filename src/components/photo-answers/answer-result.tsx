@@ -2,6 +2,7 @@
 
 import { ChevronDownIcon } from "lucide-react";
 import { useId, useState } from "react";
+import { CompareButton } from "@/components/compare/compare-button";
 import { IngredientComparison } from "@/components/compare/ingredient-comparison";
 import { MedicineCard } from "@/components/medicine-card/medicine-card";
 import type { Formulation } from "@/lib/domain/schema";
@@ -24,8 +25,8 @@ export function answersFor(picks: PhotoPick[], formulations: Formulation[]): Ans
  * After Continue, before anything is saved: one medicine → its answer card; two or more → **Together**
  * (the ingredient comparison) first, then each medicine's card, stacked and collapsible.
  */
-export function AnswerResult({ answers }: { answers: Answer[] }) {
-  if (answers.length === 1) return <AnswerBody answer={answers[0]} />;
+export function AnswerResult({ answers, patientId }: { answers: Answer[]; patientId: string }) {
+  if (answers.length === 1) return <AnswerBody answer={answers[0]} patientId={patientId} />;
   const compared = answers.flatMap((a) => (a.formulation ? [a.formulation] : []));
   return (
     <div className="space-y-8">
@@ -49,7 +50,7 @@ export function AnswerResult({ answers }: { answers: Answer[] }) {
           {answers.map((a) => (
             <li key={a.key}>
               <Collapsible title={a.title}>
-                <AnswerBody answer={a} />
+                <AnswerBody answer={a} patientId={patientId} />
               </Collapsible>
             </li>
           ))}
@@ -59,8 +60,16 @@ export function AnswerResult({ answers }: { answers: Answer[] }) {
   );
 }
 
-function AnswerBody({ answer }: { answer: Answer }) {
-  if (answer.formulation) return <MedicineCard formulation={answer.formulation} showTitle={false} />;
+/** A matched medicine's card, which can also be compared with the person's saved medicines (nothing is saved). */
+function AnswerBody({ answer, patientId }: { answer: Answer; patientId: string }) {
+  if (answer.formulation)
+    return (
+      <MedicineCard
+        formulation={answer.formulation}
+        showTitle={false}
+        actions={<CompareButton patientId={patientId} subject={{ entryId: answer.key, formulationId: answer.formulation.id }} />}
+      />
+    );
   return (
     <p className="rounded-xl border bg-surface p-4 text-sm text-pretty">
       <span className="font-semibold">{answer.title}</span> isn&apos;t matched to an FDA label, so there is no card. It is saved by its
