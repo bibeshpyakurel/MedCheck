@@ -9,7 +9,7 @@ import { getPatient } from "@/lib/records";
 
 export const metadata: Metadata = { title: "Add a medicine" };
 
-/** The capture page: where people land after signing in. Take a photo or choose one. */
+/** The capture page: home until the first medicine is on file. Take a photo or choose one. */
 export default async function AddPage({ params }: PageProps<"/patients/[patientId]/add">) {
   await requireUser();
   const { patientId } = await params;

@@ -4,6 +4,7 @@ import {
   capturePath,
   emailLocalPart,
   fullName,
+  homePathFor,
   isEmail,
   linkErrorTarget,
   nameFromMetadata,
@@ -15,6 +16,16 @@ import {
 describe("capturePath", () => {
   it("is the person's add-a-medicine page", () => {
     expect(capturePath("abc")).toBe("/patients/abc/add");
+  });
+});
+
+describe("homePathFor", () => {
+  it("is the Medicines page once anything is on file, confirmed or waiting for review", () => {
+    expect(homePathFor("abc", true)).toBe("/patients/abc");
+  });
+
+  it("is the add-a-medicine page while nothing is on file", () => {
+    expect(homePathFor("abc", false)).toBe("/patients/abc/add");
   });
 });
 

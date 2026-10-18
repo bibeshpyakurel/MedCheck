@@ -1,9 +1,14 @@
 // Sign-in helpers: where people land, the name they're known by, and plain-English sign-in errors.
 // Pure; client-safe.
 
-/** Where a signed-in person starts: adding a medicine to their own record. */
+/** The add-a-medicine page of a person's record. */
 export function capturePath(patientId: string): string {
   return `/patients/${patientId}/add`;
+}
+
+/** Home for a signed-in person: their Medicines page once anything is on file, otherwise adding the first medicine. */
+export function homePathFor(patientId: string, hasMedicines: boolean): string {
+  return hasMedicines ? `/patients/${patientId}` : capturePath(patientId);
 }
 
 const MAX_NAME = 120;

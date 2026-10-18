@@ -11,7 +11,7 @@ import { signInErrorMessage } from "@/lib/account";
 import { getCurrentUser, homePath } from "@/lib/auth";
 
 // One screen, no scrolling: the job in a line, then the three ways in. The explainers live in the ☰ menu.
-// Anyone already signed in (guests too) goes straight to adding a medicine, like opening an app they use.
+// Anyone already signed in (guests too) goes straight home — their medicines, or adding the first one — like opening an app they use.
 export default async function Home({ searchParams }: PageProps<"/">) {
   const { error, code } = await searchParams;
   // Supabase falls back to the site root when a redirect URL isn't on its allow list; finish signing in anyway.

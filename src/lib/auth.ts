@@ -2,9 +2,9 @@ import "server-only";
 
 import { redirect } from "next/navigation";
 import { cache } from "react";
-import { capturePath, emailLocalPart } from "@/lib/account";
+import { emailLocalPart, homePathFor } from "@/lib/account";
 import { isSelf } from "@/lib/record-format";
-import { ensureSelfPatient, getCaregiver, listPatients, upsertCaregiver } from "@/lib/records";
+import { ensureSelfPatient, getCaregiver, hasEntries, listPatients, upsertCaregiver } from "@/lib/records";
 import { createClient } from "@/lib/supabase/server";
 
 export type CurrentUser = { id: string; isAnonymous: boolean; email: string | null };
@@ -43,8 +43,8 @@ export const getAccount = cache(async (): Promise<Account | null> => {
 });
 
 /**
- * The signed-in person's capture page (add a medicine to their own record), creating their record
- * if it is missing. Signed-out visitors go to the landing page.
+ * The signed-in person's home: their Medicines page once anything is on file, otherwise adding the
+ * first medicine. Creates their record if it is missing. Signed-out visitors go to the landing page.
  */
 export async function homePath(): Promise<string> {
   const user = await requireUser();
@@ -53,12 +53,12 @@ export async function homePath(): Promise<string> {
     ? "Guest"
     : caregiver?.displayName || (user.email ? emailLocalPart(user.email) : "Me");
   const self = await ensureSelfPatient(fallbackName);
-  return capturePath(self.id);
+  return homePathFor(self.id, await hasEntries(self.id));
 }
 
 /**
  * Finishes signing in with an account (Google or email): saves the person's name when one is known
- * (it shows on the pharmacist report), makes sure they have their own record, and returns its capture page.
+ * (it shows on the pharmacist report), makes sure they have their own record, and returns their home (see homePath).
  */
 export async function completeSignIn(name: string | null): Promise<string> {
   await requireUser();

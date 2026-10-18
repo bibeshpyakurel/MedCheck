@@ -32,7 +32,7 @@ async function googleEnabled(): Promise<boolean> {
   }
 }
 
-/** "Continue as a guest": an anonymous session with one record named "Guest", then the capture page. */
+/** "Continue as a guest": an anonymous session with one record named "Guest", then its home (the capture page while it's empty). */
 export async function startGuest(): Promise<void> {
   if (!(await getCurrentUser())) {
     const supabase = await createClient();
@@ -101,7 +101,7 @@ export async function sendEmailCode(formData: FormData): Promise<void> {
   redirect(`/sign-in/verify?${params}`);
 }
 
-/** "Continue with email", step 2: checks the emailed code, saves the name, and opens the capture page. */
+/** "Continue with email", step 2: checks the emailed code, saves the name, and opens the person's home. */
 export async function verifyEmailCode(formData: FormData): Promise<void> {
   const email = field(formData, "email").toLowerCase();
   const firstName = field(formData, "first_name", 60);
